@@ -1,0 +1,37 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+    open-pull-requests-limit: 1
+    groups:
+      actions-all:
+        patterns: ["*"]
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "tuesday"
+    open-pull-requests-limit: 1
+    groups:
+      maven-prod:
+        dependency-type: "production"
+        update-types: ["patch", "minor"]
+      maven-dev:
+        dependency-type: "development"
+        update-types: ["patch", "minor"]
+    ignore:
+      - dependency-name: "io.papermc.paper:paper-api"
+      - dependency-name: "org.spigotmc:spigot-api"
+      - dependency-name: "org.bukkit:bukkit"
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "wednesday"
+    open-pull-requests-limit: 1
+    groups:
+      gradle-all:
+        patterns: ["*"]
