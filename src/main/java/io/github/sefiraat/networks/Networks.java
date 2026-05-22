@@ -41,7 +41,7 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
     public Networks() {
         this.username = "DrakesCraft-Labs";
         this.repo = "NetworksV6-drake";
-        this.branch = "1.21-latin";
+        this.branch = "main";
     }
 
     @Override

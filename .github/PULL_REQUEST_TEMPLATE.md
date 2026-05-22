@@ -6,7 +6,7 @@
 - [ ] Probado localmente (build y arranque)
 - [ ] Sin breaking changes no documentados
 - [ ] README/Docs actualizados si aplica
-- [ ] Compatibilidad validada para `1.21-latin`
+- [ ] Compatibilidad validada para `main`
 
 ## Test plan
 - [ ] `mvn -DskipTests clean package` o `./gradlew build`

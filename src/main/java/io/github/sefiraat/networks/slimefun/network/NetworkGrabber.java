@@ -3,6 +3,7 @@ package io.github.sefiraat.networks.slimefun.network;
 import io.github.sefiraat.networks.NetworkStorage;
 import io.github.sefiraat.networks.network.NodeDefinition;
 import io.github.sefiraat.networks.network.NodeType;
+import io.github.sefiraat.networks.utils.NetworkTransportUtils;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
@@ -20,7 +21,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class NetworkGrabber extends NetworkDirectional {
-
 
     public NetworkGrabber(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(itemGroup, item, recipeType, recipe, NodeType.GRABBER);
@@ -44,7 +44,7 @@ public class NetworkGrabber extends NetworkDirectional {
         final BlockFace direction = this.getCurrentDirection(blockMenu);
         final BlockMenu targetMenu = BlockStorage.getInventory(blockMenu.getBlock().getRelative(direction));
 
-        if (targetMenu == null) {
+        if (!NetworkTransportUtils.isExternalInventory(targetMenu)) {
             return;
         }
 
@@ -54,12 +54,19 @@ public class NetworkGrabber extends NetworkDirectional {
             final ItemStack itemStack = targetMenu.getItemInSlot(slot);
 
             if (itemStack != null && itemStack.getType() != Material.AIR) {
-                int before = itemStack.getAmount();
-                definition.getNode().getRoot().addItemStack0(blockMenu.getLocation(), itemStack);
-                if (definition.getNode().getRoot().isDisplayParticles() && itemStack.getAmount() < before) {
-                    showParticle(blockMenu.getLocation(), direction);
+                final int consumed = NetworkTransportUtils.pullIntoNetwork(
+                        definition.getNode().getRoot(),
+                        blockMenu.getLocation(),
+                        targetMenu,
+                        slot);
+
+                if (consumed > 0) {
+                    blockMenu.markDirty();
+                    if (definition.getNode().getRoot().isDisplayParticles()) {
+                        showParticle(blockMenu.getLocation(), direction);
+                    }
+                    break;
                 }
-                break;
             }
         }
     }

@@ -3,6 +3,7 @@ package io.github.sefiraat.networks.slimefun.network;
 import io.github.sefiraat.networks.NetworkStorage;
 import io.github.sefiraat.networks.network.NodeDefinition;
 import io.github.sefiraat.networks.network.NodeType;
+import io.github.sefiraat.networks.utils.NetworkTransportUtils;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemSetting;
@@ -81,7 +82,14 @@ public class NetworkImport extends NetworkObject {
             if (itemStack == null || itemStack.getType() == Material.AIR) {
                 continue;
             }
-            definition.getNode().getRoot().addItemStack0(blockMenu.getLocation(), itemStack);
+            final int consumed = NetworkTransportUtils.pullIntoNetwork(
+                    definition.getNode().getRoot(),
+                    blockMenu.getLocation(),
+                    blockMenu,
+                    inputSlot);
+            if (consumed > 0) {
+                blockMenu.markDirty();
+            }
         }
     }
 

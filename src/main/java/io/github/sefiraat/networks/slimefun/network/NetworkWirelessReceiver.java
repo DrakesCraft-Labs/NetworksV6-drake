@@ -2,6 +2,7 @@ package io.github.sefiraat.networks.slimefun.network;
 
 import io.github.sefiraat.networks.NetworkStorage;
 import io.github.sefiraat.networks.network.NodeDefinition;
+import io.github.sefiraat.networks.utils.NetworkTransportUtils;
 import io.github.sefiraat.networks.network.NodeType;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import io.github.sefiraat.networks.utils.ItemCreator;
@@ -83,8 +84,14 @@ public class NetworkWirelessReceiver extends NetworkObject {
             return;
         }
 
-        definition.getNode().getRoot().addItemStack0(blockMenu.getLocation(), itemStack);
-
+        final int consumed = NetworkTransportUtils.pullIntoNetwork(
+                definition.getNode().getRoot(),
+                blockMenu.getLocation(),
+                blockMenu,
+                RECEIVED_SLOT);
+        if (consumed > 0) {
+            blockMenu.markDirty();
+        }
     }
 
     @Override

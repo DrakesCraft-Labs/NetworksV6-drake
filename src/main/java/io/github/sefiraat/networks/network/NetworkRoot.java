@@ -1229,14 +1229,12 @@ public class NetworkRoot extends NetworkNode {
 
             blockMenu.markDirty();
             blockMenu.pushItem(incoming, GREEDY_BLOCK_AVAILABLE_SLOTS[0]);
-            // Netex - Reduce start
-            uncontrolAccessInput(accessor);
-            // Netex - Reduce end
-            // Netex - Record start
-            tryRecord(accessor, beforeItemStack, incoming.getAmount());
-            // Netex - Record end
-            // Given we have found a match, it doesn't matter if the item moved or not, we will not bring it in
-            return;
+            if (incoming.getAmount() == 0) {
+                uncontrolAccessInput(accessor);
+                tryRecord(accessor, beforeItemStack, 0);
+                return;
+            }
+            // Plantilla coincide pero el greedy no absorbió todo: seguir con barriles/celdas
         }
 
         // Run for matching barrels

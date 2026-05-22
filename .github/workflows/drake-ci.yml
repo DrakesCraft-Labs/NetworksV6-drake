@@ -2,9 +2,9 @@ name: Drake CI
 
 on:
   pull_request:
-    branches: ["1.21-latin"]
+    branches: ["main"]
   push:
-    branches: ["1.21-latin"]
+    branches: ["main"]
 
 jobs:
   build:

@@ -1,6 +1,6 @@
 # NetworksV6-Drake
 
-[![Branch](https://img.shields.io/badge/branch-1.21--latin-blue)](https://github.com/DrakesCraft-Labs/NetworksV6-drake/tree/1.21-latin)
+[![Branch](https://img.shields.io/badge/branch-main-blue)](https://github.com/DrakesCraft-Labs/NetworksV6-drake/tree/main)
 [![License](https://img.shields.io/badge/license-GPL--3.0-green)](LICENSE)
 [![Java](https://img.shields.io/badge/java-21-orange)](https://adoptium.net/)
 [![Minecraft](https://img.shields.io/badge/minecraft-1.21.11-brightgreen)](https://papermc.io/)

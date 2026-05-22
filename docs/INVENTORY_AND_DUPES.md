@@ -1,6 +1,8 @@
 # Inventarios, dupes y bugs conocidos (upstream + Chagui)
 
-Referencias auditadas: [Sefiraat/Networks#229](https://github.com/Sefiraat/Networks/issues/229), [#230](https://github.com/Sefiraat/Networks/issues/230), [#208](https://github.com/Sefiraat/Networks/issues/208), [#233](https://github.com/Sefiraat/Networks/issues/233), fork Chagui / Drake monorepo.
+Referencias auditadas: [Sefiraat/Networks#229](https://github.com/Sefiraat/Networks/issues/229), [#230](https://github.com/Sefiraat/Networks/issues/230), [#208](https://github.com/Sefiraat/Networks/issues/208), [#233](https://github.com/Sefiraat/Networks/issues/233), [#240](https://github.com/Sefiraat/Networks/issues/240), fork Chagui / Drake monorepo.
+
+Rama de desarrollo: **`main`** (la rama `1.21-latin` quedó obsoleta).
 
 ## Mitigaciones en NetworksV6-drake
 
@@ -15,6 +17,8 @@ Referencias auditadas: [Sefiraat/Networks#229](https://github.com/Sefiraat/Netwo
 | **#233 Control X** | Dupe con shulker + cutter | `NetworkControlX` sin corte NMS (modo compat); no extrae bloques ajenos |
 | **Persistencia** | NBT inconsistente | `dev.drake.sefilib.persistence.PersistenceTypes` |
 | **Concurrencia** | Sets compartidos en tick | `ConcurrentHashMap` en `NetworkRoot` |
+| **#240** | Network Grabber duplica items Slimefun | `NetworkTransportUtils.pullIntoNetwork` + no extraer de menús `NTW_*`; `markDirty` en origen |
+| **Greedy** | Plantilla coincide pero push falla → item “consumido” en lógica netex | `addItemStack0` solo sale del greedy si `incoming.getAmount() == 0` |
 
 ## Autoupdate
 
