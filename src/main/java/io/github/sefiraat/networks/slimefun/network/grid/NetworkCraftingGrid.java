@@ -85,6 +85,10 @@ public class NetworkCraftingGrid extends AbstractGrid {
 
             @Override
             public boolean canOpen(@Nonnull Block block, @Nonnull Player player) {
+                final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(block.getLocation());
+                if (definition != null && definition.getNode() != null) {
+                    definition.getNode().getRoot().getCellMenus();
+                }
                 return NetworkSlimefunItems.NETWORK_GRID.canUse(player, false)
                     && Slimefun.getProtectionManager().hasPermission(player, block.getLocation(), Interaction.INTERACT_BLOCK);
             }

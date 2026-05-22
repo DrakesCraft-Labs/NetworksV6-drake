@@ -1,0 +1,73 @@
+package io.github.sefiraat.networks.utils;
+
+import io.github.sefiraat.networks.NetworkStorage;
+import io.github.sefiraat.networks.network.NodeDefinition;
+import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
+import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
+import org.bukkit.Location;
+import org.bukkit.Material;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.Iterator;
+import java.util.Set;
+
+/**
+ * Valida que los nodos registrados sigan siendo máquinas NTW reales en el mundo.
+ * Mitiga #229 (miembros huérfanos) y #230 (celdas fantasma en grid).
+ */
+public final class NetworkIntegrity {
+
+    private static final String NETWORK_ID_PREFIX = "NTW_";
+
+    private NetworkIntegrity() {}
+
+    public static boolean isNetworksMachine(@Nullable Location location) {
+        if (location == null || location.getWorld() == null) {
+            return false;
+        }
+        if (location.getBlock().getType() == Material.AIR) {
+            return false;
+        }
+        final SlimefunItem item = BlockStorage.check(location);
+        return item != null && item.getId().startsWith(NETWORK_ID_PREFIX);
+    }
+
+    public static boolean isExpectedMachine(@Nullable Location location, @Nonnull Class<? extends SlimefunItem> type) {
+        if (!isNetworksMachine(location)) {
+            return false;
+        }
+        final SlimefunItem item = BlockStorage.check(location);
+        return type.isInstance(item);
+    }
+
+    /**
+     * Si el bloque ya no es NTW pero el grafo sigue registrado, limpia la membresía.
+     */
+    public static void purgeGhostMembership(@Nullable Location location) {
+        if (location == null) {
+            return;
+        }
+        final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(location);
+        if (definition == null) {
+            return;
+        }
+        if (!isNetworksMachine(location)) {
+            NetworkUtils.clearNetwork(location);
+        }
+    }
+
+    /**
+     * Elimina ubicaciones del set interno que ya no son del tipo esperado.
+     */
+    public static void pruneStaleLocations(@Nonnull Set<Location> locations, @Nonnull Class<? extends SlimefunItem> expectedType) {
+        final Iterator<Location> iterator = locations.iterator();
+        while (iterator.hasNext()) {
+            final Location location = iterator.next();
+            if (!isExpectedMachine(location, expectedType)) {
+                iterator.remove();
+                purgeGhostMembership(location);
+            }
+        }
+    }
+}

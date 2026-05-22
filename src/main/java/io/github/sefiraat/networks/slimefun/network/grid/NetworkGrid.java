@@ -1,5 +1,6 @@
 package io.github.sefiraat.networks.slimefun.network.grid;
 
+import io.github.sefiraat.networks.NetworkStorage;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
@@ -60,6 +61,10 @@ public class NetworkGrid extends AbstractGrid {
 
             @Override
             public boolean canOpen(@Nonnull Block block, @Nonnull Player player) {
+                final var definition = NetworkStorage.getAllNetworkObjects().get(block.getLocation());
+                if (definition != null && definition.getNode() != null) {
+                    definition.getNode().getRoot().getCellMenus();
+                }
                 return NetworkSlimefunItems.NETWORK_GRID.canUse(player, false)
                     && Slimefun.getProtectionManager().hasPermission(player, block.getLocation(), Interaction.INTERACT_BLOCK);
             }

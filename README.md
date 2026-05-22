@@ -45,7 +45,7 @@ Dependencias Drake (`slimefun-core`, `dough-core`, `sefilib-drake`, etc.) deben 
 
 ```bash
 cd ../drakes-slimefun-labs
-mvn -B -ntp -DskipTests install -pl sources/dough-core,sources/slimefun-core/Slimefun4-src,sources/batch-2-expansion/SefiLib,sources/drakes-labs-autoupdate,sources/repos-to-port/InfinityExpansion -am
+mvn -B -ntp -DskipTests install -pl sources/dough-core,sources/slimefun-core/Slimefun4-src,sources/batch-2-expansion/SefiLib,sources/repos-to-port/InfinityExpansion -am
 ```
 
 Luego, en este repo:

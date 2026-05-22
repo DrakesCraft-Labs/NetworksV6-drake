@@ -1,36 +1,36 @@
-# Inventarios, persistencia y dupes conocidos
+# Inventarios, dupes y bugs conocidos (upstream + Chagui)
 
-Auditoría Drake (Chagui + monorepo) integrada en `NetworksV6-drake`.
+Referencias auditadas: [Sefiraat/Networks#229](https://github.com/Sefiraat/Networks/issues/229), [#230](https://github.com/Sefiraat/Networks/issues/230), [#208](https://github.com/Sefiraat/Networks/issues/208), [#233](https://github.com/Sefiraat/Networks/issues/233), fork Chagui / Drake monorepo.
 
-## Corregido en este repo
+## Mitigaciones en NetworksV6-drake
 
-| Área | Qué hacía fallar | Mitigación |
+| Issue / vector | Descripción | Fix Drake |
 |---|---|---|
-| Apagado del servidor | Celdas/NTW no marcaban dirty → pérdida o estado incoherente al reiniciar | `Networks.onDisable()` + `markNetworkInventoriesDirty()` |
-| Quantum Storage | Cambios de cantidad/void sin persistir en BlockStorage | `markDirty()` en push, sync y `createCache` |
-| Grid / Export / Pusher / Wireless | Retiros e inserciones sin dirty | `markDirty()` tras mutar menús |
-| Vanilla Grabber/Pusher | Slots de red no guardados | `markDirty()` tras mover items |
-| AutoCrafter / Encoder / Quantum Workbench | Salidas craft sin dirty | `markDirty()` tras `pushItem` |
-| `NetworkRoot` (celdas/crafters) | Retiros parciales sin marcar menú | `markDirty()` en cada mutación de stack |
-| Crecimiento de estructuras (árboles, etc.) | Nodos NTW bajo bloques nuevos → dupes al romper | `SyncListener.onStructureGrow` (comentario upstream: "Fixed a dupe") |
-| Persistencia NBT | `morepersistentdatatypes` vendored inconsistente con Drake | `dev.drake.sefilib.persistence.PersistenceTypes` |
-| Concurrencia de nodos | Sets compartidos en tick | `ConcurrentHashMap` / `newKeySet()` en `NetworkRoot` |
+| **#229** | Pico/shovel explosivo, wither, dripleaf, Android deja nodo NTW huérfano | `ExplosiveToolListener` protege todas las NTW; `SyncListener` + `EntityChangeBlock`; `NetworkIntegrity.purgeGhostMembership` |
+| **#230** | Celda rota indirectamente → grid trata otro inventario como celda | `NetworkIntegrity.pruneStaleLocations` en `getCellMenus()`; saneo al abrir grid |
+| **#208** | Retiro por grid sin abrir quantum → Slimefun no persiste salida | `markDirty` + `syncBlock(menu)` en retiros `NetworkQuantumStorage.getItemStack` |
+| **Grid middle/double** | COLLECT_TO_CURSOR / middle click en GUI | `GridDupeGuardListener` cancela clics peligrosos en `AbstractGrid` |
+| **Estructuras** | Árbol crece sobre NTW | `SyncListener.onStructureGrow` (upstream) |
+| **Apagado** | Pérdida de celdas al reiniciar | `Networks.onDisable()` + `markDirty` en mutaciones |
+| **#233 Control X** | Dupe con shulker + cutter | `NetworkControlX` sin corte NMS (modo compat); no extrae bloques ajenos |
+| **Persistencia** | NBT inconsistente | `dev.drake.sefilib.persistence.PersistenceTypes` |
+| **Concurrencia** | Sets compartidos en tick | `ConcurrentHashMap` en `NetworkRoot` |
 
-## Riesgos que siguen vigilados (smoke en servidor)
+## Autoupdate
 
-1. **Crafting grid con autocraft rápido**: encadenar craft + refill de red puede duplicar si otro addon cancela eventos de inventario. Probar con lag artificial (`/mspt`).
-2. **Quantum void + export simultáneo**: con void activo y exportador en la misma red, validar que no se extraiga más de lo contado en cache.
-3. **Wireless TX/RX bajo chunk unload**: enlaces guardados en PDC; al volver a cargar chunk, comprobar que el receptor no acepte doble push en el mismo tick.
-4. **Greedy block + celdas llenas**: el root hace `markDirty` antes de `pushItem`; si la celda rechaza el item, verificar que no quede "fantasma" en memoria (Netex `getItemStack0`).
-5. **Addons que reescriben `BlockMenu`**: Slimefun HUD / menús de terceros abiertos sobre NTW pueden impedir dirty; cerrar GUI antes de `/stop`.
+Desactivado en Drake: sin `DrakesLabsReleaseUpdate` ni `BlobBuildUpdater`. Despliegue manual del JAR desde releases del repo.
 
-## Prueba mínima recomendada (producción)
+## Smoke test en servidor
 
-1. Llenar una celda y un quantum storage, reiniciar servidor → cantidades iguales.
-2. Craftear 64 ítems en grid con red llena y vacía.
-3. Colocar sapling + bone meal cerca de bridge NTW → no debe duplicar al crecer árbol.
-4. Exportador + importador en bucle cerrado → estable (sin crecimiento de items).
+1. Romper celda con pico explosivo → la red no debe listar esa posición en grid.
+2. Quantum lleno → retirar solo por grid → reiniciar → cantidad coherente.
+3. Abrir grid: middle click y doble click no deben duplicar.
+4. Sapling + bone meal sobre bridge NTW sin dupe al talar.
+5. `/stop` con items en celdas y quantum → reinicio sin pérdida.
 
-## Reportar
+## Pendiente upstream / addons externos
 
-Issues en: https://github.com/DrakesCraft-Labs/NetworksV6-drake/issues
+- Dupe con **Fluffy Barrel** u otros inventarios de terceros encima de celda rota (#230): requiere addon cooperando o no instalar barrel sobre NTW.
+- **Programmable Android** sobre aire donde había NTW: limpiar con `purgeGhostMembership` al detectar bloque no-NTW; no reemplaza validación del script del Android.
+
+Reportes: https://github.com/DrakesCraft-Labs/NetworksV6-drake/issues

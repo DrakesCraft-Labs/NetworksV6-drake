@@ -14,7 +14,11 @@ import io.github.sefiraat.networks.slimefun.network.NetworkCell;
 import io.github.sefiraat.networks.slimefun.network.NetworkDirectional;
 import io.github.sefiraat.networks.slimefun.network.NetworkGreedyBlock;
 import io.github.sefiraat.networks.slimefun.network.NetworkPowerNode;
+import io.github.sefiraat.networks.slimefun.network.NetworkAutoCrafter;
+import io.github.sefiraat.networks.slimefun.network.NetworkCell;
+import io.github.sefiraat.networks.slimefun.network.NetworkGreedyBlock;
 import io.github.sefiraat.networks.slimefun.network.NetworkQuantumStorage;
+import io.github.sefiraat.networks.utils.NetworkIntegrity;
 import io.github.sefiraat.networks.utils.StackUtils;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import lombok.Getter;
@@ -484,9 +488,10 @@ public class NetworkRoot extends NetworkNode {
 
     @NotNull
     public Set<BlockMenu> getCellMenus() {
+        NetworkIntegrity.pruneStaleLocations(this.cells, NetworkCell.class);
         final Set<BlockMenu> menus = new HashSet<>();
-        for (Location cellLocation : this.cells) { // 看看这个cells， size = 0, fuck
-            BlockMenu menu = BlockStorage.getInventory(cellLocation);
+        for (Location cellLocation : this.cells) {
+            final BlockMenu menu = BlockStorage.getInventory(cellLocation);
             if (menu != null) {
                 menus.add(menu);
             }
@@ -496,9 +501,10 @@ public class NetworkRoot extends NetworkNode {
 
     @NotNull
     public Set<BlockMenu> getCrafterOutputs() {
+        NetworkIntegrity.pruneStaleLocations(this.crafters, NetworkAutoCrafter.class);
         final Set<BlockMenu> menus = new HashSet<>();
         for (Location location : this.crafters) {
-            BlockMenu menu = BlockStorage.getInventory(location);
+            final BlockMenu menu = BlockStorage.getInventory(location);
             if (menu != null) {
                 menus.add(menu);
             }
@@ -508,9 +514,10 @@ public class NetworkRoot extends NetworkNode {
 
     @NotNull
     public Set<BlockMenu> getGreedyBlockMenus() {
+        NetworkIntegrity.pruneStaleLocations(this.greedyBlocks, NetworkGreedyBlock.class);
         final Set<BlockMenu> menus = new HashSet<>();
         for (Location location : this.greedyBlocks) {
-            BlockMenu menu = BlockStorage.getInventory(location);
+            final BlockMenu menu = BlockStorage.getInventory(location);
             if (menu != null) {
                 menus.add(menu);
             }

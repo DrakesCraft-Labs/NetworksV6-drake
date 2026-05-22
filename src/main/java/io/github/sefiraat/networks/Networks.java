@@ -1,6 +1,5 @@
 package io.github.sefiraat.networks;
 
-import com.github.drakescraft_labs.labupdate.DrakesLabsReleaseUpdate;
 import com.github.drakescraft_labs.slimefun4.api.SlimefunAddon;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
@@ -47,8 +46,6 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
 
     @Override
     public void onEnable() {
-        DrakesLabsReleaseUpdate.schedule(this, "NetworksV6-drake", "DrakesCraft-Labs/NetworksV6-drake");
-
         instance = this;
 
         getLogger().info("########################################");

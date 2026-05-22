@@ -366,7 +366,12 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
                 itemStack.setAmount(leftover);
             }
         }
-        syncBlock(location, cache);
+        final BlockMenu blockMenu = BlockStorage.getInventory(location);
+        if (blockMenu != null) {
+            syncBlock(blockMenu, cache);
+        } else {
+            syncBlock(location, cache);
+        }
     }
 
     private static boolean isBlacklisted(@Nonnull ItemStack itemStack) {
@@ -412,12 +417,13 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
                     fetched.setAmount(fetched.getAmount() + additional);
                 }
             }
-            syncBlock(blockMenu.getLocation(), cache);
+            syncBlock(blockMenu, cache);
             return fetched;
         } else {
             // Storage has everything we need
-            syncBlock(blockMenu.getLocation(), cache);
-            return cache.withdrawItem(amount);
+            final ItemStack withdrawn = cache.withdrawItem(amount);
+            syncBlock(blockMenu, cache);
+            return withdrawn;
         }
     }
 

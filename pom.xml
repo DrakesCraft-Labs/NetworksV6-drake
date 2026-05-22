@@ -99,11 +99,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.github.drakescraft_labs</groupId>
-            <artifactId>drakes-labs-autoupdate</artifactId>
-            <version>${foundry.version}</version>
-        </dependency>
-        <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
             <version>${paper.version}</version>
