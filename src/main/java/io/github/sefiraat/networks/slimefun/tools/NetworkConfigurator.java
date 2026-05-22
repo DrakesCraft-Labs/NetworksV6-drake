@@ -1,6 +1,7 @@
 package io.github.sefiraat.networks.slimefun.tools;
 
-import de.jeff_media.morepersistentdatatypes.DataType;
+import dev.drake.sefilib.persistence.PersistenceTypes;
+import org.bukkit.persistence.PersistentDataType;
 import io.github.sefiraat.networks.slimefun.network.NetworkDirectional;
 import io.github.sefiraat.networks.slimefun.network.NetworkPusher;
 import io.github.sefiraat.networks.utils.Keys;
@@ -15,12 +16,15 @@ import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
 import com.github.drakescraft_labs.slimefun4.core.handlers.ItemUseHandler;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.data.persistent.PersistentDataAPI;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.Interaction;
+import dev.drake.dough.data.persistent.PersistentDataAPI;
+import dev.drake.dough.protection.Interaction;
+import dev.drake.dough.protection.ProtectionManager;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -35,34 +39,33 @@ public class NetworkConfigurator extends SlimefunItem {
     public NetworkConfigurator(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(itemGroup, item, recipeType, recipe);
         addItemHandler(
-            new ItemUseHandler() {
-                @Override
-                public void onRightClick(PlayerRightClickEvent e) {
-                    final Player player = e.getPlayer();
-                    final Optional<Block> optional = e.getClickedBlock();
-                    if (optional.isPresent()) {
-                        final Block block = optional.get();
-                        final SlimefunItem slimefunItem = BlockStorage.check(block);
-                        if (Slimefun.getProtectionManager().hasPermission(player, block, Interaction.INTERACT_BLOCK)
-                            && slimefunItem instanceof NetworkDirectional directional
-                        ) {
-                            final BlockMenu blockMenu = BlockStorage.getInventory(block);
-                            if (player.isSneaking()) {
-                                setConfigurator(directional, e.getItem(), blockMenu, player);
+                new ItemUseHandler() {
+                    @Override
+                    public void onRightClick(PlayerRightClickEvent e) {
+                        final Player player = e.getPlayer();
+                        final Optional<Block> optional = e.getClickedBlock();
+                        if (optional.isPresent()) {
+                            final Block block = optional.get();
+                            final SlimefunItem slimefunItem = BlockStorage.check(block);
+                            if (Slimefun.getProtectionManager().hasPermission(Bukkit.getOfflinePlayer(player.getUniqueId()), block, Interaction.INTERACT_BLOCK)
+                                    && slimefunItem instanceof NetworkDirectional directional) {
+                                final BlockMenu blockMenu = BlockStorage.getInventory(block);
+                                if (player.isSneaking()) {
+                                    setConfigurator(directional, e.getItem(), blockMenu, player);
+                                } else {
+                                    NetworkUtils.applyConfig(directional, e.getItem(), blockMenu, player);
+                                }
                             } else {
-                                NetworkUtils.applyConfig(directional, e.getItem(), blockMenu, player);
+                                player.sendMessage(Theme.ERROR + "Must target a directional Networks interface.");
                             }
-                        } else {
-                            player.sendMessage(Theme.ERROR + "Must target a directional Networks interface.");
                         }
+                        e.cancel();
                     }
-                    e.cancel();
-                }
-            }
-        );
+                });
     }
 
-    private void setConfigurator(@Nonnull NetworkDirectional directional, @Nonnull ItemStack itemStack, @Nonnull BlockMenu blockMenu, @Nonnull Player player) {
+    private void setConfigurator(@Nonnull NetworkDirectional directional, @Nonnull ItemStack itemStack,
+            @Nonnull BlockMenu blockMenu, @Nonnull Player player) {
         final BlockFace blockFace = NetworkDirectional.getSelectedFace(blockMenu.getLocation());
 
         if (blockFace == null) {
@@ -83,12 +86,12 @@ public class NetworkConfigurator extends SlimefunItem {
                 }
                 i++;
             }
-            DataTypeMethods.setCustom(itemMeta, Keys.ITEM, DataType.ITEM_STACK_ARRAY, itemStacks);
+            DataTypeMethods.setCustom(itemMeta, Keys.ITEM, PersistenceTypes.ITEM_STACK_ARRAY, itemStacks);
         } else {
             PersistentDataAPI.remove(itemMeta, Keys.ITEM);
         }
 
-        DataTypeMethods.setCustom(itemMeta, Keys.FACE, DataType.STRING, blockFace.name());
+        DataTypeMethods.setCustom(itemMeta, Keys.FACE, PersistentDataType.STRING, blockFace.name());
         itemStack.setItemMeta(itemMeta);
         player.sendMessage(Theme.SUCCESS + "Configuration copied.");
     }

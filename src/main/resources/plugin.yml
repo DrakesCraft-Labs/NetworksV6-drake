@@ -1,8 +1,8 @@
 name: NetworksV6-Drake
-authors: [Sefiraat, mmmjjkx, DrakesCraft-Labs]
-description: Networks V6 ported and adapted for Drake Labs 1.21.x.
+authors: [Sefiraat, Chagui68, mmmjjkx, DrakesCraft-Labs]
+description: Networks V6 ported and stabilized for Drake Labs 1.21.x.
 main: io.github.sefiraat.networks.Networks
-website: https://github.com/DrakesCraft-Labs/drakes-slimefun-labs
+website: https://github.com/DrakesCraft-Labs/NetworksV6-drake
 version: ${project.version}
 api-version: "1.21"
 depend:
@@ -10,8 +10,26 @@ depend:
 softdepend:
   - InfinityExpansion
   - Netheopoiesis
+  - InfinityExpansion2
+  - Supreme
+  - Cultivation
+  - GeneticChickengineering
+  - DynaTech
+  - SlimyTreeTaps
+  - ElectricSpawners
+  - ExtraTools
+  - TranscEndence
+  - FluffyMachines
+  - FoxyMachines
+  - GlobalWarming
+  - SlimefunWarfare
+  - Liquid
+  - AlchimiaVitae
+  - FNAmplifications
+  - ElementManipulation
   - SlimeHUD
   - WildChests
+  - WeaponsAddon
 commands:
   networks:
     description: /networks

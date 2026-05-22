@@ -12,8 +12,8 @@ import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
 import com.github.drakescraft_labs.slimefun4.core.handlers.BlockBreakHandler;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.items.CustomItemStack;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.Interaction;
+import dev.drake.dough.items.CustomItemStack;
+import dev.drake.dough.protection.Interaction;
 import com.github.drakescraft_labs.slimefun4.utils.SlimefunUtils;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
@@ -156,6 +156,7 @@ public class NetworkQuantumWorkbench extends SlimefunItem {
             }
 
             menu.pushItem(crafted, OUTPUT_SLOT);
+            menu.markDirty();
             for (int recipeSlot : RECIPE_SLOTS) {
                 if (menu.getItemInSlot(recipeSlot) != null) {
                     menu.consumeItem(recipeSlot, 1, true);

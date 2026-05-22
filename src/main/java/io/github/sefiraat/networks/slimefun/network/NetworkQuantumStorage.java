@@ -12,8 +12,8 @@ import com.github.drakescraft_labs.slimefun4.core.attributes.DistinctiveItem;
 import com.github.drakescraft_labs.slimefun4.core.handlers.BlockBreakHandler;
 import com.github.drakescraft_labs.slimefun4.core.handlers.BlockPlaceHandler;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.data.persistent.PersistentDataAPI;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.Interaction;
+import dev.drake.dough.data.persistent.PersistentDataAPI;
+import dev.drake.dough.protection.Interaction;
 import com.github.drakescraft_labs.slimefun4.utils.ChestMenuUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
 import com.github.drakescraft_labs.slimefun4.legacy.Objects.handlers.BlockTicker;
@@ -181,9 +181,11 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
         if (fetched != null && fetched.getType() != Material.AIR) {
             blockMenu.pushItem(fetched, OUTPUT_SLOT);
             syncBlock(blockMenu.getLocation(), cache);
+            blockMenu.markDirty();
         }
 
         CACHES.put(blockMenu.getLocation().clone(), cache);
+        blockMenu.markDirty();
     }
 
     private void toggleVoid(@Nonnull BlockMenu blockMenu) {
@@ -286,7 +288,8 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
     private QuantumCache createCache(@Nullable ItemStack itemStack, @Nonnull BlockMenu menu, int amount, boolean voidExcess) {
         if (itemStack == null || itemStack.getType() == Material.AIR || isDisplayItem(itemStack)) {
             menu.addItem(ITEM_SLOT, NO_ITEM);
-            return new QuantumCache(null, 0, this.maxAmount, true);
+            menu.markDirty();
+            return new QuantumCache(null, 0, this.maxAmount, true, false);
         } else {
             final ItemStack clone = itemStack.clone();
             final ItemMeta itemMeta = clone.getItemMeta();
@@ -433,6 +436,11 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
             itemStack.setAmount(1);
             menu.replaceExistingItem(ITEM_SLOT, itemStack);
         }
+    }
+
+    private static void syncBlock(@Nonnull BlockMenu blockMenu, @Nonnull QuantumCache cache) {
+        syncBlock(blockMenu.getLocation(), cache);
+        blockMenu.markDirty();
     }
 
     private static void syncBlock(@Nonnull Location location, @Nonnull QuantumCache cache) {

@@ -11,7 +11,7 @@ import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.Interaction;
+import dev.drake.dough.protection.Interaction;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
 import org.bukkit.Bukkit;
@@ -151,6 +151,7 @@ public class NetworkVanillaGrabber extends NetworkDirectional {
         if (stack != null && stack.getType() != Material.AIR) {
             blockMenu.replaceExistingItem(OUTPUT_SLOT, stack.clone());
             stack.setAmount(0);
+            blockMenu.markDirty();
             return true;
         } else {
             return false;

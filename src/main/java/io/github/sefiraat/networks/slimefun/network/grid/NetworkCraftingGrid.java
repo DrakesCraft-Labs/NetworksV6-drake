@@ -11,8 +11,8 @@ import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.items.ItemUtils;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.Interaction;
+import dev.drake.dough.items.ItemUtils;
+import dev.drake.dough.protection.Interaction;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenuPreset;
 import com.github.drakescraft_labs.slimefun4.legacy.api.item_transport.ItemTransportFlow;
@@ -229,6 +229,7 @@ public class NetworkCraftingGrid extends AbstractGrid {
 
         // Push item
         menu.pushItem(crafted, CRAFT_OUTPUT_SLOT);
+        menu.markDirty();
 
         // Let's clear down all the items
         for (int recipeSlot : CRAFT_ITEMS) {

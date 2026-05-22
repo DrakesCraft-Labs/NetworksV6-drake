@@ -41,6 +41,15 @@ Este repo contiene el port de `Networks-Exp (b1)` adaptado al stack Drake para P
 
 ## Build local
 
+Dependencias Drake (`slimefun-core`, `dough-core`, `sefilib-drake`, etc.) deben estar en el repositorio Maven local. Desde el monorepo foundry:
+
+```bash
+cd ../drakes-slimefun-labs
+mvn -B -ntp -DskipTests install -pl sources/dough-core,sources/slimefun-core/Slimefun4-src,sources/batch-2-expansion/SefiLib,sources/drakes-labs-autoupdate,sources/repos-to-port/InfinityExpansion -am
+```
+
+Luego, en este repo:
+
 ```bash
 mvn -B -ntp -DskipTests clean package
 ```
@@ -48,6 +57,10 @@ mvn -B -ntp -DskipTests clean package
 Artifact esperado:
 
 - `target/NetworksV6-Drake-v11-SNAPSHOT.jar`
+
+## Experimental
+
+El fork `NetworksExperimental-Drake` vive en `experimental/` (no se despliega como produccion).
 
 ## Release
 

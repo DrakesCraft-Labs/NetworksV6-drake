@@ -4,7 +4,7 @@ import com.balugaq.netex.utils.Converter;
 import io.github.sefiraat.networks.network.stackcaches.ItemStackCache;
 import com.github.drakescraft_labs.slimefun4.api.MinecraftVersion;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.data.persistent.PersistentDataAPI;
+import dev.drake.dough.data.persistent.PersistentDataAPI;
 import lombok.experimental.UtilityClass;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;

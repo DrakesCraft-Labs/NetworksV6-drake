@@ -1,17 +1,23 @@
 package io.github.sefiraat.networks;
 
+import com.github.drakescraft_labs.labupdate.DrakesLabsReleaseUpdate;
+import com.github.drakescraft_labs.slimefun4.api.SlimefunAddon;
+import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
+import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
+import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
+import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenuPreset;
 import io.github.sefiraat.networks.commands.NetworksMain;
-import io.github.sefiraat.networks.managers.ListenerManager;
-import io.github.sefiraat.networks.managers.SupportedPluginManager;
 import io.github.sefiraat.networks.integrations.HudCallbacks;
 import io.github.sefiraat.networks.integrations.NetheoPlants;
+import io.github.sefiraat.networks.managers.ListenerManager;
+import io.github.sefiraat.networks.managers.SupportedPluginManager;
+import io.github.sefiraat.networks.network.SupportedRecipes;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import io.github.sefiraat.networks.slimefun.network.NetworkController;
-import com.github.drakescraft_labs.slimefun4.api.SlimefunAddon;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.updater.BlobBuildUpdater;
-
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.AdvancedPie;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -19,10 +25,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class Networks extends JavaPlugin implements SlimefunAddon {
-
 
     private static Networks instance;
 
@@ -34,41 +40,97 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
     private SupportedPluginManager supportedPluginManager;
 
     public Networks() {
-        this.username = "Sefiraat";
-        this.repo = "Networks";
-        this.branch = "master";
+        this.username = "DrakesCraft-Labs";
+        this.repo = "NetworksV6-drake";
+        this.branch = "1.21-latin";
     }
 
     @Override
     public void onEnable() {
+        DrakesLabsReleaseUpdate.schedule(this, "NetworksV6-drake", "DrakesCraft-Labs/NetworksV6-drake");
+
         instance = this;
 
         getLogger().info("########################################");
         getLogger().info("         Networks - By Sefiraat         ");
-        getLogger().info("     Changed by mmmjjkx and balugaq     ");
+        getLogger().info("     Port Drake Labs / NetworksV6       ");
         getLogger().info("########################################");
 
         saveDefaultConfig();
-        tryUpdate();
 
         this.supportedPluginManager = new SupportedPluginManager();
-
         setupSlimefun();
 
         this.listenerManager = new ListenerManager();
         this.getCommand("networks").setExecutor(new NetworksMain());
 
+        SupportedRecipes.setup();
         setupMetrics();
     }
 
-    public void tryUpdate() {
-        if (getConfig().getBoolean("auto-update") && getDescription().getVersion().startsWith("Dev")) {
-            new BlobBuildUpdater(this, getFile(), "Networks", "Dev").start();
+    @Override
+    public void onDisable() {
+        if (instance == null) {
+            return;
+        }
+
+        Bukkit.getScheduler().cancelTasks(this);
+        saveData();
+        instance = null;
+    }
+
+    private void saveData() {
+        getLogger().info("Saving Networks data before shutdown...");
+
+        markNetworkInventoriesDirty();
+
+        for (org.bukkit.World world : Bukkit.getWorlds()) {
+            final BlockStorage storage = BlockStorage.getStorage(world);
+            if (storage != null) {
+                storage.save();
+            }
+        }
+
+        BlockStorage.saveChunks();
+    }
+
+    private void markNetworkInventoriesDirty() {
+        for (Location location : new HashSet<>(NetworkStorage.getAllNetworkObjects().keySet())) {
+            markNetworkInventoryDirty(location);
+        }
+
+        for (org.bukkit.World world : Bukkit.getWorlds()) {
+            final BlockStorage storage = BlockStorage.getStorage(world);
+            if (storage == null) {
+                continue;
+            }
+
+            for (Location location : storage.getRawStorage().keySet()) {
+                markNetworkInventoryDirty(location);
+            }
+        }
+    }
+
+    private void markNetworkInventoryDirty(Location location) {
+        if (location == null || location.getWorld() == null) {
+            return;
+        }
+
+        final SlimefunItem item = BlockStorage.check(location);
+        if (item == null || !item.getId().startsWith("NTW_") || !BlockMenuPreset.isInventory(item.getId())) {
+            return;
+        }
+
+        final BlockMenu menu = BlockStorage.getInventory(location);
+        if (menu != null) {
+            menu.markDirty();
         }
     }
 
     public void setupSlimefun() {
+        getLogger().info("[Networks] --- Starting Slimefun Setup ---");
         NetworkSlimefunItems.setup();
+
         if (supportedPluginManager.isNetheopoiesis()) {
             try {
                 NetheoPlants.setup();
