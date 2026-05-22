@@ -1,78 +1,255 @@
-# NetworksV6-Drake
+<p align="center">
+  <img src="docs/assets/networks-drake-banner.svg" alt="NetworksV6 Drake — banner" width="920"/>
+</p>
 
-[![Branch](https://img.shields.io/badge/branch-main-blue)](https://github.com/DrakesCraft-Labs/NetworksV6-drake/tree/main)
-[![License](https://img.shields.io/badge/license-GPL--3.0-green)](LICENSE)
-[![Java](https://img.shields.io/badge/java-21-orange)](https://adoptium.net/)
-[![Minecraft](https://img.shields.io/badge/minecraft-1.21.11-brightgreen)](https://papermc.io/)
+<h1 align="center">NetworksV6-Drake</h1>
 
-Addon de Slimefun orientado a redes de almacenamiento y automatizacion de items.  
-Este repo contiene el port de `Networks-Exp (b1)` adaptado al stack Drake para Paper 1.21.x.
+<p align="center">
+  <a href="https://github.com/DrakesCraft-Labs/NetworksV6-drake/tree/main"><img src="https://img.shields.io/badge/rama-main-7c3aed?style=flat-square" alt="rama main"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0-c9a227?style=flat-square" alt="GPL-3.0"/></a>
+  <img src="https://img.shields.io/badge/java-21-f5d76e?style=flat-square" alt="Java 21"/>
+  <img src="https://img.shields.io/badge/minecraft-1.21.11-6d28d9?style=flat-square" alt="Minecraft 1.21.11"/>
+  <img src="https://img.shields.io/badge/Slimefun-Drake%2011-581c87?style=flat-square" alt="Slimefun Drake 11"/>
+</p>
 
-## Que agrega a Slimefun
+**Networks** es un addon de Slimefun que aporta una red de almacenamiento y movimiento de ítems potente y sencilla, pensada para convivir con **Cargo** y el resto de tu automatización.
 
-- Red logica de inventarios con controlador, nodos y extensiones.
-- Grid de visualizacion y crafting conectado al almacenamiento de red.
-- Celdas y Quantum Storage para almacenamiento profundo.
-- Import/Export, Grabber/Pusher, Wireless Tx/Rx y utilidades de red.
-- Autocrafters con blueprints y pipeline de recipes en red.
+Este repositorio es el **port estable de DrakesCraft-Labs**: parte del árbol **Networks-Experimental (Netex)** y de los parches de producción del monorepo Drake, adaptado a **Paper / Purpur 1.21.11**, **Java 21** y el stack **Slimefun 4 Drake**.
 
-## Estado tecnico del port
+---
 
-- Base funcional importada desde `Networks-Exp` y ajustada a namespaces Drake.
-- Compilacion validada en Java 21 y Paper API 1.21.
-- Integraciones opcionales externas se dejan desacopladas para evitar hard-fails de arranque.
-- `NetworkControlX` y `NetworkControlV` quedaron en modo compat temporal mientras se restaura puente NMS dedicado para 1.21.11.
+## Descarga
+
+| Origen | Enlace |
+|--------|--------|
+| **Releases (recomendado)** | [Releases de NetworksV6-drake](https://github.com/DrakesCraft-Labs/NetworksV6-drake/releases) |
+| **Build local** | `target/NetworksV6-Drake-v11-SNAPSHOT.jar` tras `mvn package` |
+| **CI** | Workflow [Drake CI](https://github.com/DrakesCraft-Labs/NetworksV6-drake/actions/workflows/drake-ci.yml) en rama `main` |
+
+> No hay autoupdate remoto (sin BlobBuild ni actualizador Drake Labs). Instala el JAR que elijas desde Releases o tu propio build.
+
+---
+
+## Sobre Networks
+
+La guía completa del diseño original (ítems, bloques, mecánicas) sigue en la documentación de **Sefiraat**:
+
+- [Documentación oficial de Networks](https://sefiraat.dev)
+- Repositorio upstream: [Sefiraat/Networks](https://github.com/Sefiraat/Networks)
+
+Imágenes de referencia del wiki original:
+
+| Setup | Grid | Crafting grid |
+|-------|------|----------------|
+| ![Setup](https://github.com/Sefiraat/Networks/blob/master/images/wiki/setup.png?raw=true) | ![Grid](https://github.com/Sefiraat/Networks/blob/master/images/wiki/grid.png?raw=true) | ![Grid crafting](https://github.com/Sefiraat/Networks/blob/master/images/wiki/grid_crafting.png?raw=true) |
+
+### Network Grid / Crafting Grid
+
+Accede a todos los ítems de la red en una sola GUI: retira de a uno o por stack, inserta directamente y usa el **crafting grid** para recetas vanilla y Slimefun con ingredientes tomados de la red.
+
+### Network Bridge
+
+Bloque económico para extender la red.
+
+### Network Cells
+
+Un bloque con capacidad de cofre doble; expone ítems a la red (pocos ítems, no apilables o únicos).
+
+### Network Quantum Storage
+
+Almacenamiento masivo de **un solo tipo** de ítem (desde miles hasta miles de millones según mejora). Ideal como “barril profundo” de producción en masa.
+
+### Network Monitors
+
+Exponen inventarios de bloques conectados (p. ej. tarjetas de Network Shell o barriles de otros addons).
+
+### Import / Export
+
+- **Importer**: 9 ranuras; Cargo puede depositar; la red absorbe cuando hay capacidad.
+- **Exporter**: plantilla de un ítem; extrae coincidencias de la red hacia su inventario (accesible por Cargo).
+
+### Push y Pull
+
+- **Grabber**: extrae de máquinas Slimefun adyacentes compatibles con cargo-out.
+- **Pusher**: plantilla + empuje a ranuras de entrada de máquinas vecinas.
+- **Vanilla Grabber / Pusher**: variantes para inventarios vanilla (hornos, etc.).
+
+### Energía
+
+**Capacitor** almacena energía del EnergyNet para máquinas de la red. **Power Display** muestra el total. **Power Outlet** devuelve energía a máquinas EnergyNet adyacentes.
+
+### Wireless
+
+**Transmitter** envía ítems coincidentes a un **Receiver** enlazado, que intenta meterlos en su propia red.
+
+### Autocrafting
+
+- **Encoder**: codifica recetas vanilla/Slimefun en blueprints.
+- **Autocrafter**: fabrica con ítems y energía de la red; salida a la red.
+- **Withholding Autocrafter**: mantiene hasta un stack interno expuesto a la red.
+
+### Control remoto
+
+**Remotes** enlazados a un grid (alcance por tier: 150, 500, ilimitado, cross-dimension).
+
+### Otros
+
+**Purger** (basura con plantilla), **Crayon** (partículas), **Configurator** (copiar/pegar ajustes de nodos), **Probe** (resumen de la red).
+
+---
+
+## Qué cambia NetworksV6-Drake (modificaciones Drake)
+
+Resumen de lo que **este fork añade o altera** respecto al upstream y a builds intermedias. Detalle técnico de dupes: [`docs/INVENTORY_AND_DUPES.md`](docs/INVENTORY_AND_DUPES.md).
+
+### Stack y empaquetado
+
+| Tema | Drake |
+|------|--------|
+| Repositorio | Standalone; ya no vive en `drakes-slimefun-labs` |
+| Rama activa | **`main`** (`1.21-latin` obsoleta) |
+| Minecraft objetivo | **1.21.11** (smoke en Paper/Purpur 1.21.x) |
+| API / build | Paper **1.21.1** API, **Java 21** |
+| Slimefun | `com.github.drakescraft_labs` **11.0-Drake** |
+| Dough | `dev.drake.dough` (no el paquete shaded legacy en addons) |
+| Persistencia NBT | `dev.drake.sefilib.persistence` |
+| Artefacto | `NetworksV6-Drake-v11-SNAPSHOT.jar` |
+| Autoupdate | **Desactivado** (sin `DrakesLabsReleaseUpdate` / BlobBuild) |
+
+### Base de código fusionada
+
+- Núcleo **Sefiraat/Networks** (GPL-3.0).
+- Mejoras **Networks-Experimental (Netex)** — utilidades `com.balugaq.netex`, cachés de acceso, greedy blocks, etc.
+- Parches de producción **Chagui68** / monorepo Drake (shutdown, recetas, compatibilidad foundry).
+- Ajustes de imports y API al fork **Slimefun 4 Drake** y **dough-core** Drake.
+
+### Estabilidad, inventarios y anti-dupe
+
+| Área | Cambio Drake |
+|------|----------------|
+| Apagado servidor | `Networks.onDisable()` + `markDirty()` masivo en inventarios NTW |
+| Integridad de red | `NetworkIntegrity` — valida bloques NTW, `pruneStaleLocations`, purga fantasmas |
+| Explosivos / wither / dripleaf | `ExplosiveToolListener` protege **todas** las máquinas NTW; limpia grafo |
+| Estructuras (árboles) | `SyncListener` — `StructureGrow`, `EntityChangeBlock`, `BlockFromTo` |
+| Grid | `GridDupeGuardListener` — bloquea middle/double/COLLECT_TO_CURSOR |
+| Quantum + grid | `markDirty` + `syncBlock` en retiros sin abrir menú (#208) |
+| Grabber Slimefun | `NetworkTransportUtils` — solo cuenta ítems realmente absorbidos; no extrae de menús `NTW_*` (#240) |
+| Import / Wireless RX | Mismo transporte seguro + `markDirty` |
+| Greedy (Netex) | `addItemStack0` no abandona el flujo si el greedy no vació el stack |
+| Concurrencia | `ConcurrentHashMap` en estructuras críticas de `NetworkRoot` |
+| Vanilla grabber | `BlockStateRefreshListener` para estados de bloque frescos |
+
+### Compatibilidad temporal (1.21.11)
+
+- **NetworkControlX** y **NetworkControlV**: modo compat sin puente NMS completo (evita dupes conocidos con shulker/cutter; funcionalidad de corte limitada hasta NMS dedicado).
+- Integraciones opcionales (**HUD**, **Netheopoiesis**, etc.) desacopladas para no tumbar el arranque si faltan dependencias.
+
+### Carpeta `experimental/`
+
+Copia auditada de **NetworksExperimental-Drake** (Netex puro). **No** es el JAR de producción; sirve de referencia y pruebas.
+
+### CI y releases
+
+- **Drake CI** en `main`: compilación Maven real (standalone).
+- **Drake Release**: tag `v*` → artefacto en GitHub Releases si el build pasa.
+
+---
 
 ## Compatibilidad
 
-| Componente | Version objetivo |
-|---|---|
-| Minecraft | 1.21.11 |
-| Paper API | 1.21.x |
-| Java | 21 |
-| Slimefun | Drake 11-SNAPSHOT |
+| Componente | Versión |
+|------------|---------|
+| Minecraft | **1.21.11** (compatible 1.21.x) |
+| Servidor | Paper / Purpur recomendado |
+| Java | **21** |
+| Slimefun | Drake **11-SNAPSHOT** (foundry) |
+| Cargo | Recomendado (diseño original) |
 
-## Instalacion
+Dependencias opcionales del upstream pueden seguir funcionando si están en tu servidor; las integraciones Drake deshabilitadas no bloquean el load.
 
-1. Descargar el `.jar` desde Releases.
-2. Copiar a `plugins/`.
-3. Reiniciar el servidor.
-4. Verificar en consola que cargue `NetworksV6-Drake`.
+---
+
+## Instalación
+
+1. Descarga el `.jar` desde [Releases](https://github.com/DrakesCraft-Labs/NetworksV6-drake/releases) o compílalo localmente.
+2. Colócalo en `plugins/` junto a **Slimefun 4 Drake** y dependencias del foundry.
+3. Reinicia el servidor.
+4. En consola debe aparecer el banner **NetworksV6 Drake** y el plugin `NetworksV6-Drake`.
+
+---
 
 ## Build local
 
-Dependencias Drake (`slimefun-core`, `dough-core`, `sefilib-drake`, etc.) deben estar en el repositorio Maven local. Desde el monorepo foundry:
+Las dependencias Drake deben estar en Maven local (desde el monorepo foundry):
 
 ```bash
 cd ../drakes-slimefun-labs
 mvn -B -ntp -DskipTests install -pl sources/dough-core,sources/slimefun-core/Slimefun4-src,sources/batch-2-expansion/SefiLib,sources/repos-to-port/InfinityExpansion -am
 ```
 
-Luego, en este repo:
+En este repositorio:
 
 ```bash
+git clone https://github.com/DrakesCraft-Labs/NetworksV6-drake.git
+cd NetworksV6-drake
+git checkout main
 mvn -B -ntp -DskipTests clean package
 ```
 
-Artifact esperado:
+Salida: `target/NetworksV6-Drake-v11-SNAPSHOT.jar`
 
-- `target/NetworksV6-Drake-v11-SNAPSHOT.jar`
+---
 
-## Experimental
+## Documentación adicional
 
-El fork `NetworksExperimental-Drake` vive en `experimental/` (no se despliega como produccion).
+| Documento | Contenido |
+|-----------|-----------|
+| [`docs/INVENTORY_AND_DUPES.md`](docs/INVENTORY_AND_DUPES.md) | Vectores de dupe, issues upstream y mitigaciones Drake |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Cómo contribuir y CI |
+| [`experimental/README.md`](experimental/README.md) | Módulo experimental (no producción) |
 
-## Release
+**Reportar bugs:** [Issues](https://github.com/DrakesCraft-Labs/NetworksV6-drake/issues)
 
-- El workflow `drake-release.yml` publica artifacts al crear un tag `v*`.
-- Solo se publica release si el build termina correctamente.
+---
 
-## Creditos
+## Créditos y linaje
 
-- Autor original: Sefiraat
-- Variantes comunitarias y fixes intermedios: Chagui68, mmmjjkx
-- Port y mantenimiento Drake: DrakesCraft-Labs
+Este proyecto **no existiría** sin el trabajo de la comunidad Slimefun y los forks previos. **NetworksV6-Drake** es una obra derivada bajo **GPL-3.0**; el código original y sus extensiones conservan los derechos de sus autores.
+
+### Autor original
+
+- **[Sefiraat](https://github.com/Sefiraat)** — creador de **Networks** y documentación en [sefiraat.dev](https://sefiraat.dev).  
+  Repositorio: [github.com/Sefiraat/Networks](https://github.com/Sefiraat/Networks)
+
+### Agradecimientos del README original (Sefiraat)
+
+- **Boomer**, **Cai** y **Lucky** — pruebas y refinamiento de Networks.  
+- Comunidad de **mct.tantrum.org** — setups de estrés y feedback.  
+- **GentlemanCheesy** / **mc.talosmp.net** — patrocinio y apoyo temprano.
+
+### Forks y contribuciones en la cadena hacia Drake
+
+| Persona / equipo | Aporte |
+|------------------|--------|
+| **[Chagui68](https://github.com/Chagui68)** | Parches de producción, estabilidad en servidor real, fixes de inventario |
+| **[mmmjjkx](https://github.com/mmmjjkx)** | **Networks-Experimental (Netex)** — cachés, greedy, utilidades `balugaq.netex` |
+| **balugaq (Netex)** | Capa experimental integrada en la base de este port |
+| **[DrakesCraft-Labs](https://github.com/DrakesCraft-Labs)** | Port standalone, adaptación **1.21.11**, stack Slimefun Drake, anti-dupe, CI, mantenimiento |
+
+### Mantenimiento actual
+
+- Organización: **[DrakesCraft-Labs](https://github.com/DrakesCraft-Labs)**  
+- Servidor de referencia: **[DrakesCraft](https://drakescraft.cl)**  
+- Rama de desarrollo: **`main`**
+
+Si usas este fork en público, conserva esta sección de créditos y cumple la **GPL-3.0** (incluido ofrecer fuente de tus modificaciones).
+
+---
 
 ## Licencia
 
-GPL-3.0. Ver `LICENSE`.
+Copyright (C) los autores originales y contribuyentes de cada fork en la cadena.
+
+Distribuido bajo **GNU General Public License v3.0**. Ver [`LICENSE`](LICENSE).
+
+El código fuente de Sefiraat/Networks y obras derivadas (Chagui, Netex, Drake) permanece bajo los términos de la GPL; este repositorio añade cambios de DrakesCraft-Labs publicados en el mismo espíritu copyleft.
