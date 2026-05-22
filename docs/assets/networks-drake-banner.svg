@@ -17,23 +17,47 @@
     </linearGradient>
   </defs>
   <rect width="920" height="220" rx="14" fill="url(#bg)"/>
-  <rect x="1" y="1" width="918" height="218" rx="13" fill="none" stroke="#c9a227" stroke-width="1.2" opacity="0.45"/>
+  <rect x="1" y="1" width="918" height="218" rx="13" fill="none" stroke="#c9a227" stroke-width="1.2" opacity="0.4">
+    <animate attributeName="opacity" values="0.22;0.5;0.22" dur="3.5s" repeatCount="indefinite"/>
+  </rect>
   <g opacity="0.12" stroke="#c4b5fd" stroke-width="0.6">
     <path d="M0 55H920M0 110H920M0 165H920"/>
     <path d="M115 0V220M230 0V220M345 0V220M460 0V220M575 0V220M690 0V220M805 0V220"/>
   </g>
-  <circle cx="720" cy="110" r="48" fill="#7c3aed" opacity="0.25"/>
-  <circle cx="200" cy="78" r="10" fill="#4c1d95" stroke="#d4af37" stroke-width="2"/>
-  <circle cx="310" cy="140" r="12" fill="#5b21b6" stroke="#d4af37" stroke-width="2"/>
-  <circle cx="430" cy="72" r="11" fill="#6d28d9" stroke="#f5d76e" stroke-width="2"/>
-  <circle cx="540" cy="128" r="13" fill="#7c3aed" stroke="#c9a227" stroke-width="2"/>
-  <circle cx="650" cy="88" r="10" fill="#581c87" stroke="#e9d5ff" stroke-width="2"/>
-  <circle cx="760" cy="118" r="16" fill="url(#violet)" stroke="#f5d76e" stroke-width="3"/>
-  <path fill="none" stroke="url(#gold)" stroke-width="1.8" opacity="0.8" d="M200 78L310 140L430 72L540 128L650 88L760 118"/>
+  <circle cx="720" cy="110" r="52" fill="#7c3aed" opacity="0.15">
+    <animate attributeName="r" values="46;58;46" dur="4.5s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.1;0.28;0.1" dur="4.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="200" cy="78" r="10" fill="#4c1d95" stroke="#d4af37" stroke-width="2">
+    <animate attributeName="opacity" values="0.65;1;0.65" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="310" cy="140" r="12" fill="#5b21b6" stroke="#d4af37" stroke-width="2">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="2.6s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="430" cy="72" r="11" fill="#6d28d9" stroke="#f5d76e" stroke-width="2">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="2.3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="540" cy="128" r="13" fill="#7c3aed" stroke="#c9a227" stroke-width="2">
+    <animate attributeName="opacity" values="0.65;1;0.65" dur="2.9s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="650" cy="88" r="10" fill="#581c87" stroke="#e9d5ff" stroke-width="2">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="2.1s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="760" cy="118" r="16" fill="url(#violet)" stroke="#f5d76e" stroke-width="3">
+    <animate attributeName="r" values="14;18;14" dur="3.2s" repeatCount="indefinite"/>
+  </circle>
+  <path fill="none" stroke="url(#gold)" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="9 7" opacity="0.85"
+        d="M200 78L310 140L430 72L540 128L650 88L760 118">
+    <animate attributeName="stroke-dashoffset" values="0;32;0" dur="1.8s" repeatCount="indefinite"/>
+  </path>
+  <path fill="none" stroke="#a78bfa" stroke-width="1" opacity="0.35" stroke-dasharray="4 6"
+        d="M310 140L430 72M540 128L650 88">
+    <animate attributeName="stroke-dashoffset" values="0;20;0" dur="2.4s" repeatCount="indefinite"/>
+  </path>
   <text x="48" y="98" fill="#f5d76e" font-family="system-ui,sans-serif" font-size="46" font-weight="700">NetworksV6</text>
   <text x="48" y="138" fill="#e9d5ff" font-family="system-ui,sans-serif" font-size="28" font-weight="600">Drake</text>
   <text x="48" y="172" fill="#a78bfa" font-family="system-ui,sans-serif" font-size="14">PAPER 1.21.11 | SLIMEFUN DRAKE | JAVA 21</text>
-  <text x="48" y="196" fill="#8b5cf6" font-family="system-ui,sans-serif" font-size="12" opacity="0.9">DrakesCraft-Labs</text>
+  <text x="48" y="196" fill="#8b5cf6" font-family="system-ui,sans-serif" font-size="12">DrakesCraft-Labs</text>
   <rect x="748" y="36" width="132" height="34" rx="8" fill="#2e1065" stroke="#d4af37" stroke-width="1.2"/>
   <text x="814" y="58" fill="#f5d76e" font-family="system-ui,sans-serif" font-size="13" font-weight="600" text-anchor="middle">v11-SNAPSHOT</text>
 </svg>
