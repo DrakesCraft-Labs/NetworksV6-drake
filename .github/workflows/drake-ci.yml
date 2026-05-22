@@ -5,27 +5,85 @@ on:
     branches: ["main"]
   push:
     branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: drake-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: read
 
 jobs:
-  build:
+  test-and-build:
+    name: Test · Build
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
-      - name: Checkout
+      - name: Checkout NetworksV6-drake
         uses: actions/checkout@v4
+
+      - name: Checkout foundry (drakes-slimefun-labs)
+        uses: actions/checkout@v4
+        with:
+          repository: DrakesCraft-Labs/drakes-slimefun-labs
+          path: drakes-slimefun-labs
+          ref: main
 
       - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
+          cache: maven
 
-      - name: Build with Maven
-        if: ${{ hashFiles('pom.xml') != '' }}
-        run: mvn -B -ntp -DskipTests clean package
-
-      - name: Build with Gradle (standalone-safe)
-        if: ${{ hashFiles('gradlew') != '' && hashFiles('pom.xml') == '' }}
-        shell: bash
+      - name: Maven settings (GitHub Packages)
+        env:
+          MAVEN_USER: ${{ github.actor }}
+          MAVEN_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo '::notice title=CI fallback::Repo Gradle standalone detectado; se valida workflow sin build pesado en PR.'
-          exit 0
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<'EOF'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <servers>
+              <server>
+                <id>github-drakes-foundry</id>
+                <username>MAVEN_USER_PLACEHOLDER</username>
+                <password>MAVEN_TOKEN_PLACEHOLDER</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+          sed -i "s/MAVEN_USER_PLACEHOLDER/${MAVEN_USER}/g" ~/.m2/settings.xml
+          sed -i "s/MAVEN_TOKEN_PLACEHOLDER/${MAVEN_TOKEN}/g" ~/.m2/settings.xml
+
+      - name: Instalar dependencias Drake en .m2
+        working-directory: drakes-slimefun-labs
+        run: |
+          mvn -B -ntp -DskipTests install \
+            -pl sources/dough-core,sources/slimefun-core/Slimefun4-src,sources/batch-2-expansion/SefiLib,sources/repos-to-port/InfinityExpansion \
+            -am
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tests unitarios
+        run: mvn -B -ntp test
+
+      - name: Empaquetar plugin
+        run: mvn -B -ntp -DskipTests package
+
+      - name: Verificar JAR de producción
+        run: |
+          test -f target/NetworksV6-Drake-v11-SNAPSHOT.jar
+          ls -lh target/NetworksV6-Drake-v11-SNAPSHOT.jar
+
+      - name: Subir artefacto CI
+        uses: actions/upload-artifact@v4
+        with:
+          name: NetworksV6-Drake-SNAPSHOT
+          path: target/NetworksV6-Drake-v11-SNAPSHOT.jar
+          if-no-files-found: error

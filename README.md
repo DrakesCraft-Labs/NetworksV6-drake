@@ -5,6 +5,8 @@
 <h1 align="center">NetworksV6-Drake</h1>
 
 <p align="center">
+  <a href="https://github.com/DrakesCraft-Labs/NetworksV6-drake/actions/workflows/drake-ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/DrakesCraft-Labs/NetworksV6-drake/drake-ci.yml?branch=main&label=CI&style=flat-square" alt="CI"/></a>
+  <a href="https://github.com/DrakesCraft-Labs/NetworksV6-drake/releases"><img src="https://img.shields.io/github/v/release/DrakesCraft-Labs/NetworksV6-drake?include_prereleases&label=release&style=flat-square" alt="release"/></a>
   <a href="https://github.com/DrakesCraft-Labs/NetworksV6-drake/tree/main"><img src="https://img.shields.io/badge/rama-main-7c3aed?style=flat-square" alt="rama main"/></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/licencia-GPL--3.0-c9a227?style=flat-square" alt="GPL-3.0"/></a>
   <img src="https://img.shields.io/badge/java-21-f5d76e?style=flat-square" alt="Java 21"/>
@@ -22,9 +24,17 @@ Este repositorio es el **port estable de DrakesCraft-Labs**: parte del árbol **
 
 | Origen | Enlace |
 |--------|--------|
-| **Releases (recomendado)** | [Releases de NetworksV6-drake](https://github.com/DrakesCraft-Labs/NetworksV6-drake/releases) |
-| **Build local** | `target/NetworksV6-Drake-v11-SNAPSHOT.jar` tras `mvn package` |
-| **CI** | Workflow [Drake CI](https://github.com/DrakesCraft-Labs/NetworksV6-drake/actions/workflows/drake-ci.yml) en rama `main` |
+| **Releases (recomendado)** | [Releases de NetworksV6-drake](https://github.com/DrakesCraft-Labs/NetworksV6-drake/releases) — JAR `NetworksV6-Drake-v*.jar` |
+| **CI (último build main)** | Artefacto `NetworksV6-Drake-SNAPSHOT` en [Actions → Drake CI](https://github.com/DrakesCraft-Labs/NetworksV6-drake/actions/workflows/drake-ci.yml) |
+| **Build local** | `target/NetworksV6-Drake-v11-SNAPSHOT.jar` tras `mvn test package` |
+
+### Publicar una release
+
+1. Asegura que `main` pasa **Drake CI** (tests + build).
+2. Crea y empuja un tag semver: `git tag v11.0.0-drake.1 && git push origin v11.0.0-drake.1`
+3. El workflow **Drake Release** publica el JAR en GitHub Releases.
+
+También puedes lanzarlo manualmente: **Actions → Drake Release → Run workflow** (indica el tag).
 
 > No hay autoupdate remoto (sin BlobBuild ni actualizador Drake Labs). Instala el JAR que elijas desde Releases o tu propio build.
 
