@@ -265,10 +265,10 @@ public class StackUtils {
             }
         }
 
-        // Potion
+        // Potion (#223: plugins sin BasePotionData/BasePotionType no deben NPE ni matchear mal)
         if (metaOne instanceof PotionMeta instanceOne && metaTwo instanceof PotionMeta instanceTwo) {
             if (Slimefun.getMinecraftVersion().isAtLeast(MinecraftVersion.MINECRAFT_1_20_5)) {
-                if (instanceOne.getBasePotionType() != instanceTwo.getBasePotionType()) {
+                if (!Objects.equals(instanceOne.getBasePotionType(), instanceTwo.getBasePotionType())) {
                     return true;
                 }
             } else {

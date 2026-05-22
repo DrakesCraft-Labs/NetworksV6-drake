@@ -1,6 +1,8 @@
 # Inventarios, dupes y bugs conocidos (upstream + Chagui)
 
-Referencias auditadas: [Sefiraat/Networks#229](https://github.com/Sefiraat/Networks/issues/229), [#230](https://github.com/Sefiraat/Networks/issues/230), [#208](https://github.com/Sefiraat/Networks/issues/208), [#233](https://github.com/Sefiraat/Networks/issues/233), [#240](https://github.com/Sefiraat/Networks/issues/240), fork Chagui / Drake monorepo.
+Referencias auditadas: [Sefiraat/Networks#229](https://github.com/Sefiraat/Networks/issues/229), [#230](https://github.com/Sefiraat/Networks/issues/230), [#208](https://github.com/Sefiraat/Networks/issues/208), [#223](https://github.com/Sefiraat/Networks/issues/223), [#233](https://github.com/Sefiraat/Networks/issues/233), [#240](https://github.com/Sefiraat/Networks/issues/240), fork Chagui / Drake monorepo.
+
+Auditoría ampliada (búsqueda web/issues): [`UPSTREAM_INCIDENTS_AUDIT.md`](./UPSTREAM_INCIDENTS_AUDIT.md).
 
 Rama de desarrollo: **`main`** (la rama `1.21-latin` quedó obsoleta).
 
@@ -23,6 +25,7 @@ Rama de desarrollo: **`main`** (la rama `1.21-latin` quedó obsoleta).
 | **#235** | Vanilla Grabber lento / atascado en OUTPUT | Inyección directa a red + `pullFromInventory` + flush de slot 25 |
 | **Grid input** | Insertar en red sin consumir slot | `NetworkTransportUtils` en `AbstractGrid.tryAddItem` |
 | **Quantum input** | Slot INPUT no se vacía tras absorber | `replaceExistingItem` + `markDirty` en `tryInputItem` |
+| **#223** | PotionMeta sin `BasePotionData` / crash grid | `StackUtils` null-safe en comparación de pociones |
 
 ## Autoupdate
 
