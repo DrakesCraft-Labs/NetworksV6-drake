@@ -149,7 +149,7 @@ Exponen inventarios de bloques conectados (p. ej. tarjetas de Network Shell o ba
 
 ## Qué cambia NetworksV6-Drake (modificaciones Drake)
 
-Resumen de lo que **este fork añade o altera** respecto al upstream y a builds intermedias. Detalle técnico de dupes: [`docs/INVENTORY_AND_DUPES.md`](docs/INVENTORY_AND_DUPES.md).
+Resumen de lo que **este fork añade o altera** respecto al upstream y a builds intermedias. Detalle técnico de dupes: [`docs/INVENTORY_AND_DUPES.md`](docs/INVENTORY_AND_DUPES.md). Auditoría web/upstream (issues #229–#240, Fluffy #163): [`docs/UPSTREAM_INCIDENTS_AUDIT.md`](docs/UPSTREAM_INCIDENTS_AUDIT.md).
 
 ### Stack y empaquetado
 
@@ -177,16 +177,25 @@ Resumen de lo que **este fork añade o altera** respecto al upstream y a builds 
 | Área | Cambio Drake |
 |------|----------------|
 | Apagado servidor | `Networks.onDisable()` + `markDirty()` masivo en inventarios NTW |
+| Grafo al desmontar | `NetworkStorage.removeNode` → `unregisterNode` saca la coordenada de `cells`, `monitors`, etc. (#229) |
+| Bloque ajeno en nodo NTW | `NetworkIntegrity.onForeignBlockOccupied` al colocar (p. ej. **Fluffy Barrel** sobre celda rota) (#230) |
 | Integridad de red | `NetworkIntegrity` — valida bloques NTW, `pruneStaleLocations`, purga fantasmas |
+| Celdas / retiros | `getCellMenus()` solo menús `NetworkCell` reales; slots de celda correctos; caché de barriles invalidada |
 | Explosivos / wither / dripleaf | `ExplosiveToolListener` protege **todas** las máquinas NTW; limpia grafo |
 | Estructuras (árboles) | `SyncListener` — `StructureGrow`, `EntityChangeBlock`, `BlockFromTo` |
-| Grid | `GridDupeGuardListener` — bloquea middle/double/COLLECT_TO_CURSOR |
+| Grid GUI | `GridDupeGuardListener` — middle/double/hotbar/clone/drop-all; retiros solo con lore `Amount:` del display |
+| Grid inventario | `refreshRootItems()` al pintar; agregación con `NetworkStackAggregator` (#226) |
 | Quantum + grid | `markDirty` + `syncBlock` en retiros sin abrir menú (#208) |
 | Grabber Slimefun | `NetworkTransportUtils` — solo cuenta ítems realmente absorbidos; no extrae de menús `NTW_*` (#240) |
-| Import / Wireless RX | Mismo transporte seguro + `markDirty` |
+| Pusher | Solo empuja a inventarios externos (`isExternalInventory`) |
+| Import / grid input / Wireless RX | Mismo transporte seguro + `markDirty` |
+| Vanilla grabber | Inyección directa + flush slot OUTPUT (#235); `BlockStateRefreshListener` |
 | Greedy (Netex) | `addItemStack0` no abandona el flujo si el greedy no vació el stack |
+| Pociones / meta rara | `StackUtils` null-safe (#223) |
+| Rake | `clearNetwork()` antes de vaciar el bloque (#106) |
 | Concurrencia | `ConcurrentHashMap` en estructuras críticas de `NetworkRoot` |
-| Vanilla grabber | `BlockStateRefreshListener` para estados de bloque frescos |
+
+**Smoke en servidor (DrakesCraft):** romper celda indirectamente → colocar barrel en la misma posición → abrir grid: no debe extraer del barrel ni duplicar con middle/double. Lista completa en [`docs/INVENTORY_AND_DUPES.md`](docs/INVENTORY_AND_DUPES.md#smoke-test-en-servidor).
 
 ### Compatibilidad temporal (1.21.11)
 
@@ -253,7 +262,9 @@ Salida: `target/NetworksV6-Drake-v11-SNAPSHOT.jar`
 
 | Documento | Contenido |
 |-----------|-----------|
-| [`docs/INVENTORY_AND_DUPES.md`](docs/INVENTORY_AND_DUPES.md) | Vectores de dupe, issues upstream y mitigaciones Drake |
+| [`docs/INVENTORY_AND_DUPES.md`](docs/INVENTORY_AND_DUPES.md) | Vectores de dupe, mitigaciones Drake y smoke tests |
+| [`docs/UPSTREAM_INCIDENTS_AUDIT.md`](docs/UPSTREAM_INCIDENTS_AUDIT.md) | Auditoría de issues upstream (#229–#240, Fluffy, SF) y estado |
+| [`docs/CI_AND_RELEASE.md`](docs/CI_AND_RELEASE.md) | Workflows Drake CI / Release y tags |
 | [`CONTRIBUTING.md`](CONTRIBUTING.md) | Cómo contribuir y CI |
 | [`experimental/README.md`](experimental/README.md) | Módulo experimental (no producción) |
 
