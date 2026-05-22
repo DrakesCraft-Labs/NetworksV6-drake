@@ -1,6 +1,7 @@
 package io.github.sefiraat.networks.slimefun.tools;
 
 import io.github.sefiraat.networks.Networks;
+import io.github.sefiraat.networks.utils.NetworkUtils;
 import io.github.sefiraat.networks.slimefun.network.NetworkBridge;
 import io.github.sefiraat.networks.slimefun.network.NetworkExport;
 import io.github.sefiraat.networks.slimefun.network.NetworkGrabber;
@@ -94,6 +95,7 @@ public class NetworkRake extends LimitedUseItem {
                     return;
                 }
 
+                NetworkUtils.clearNetwork(block.getLocation());
                 block.setType(Material.AIR);
                 BlockStorage.clearBlockInfo(block);
                 damageItem(e.getPlayer(), e.getItem());

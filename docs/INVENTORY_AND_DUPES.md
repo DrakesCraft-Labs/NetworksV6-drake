@@ -11,7 +11,9 @@ Rama de desarrollo: **`main`** (la rama `1.21-latin` quedó obsoleta).
 | Issue / vector | Descripción | Fix Drake |
 |---|---|---|
 | **#229** | Pico/shovel explosivo, wither, dripleaf, Android deja nodo NTW huérfano | `ExplosiveToolListener` protege todas las NTW; `SyncListener` + `EntityChangeBlock`; `NetworkIntegrity.purgeGhostMembership` |
-| **#230** | Celda rota indirectamente → grid trata otro inventario como celda | `NetworkIntegrity.pruneStaleLocations` en `getCellMenus()`; saneo al abrir grid |
+| **#230** | Celda rota + Fluffy Barrel → grid extrae inventario ajeno | `unregisterNode` en `removeNode`; `onForeignBlockOccupied` al colocar; celdas estrictas; lore `Amount:` en retiros; `refreshRootItems` al pintar grid |
+| **#106** | Rake deja monitor en grafo | `NetworkRake` → `clearNetwork` antes de vaciar bloque |
+| **Pusher** | Empujar a menú NTW híbrido | Solo destinos `isExternalInventory` |
 | **#208** | Retiro por grid sin abrir quantum → Slimefun no persiste salida | `markDirty` + `syncBlock(menu)` en retiros `NetworkQuantumStorage.getItemStack` |
 | **Grid middle/double** | COLLECT_TO_CURSOR / middle click en GUI | `GridDupeGuardListener` cancela clics peligrosos en `AbstractGrid` |
 | **Estructuras** | Árbol crece sobre NTW | `SyncListener.onStructureGrow` (upstream) |
@@ -39,9 +41,9 @@ Desactivado en Drake: sin `DrakesLabsReleaseUpdate` ni `BlobBuildUpdater`. Despl
 4. Sapling + bone meal sobre bridge NTW sin dupe al talar.
 5. `/stop` con items en celdas y quantum → reinicio sin pérdida.
 
-## Pendiente upstream / addons externos
+## Pendiente validación en servidor
 
-- Dupe con **Fluffy Barrel** u otros inventarios de terceros encima de celda rota (#230): requiere addon cooperando o no instalar barrel sobre NTW.
-- **Programmable Android** sobre aire donde había NTW: limpiar con `purgeGhostMembership` al detectar bloque no-NTW; no reemplaza validación del script del Android.
+- Smoke **#230** con Fluffy Barrel tras romper celda indirectamente (wither / dripleaf).
+- **Programmable Android** sobre aire donde había NTW: `purgeGhostMembership` + `evictStaleLocation`; validar script del Android.
 
 Reportes: https://github.com/DrakesCraft-Labs/NetworksV6-drake/issues

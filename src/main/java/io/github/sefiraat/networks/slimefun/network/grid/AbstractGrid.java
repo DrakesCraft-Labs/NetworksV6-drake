@@ -161,6 +161,7 @@ public abstract class AbstractGrid extends NetworkObject {
 
         // Update Screen
         final NetworkRoot root = definition.getNode().getRoot();
+        root.refreshRootItems();
         final GridCache gridCache = getCacheMap().get(blockMenu.getLocation().clone());
         final List<Map.Entry<ItemStack, Integer>> entries = getEntries(root, gridCache); // size是0，点F7，步入getEnt
         // 你在这里打断点，看看entries大小，
@@ -268,7 +269,7 @@ public abstract class AbstractGrid extends NetworkObject {
         final ItemStack clone = itemStack.clone();
         final ItemMeta cloneMeta = clone.getItemMeta();
         final List<String> cloneLore = cloneMeta.getLore();
-        if (cloneLore == null || cloneLore.size() < 2) {
+        if (cloneLore == null || cloneLore.size() < 2 || !isGridDisplayStack(cloneLore)) {
             return;
         }
 
@@ -382,6 +383,11 @@ public abstract class AbstractGrid extends NetworkObject {
         return FILTER_STACK;
     }
 
+
+    /** Solo retiros desde ítems pintados por el grid (anti-dupe #230). */
+    private static boolean isGridDisplayStack(@Nonnull List<String> lore) {
+        return lore.stream().anyMatch(line -> line != null && line.contains("Amount:"));
+    }
 
     @Nonnull
     private static List<String> getLoreAddition(int amount) {

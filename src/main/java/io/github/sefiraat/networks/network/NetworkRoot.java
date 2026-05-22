@@ -10,13 +10,12 @@ import io.github.sefiraat.networks.network.barrel.NetworkStorage;
 import io.github.sefiraat.networks.network.stackcaches.BarrelIdentity;
 import io.github.sefiraat.networks.network.stackcaches.ItemRequest;
 import io.github.sefiraat.networks.network.stackcaches.QuantumCache;
+import io.github.sefiraat.networks.slimefun.network.NetworkAutoCrafter;
 import io.github.sefiraat.networks.slimefun.network.NetworkCell;
 import io.github.sefiraat.networks.slimefun.network.NetworkDirectional;
 import io.github.sefiraat.networks.slimefun.network.NetworkGreedyBlock;
+import io.github.sefiraat.networks.slimefun.network.NetworkMonitor;
 import io.github.sefiraat.networks.slimefun.network.NetworkPowerNode;
-import io.github.sefiraat.networks.slimefun.network.NetworkAutoCrafter;
-import io.github.sefiraat.networks.slimefun.network.NetworkCell;
-import io.github.sefiraat.networks.slimefun.network.NetworkGreedyBlock;
 import io.github.sefiraat.networks.slimefun.network.NetworkQuantumStorage;
 import io.github.sefiraat.networks.utils.NetworkIntegrity;
 import io.github.sefiraat.networks.utils.NetworkStackAggregator;
@@ -315,6 +314,85 @@ public class NetworkRoot extends NetworkNode {
         }
     }
 
+    /**
+     * Quita la ubicación de los sets internos al desmontar un nodo (#229 / #230).
+     */
+    public void unregisterNode(@NotNull Location location, @NotNull NodeType type) {
+        nodeLocations.remove(location);
+        switch (type) {
+            case CONTROLLER -> {
+                if (location.equals(this.controller)) {
+                    this.controller = null;
+                }
+            }
+            case BRIDGE -> bridges.remove(location);
+            case STORAGE_MONITOR -> monitors.remove(location);
+            case IMPORT -> importers.remove(location);
+            case EXPORT -> exporters.remove(location);
+            case GRID -> grids.remove(location);
+            case CELL -> cells.remove(location);
+            case GRABBER -> grabbers.remove(location);
+            case PUSHER -> pushers.remove(location);
+            case PURGER -> purgers.remove(location);
+            case CRAFTER -> crafters.remove(location);
+            case POWER_NODE -> powerNodes.remove(location);
+            case POWER_DISPLAY -> powerDisplays.remove(location);
+            case ENCODER -> encoders.remove(location);
+            case GREEDY_BLOCK -> greedyBlocks.remove(location);
+            case CUTTER -> cutters.remove(location);
+            case PASTER -> pasters.remove(location);
+            case VACUUM -> vacuums.remove(location);
+            case WIRELESS_TRANSMITTER -> wirelessTransmitters.remove(location);
+            case WIRELESS_RECEIVER -> wirelessReceivers.remove(location);
+            case POWER_OUTLET -> powerOutlets.remove(location);
+            default -> {
+            }
+        }
+        invalidateBarrelCaches();
+    }
+
+    /**
+     * Expulsa una coordenada del grafo cuando un bloque ajeno ocupa una posición de nodo NTW (#230).
+     */
+    public void evictStaleLocation(@NotNull Location location) {
+        if (NetworkIntegrity.isNetworksMachine(location)) {
+            return;
+        }
+        nodeLocations.remove(location);
+        cells.remove(location);
+        monitors.remove(location);
+        bridges.remove(location);
+        importers.remove(location);
+        exporters.remove(location);
+        grids.remove(location);
+        grabbers.remove(location);
+        pushers.remove(location);
+        purgers.remove(location);
+        crafters.remove(location);
+        powerNodes.remove(location);
+        powerDisplays.remove(location);
+        encoders.remove(location);
+        greedyBlocks.remove(location);
+        cutters.remove(location);
+        pasters.remove(location);
+        vacuums.remove(location);
+        wirelessTransmitters.remove(location);
+        wirelessReceivers.remove(location);
+        powerOutlets.remove(location);
+        if (location.equals(this.controller)) {
+            this.controller = null;
+        }
+        invalidateBarrelCaches();
+    }
+
+    private void invalidateBarrelCaches() {
+        this.barrels = null;
+        this.inputAbleBarrels = null;
+        this.outputAbleBarrels = null;
+        this.mapInputAbleBarrels = null;
+        this.mapOutputAbleBarrels = null;
+    }
+
     public int getNodeCount() {
         return this.nodeLocations.size();
     }
@@ -436,6 +514,9 @@ public class NetworkRoot extends NetworkNode {
         NetworkIntegrity.pruneStaleLocations(this.cells, NetworkCell.class);
         final Set<BlockMenu> menus = new HashSet<>();
         for (Location cellLocation : this.cells) {
+            if (!NetworkIntegrity.isExpectedMachine(cellLocation, NetworkCell.class)) {
+                continue;
+            }
             final BlockMenu menu = BlockStorage.getInventory(cellLocation);
             if (menu != null) {
                 menus.add(menu);
@@ -756,6 +837,8 @@ public class NetworkRoot extends NetworkNode {
             return this.outputAbleBarrels;
         }
 
+        NetworkIntegrity.pruneStaleLocations(this.monitors, NetworkMonitor.class);
+
         final Set<Location> addedLocations = ConcurrentHashMap.newKeySet();
         final Set<BarrelIdentity> barrelSet = ConcurrentHashMap.newKeySet();
 
@@ -811,9 +894,7 @@ public class NetworkRoot extends NetworkNode {
     }
 
     public boolean refreshRootItems() {
-        this.barrels = null;
-        this.inputAbleBarrels = null;
-        this.outputAbleBarrels = null;
+        invalidateBarrelCaches();
 
         getBarrels();
         getInputAbleBarrels();
@@ -970,7 +1051,7 @@ public class NetworkRoot extends NetworkNode {
 
         // Cell
         for (BlockMenu blockMenu : getCellMenus()) {
-            for (int slot = 0; slot < 54; slot++) {
+            for (int slot : CELL_AVAILABLE_SLOTS) {
                 final ItemStack itemStack = blockMenu.getItemInSlot(slot);
                 if (itemStack == null
                         || itemStack.getType() == Material.AIR

@@ -38,8 +38,14 @@ public class GridDupeGuardListener implements Listener {
                 || click == ClickType.DOUBLE_CLICK
                 || click == ClickType.NUMBER_KEY
                 || click == ClickType.SWAP_OFFHAND
+                || click == ClickType.CREATIVE
                 || action == InventoryAction.COLLECT_TO_CURSOR
-                || action == InventoryAction.UNKNOWN) {
+                || action == InventoryAction.UNKNOWN
+                || action == InventoryAction.DROP_ALL_CURSOR
+                || action == InventoryAction.DROP_ALL_SLOT
+                || action == InventoryAction.HOTBAR_MOVE_AND_READD
+                || action == InventoryAction.HOTBAR_SWAP
+                || action == InventoryAction.CLONE_STACK) {
             event.setCancelled(true);
         }
     }

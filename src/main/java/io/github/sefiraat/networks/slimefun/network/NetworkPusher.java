@@ -5,6 +5,7 @@ import io.github.sefiraat.networks.network.NodeDefinition;
 import io.github.sefiraat.networks.network.NodeType;
 import io.github.sefiraat.networks.network.stackcaches.ItemRequest;
 import io.github.sefiraat.networks.utils.ItemCreator;
+import io.github.sefiraat.networks.utils.NetworkTransportUtils;
 import io.github.sefiraat.networks.utils.StackUtils;
 import io.github.sefiraat.networks.utils.Theme;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
@@ -67,7 +68,7 @@ public class NetworkPusher extends NetworkDirectional {
         final BlockFace direction = getCurrentDirection(blockMenu);
         final BlockMenu targetMenu = BlockStorage.getInventory(blockMenu.getBlock().getRelative(direction));
 
-        if (targetMenu == null) {
+        if (targetMenu == null || !NetworkTransportUtils.isExternalInventory(targetMenu)) {
             return;
         }
 

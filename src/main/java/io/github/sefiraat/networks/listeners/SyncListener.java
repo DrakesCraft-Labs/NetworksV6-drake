@@ -26,7 +26,9 @@ public class SyncListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPlace(@Nonnull BlockPlaceEvent event) {
-        NetworkUtils.clearNetwork(event.getBlock().getLocation());
+        final Location location = event.getBlock().getLocation();
+        NetworkIntegrity.onForeignBlockOccupied(location);
+        NetworkUtils.clearNetwork(location);
     }
 
     /** Wither, dripleaf, pistons: evita nodo NTW huérfano (#229). */

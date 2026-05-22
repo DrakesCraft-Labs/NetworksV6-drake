@@ -1,6 +1,7 @@
 package io.github.sefiraat.networks.utils;
 
 import io.github.sefiraat.networks.NetworkStorage;
+import io.github.sefiraat.networks.network.NetworkRoot;
 import io.github.sefiraat.networks.network.NodeDefinition;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
@@ -9,6 +10,7 @@ import org.bukkit.Material;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -69,5 +71,29 @@ public final class NetworkIntegrity {
                 purgeGhostMembership(location);
             }
         }
+    }
+
+    /**
+     * Fluffy Barrel u otro bloque sobre coordenada de celda/monitor: expulsa del grafo (#230).
+     */
+    public static void onForeignBlockOccupied(@Nonnull Location location) {
+        if (isNetworksMachine(location)) {
+            return;
+        }
+
+        final Set<NetworkRoot> roots = new HashSet<>();
+        for (NodeDefinition definition : NetworkStorage.getAllNetworkObjects().values()) {
+            if (definition.getNode() != null && definition.getNode().getRoot() != null) {
+                roots.add(definition.getNode().getRoot());
+            }
+        }
+
+        for (NetworkRoot root : roots) {
+            if (root.getNodeLocations().contains(location)) {
+                root.evictStaleLocation(location);
+            }
+        }
+
+        purgeGhostMembership(location);
     }
 }

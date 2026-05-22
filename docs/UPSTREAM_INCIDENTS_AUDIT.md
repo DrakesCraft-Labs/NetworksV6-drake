@@ -12,14 +12,14 @@ Fuentes: [GitHub Issues Sefiraat/Networks](https://github.com/Sefiraat/Networks/
 | Issue | Título | Vector | Estado Drake |
 |-------|--------|--------|--------------|
 | [#240](https://github.com/Sefiraat/Networks/issues/240) | Grabber duplica items SF | `addItemStack0` sin consumir menú origen | **Mitigado** — `NetworkTransportUtils`, no extraer de `NTW_*` |
-| [#230](https://github.com/Sefiraat/Networks/issues/230) | Dupe #5 (Fluffy Barrel + grid) | Celda rota (#229) + barrel encima + middle/double/Extract All | **Parcial** — `NetworkIntegrity`, `GridDupeGuardListener`; **Fluffy Barrel** sigue siendo riesgo con celda fantasma |
+| [#230](https://github.com/Sefiraat/Networks/issues/230) | Dupe #5 (Fluffy Barrel + grid) | Celda rota (#229) + barrel encima + middle/double/Extract All | **Mitigado** — `unregisterNode`, `onForeignBlockOccupied`, celdas estrictas, grid guard + lore `Amount:` |
 | [#229](https://github.com/Sefiraat/Networks/issues/229) | Máquinas NTW huérfanas en grafo | Pico explosivo, wither, dripleaf, Android | **Mitigado** — listeners + `purgeGhostMembership` |
 | [#226](https://github.com/Sefiraat/Networks/issues/226) | Terracotta x N | Agregación grid / `HashMap<ItemStack>` | **Mitigado** — `NetworkStackAggregator` |
 | [#208](https://github.com/Sefiraat/Networks/issues/208) | Quantum 4k desync | Retiro por grid sin abrir menú | **Mitigado** — `markDirty` + `syncBlock` |
 | [#233](https://github.com/Sefiraat/Networks/issues/233) | Control X + shulker | Corte NMS | **Mitigado (compat)** — sin corte NMS hasta puente 1.21.11 |
 | [#223](https://github.com/Sefiraat/Networks/issues/223) | Pociones sin base data | NPE en `StackUtils` → crash + dupe al retirar | **Mitigado** — `Objects.equals` en `BasePotionType` / `BasePotionData` ([PR #224](https://github.com/Sefiraat/Networks/pull/224) upstream) |
-| [#106](https://github.com/Sefiraat/Networks/issues/106) | Rake duplica al quitar Monitor | Rake no consumía carga / generaba otro rake | **Probable OK** — rake actual no dropea ítem duplicado; validar en servidor |
-| Fluffy [#163](https://github.com/NCBPFluffyBear/FluffyMachines/issues/163) | Barrel dupe (referencia #230) | Misma cadena celda rota + GUI | **Parcial** — igual que #230 |
+| [#106](https://github.com/Sefiraat/Networks/issues/106) | Rake duplica al quitar Monitor | Rake no consumía carga / generaba otro rake | **Mitigado** — `NetworkRake` llama `clearNetwork` antes de vaciar el bloque |
+| Fluffy [#163](https://github.com/NCBPFluffyBear/FluffyMachines/issues/163) | Barrel dupe (referencia #230) | Misma cadena celda rota + GUI | **Mitigado** — igual que #230 |
 
 ### Cadena #229 → #230 (resumen técnico)
 
@@ -28,7 +28,7 @@ Fuentes: [GitHub Issues Sefiraat/Networks](https://github.com/Sefiraat/Networks/
 3. El **grid** sigue viendo esa ubicación como celda → retiros desde GUI ajena.
 4. Abusos de clic: middle, doble clic, “Extract All”, shift-replace en slots de entrada.
 
-**Drake:** prune al listar celdas + cancelar clics peligrosos en grid. No sustituye validar que no haya barrel sobre posición NTW rota.
+**Drake:** prune + `unregisterNode` al desmontar + `onForeignBlockOccupied` al colocar bloque ajeno + grid solo retira ítems con lore de display.
 
 ---
 
@@ -69,11 +69,10 @@ Fuentes: [GitHub Issues Sefiraat/Networks](https://github.com/Sefiraat/Networks/
 
 ## Prioridad siguiente en Drake
 
-1. **Smoke #230** con Fluffy Barrel + celda rota (o bloquear monitor sobre posición no-NTW).
-2. **Grid “Extract All”** — localizar handler en `NetworkGrid` y cancelar si slot display no es item de red real.
-3. **NetworkExporter / NetworkPusher** — auditar mismo patrón que grabber (`pull`/`push` sin consumo).
-4. **Wireless** — desync tras reinicio si se reporta en servidor.
-5. **Autocrafter / withholding** — `markDirty` en salidas.
+1. **Smoke en DrakesCraft** — #230 con Fluffy Barrel tras romper celda indirectamente.
+2. **Wireless** — desync tras reinicio si se reporta en servidor.
+3. **Autocrafter / withholding** — `markDirty` en salidas si reaparece pérdida.
+4. Release **v11.0.0-drake.2** tras validación en producción.
 
 ---
 
