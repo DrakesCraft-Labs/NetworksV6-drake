@@ -362,12 +362,18 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
                 continue;
             }
             if (StackUtils.itemsMatch(cache, itemStack, true)) {
-                int leftover = cache.increaseAmount(itemStack.getAmount());
-                itemStack.setAmount(leftover);
+                final int incoming = itemStack.getAmount();
+                int leftover = cache.increaseAmount(incoming);
+                itemStack.setAmount(Math.max(leftover, 0));
             }
         }
         final BlockMenu blockMenu = BlockStorage.getInventory(location);
         if (blockMenu != null) {
+            final ItemStack inSlot = blockMenu.getItemInSlot(INPUT_SLOT);
+            if (inSlot == null || inSlot.getType() == Material.AIR || inSlot.getAmount() <= 0) {
+                blockMenu.replaceExistingItem(INPUT_SLOT, null);
+            }
+            blockMenu.markDirty();
             syncBlock(blockMenu, cache);
         } else {
             syncBlock(location, cache);

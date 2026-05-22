@@ -3,6 +3,7 @@ package io.github.sefiraat.networks.slimefun.network.grid;
 import io.github.sefiraat.networks.NetworkStorage;
 import io.github.sefiraat.networks.network.GridItemRequest;
 import io.github.sefiraat.networks.network.NetworkRoot;
+import io.github.sefiraat.networks.utils.NetworkTransportUtils;
 import io.github.sefiraat.networks.network.NodeDefinition;
 import io.github.sefiraat.networks.network.NodeType;
 import io.github.sefiraat.networks.slimefun.network.NetworkObject;
@@ -134,7 +135,14 @@ public abstract class AbstractGrid extends NetworkObject {
             return;
         }
 
-        definition.getNode().getRoot().addItemStack0(blockMenu.getLocation(), itemStack);
+        final int consumed = NetworkTransportUtils.pullIntoNetwork(
+                definition.getNode().getRoot(),
+                blockMenu.getLocation(),
+                blockMenu,
+                getInputSlot());
+        if (consumed > 0) {
+            blockMenu.markDirty();
+        }
     }
 
     protected void updateDisplay(@Nonnull BlockMenu blockMenu) {
@@ -260,6 +268,9 @@ public abstract class AbstractGrid extends NetworkObject {
         final ItemStack clone = itemStack.clone();
         final ItemMeta cloneMeta = clone.getItemMeta();
         final List<String> cloneLore = cloneMeta.getLore();
+        if (cloneLore == null || cloneLore.size() < 2) {
+            return;
+        }
 
         cloneLore.remove(cloneLore.size() - 1);
         cloneLore.remove(cloneLore.size() - 1);

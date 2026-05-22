@@ -19,6 +19,7 @@ import io.github.sefiraat.networks.slimefun.network.NetworkCell;
 import io.github.sefiraat.networks.slimefun.network.NetworkGreedyBlock;
 import io.github.sefiraat.networks.slimefun.network.NetworkQuantumStorage;
 import io.github.sefiraat.networks.utils.NetworkIntegrity;
+import io.github.sefiraat.networks.utils.NetworkStackAggregator;
 import io.github.sefiraat.networks.utils.StackUtils;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import lombok.Getter;
@@ -337,68 +338,30 @@ public class NetworkRoot extends NetworkNode {
     }
 
     public @NotNull Map<ItemStack, Integer> getAllNetworkItems() {
-        final Map<ItemStack, Integer> itemStacks = new HashMap<>();
+        final NetworkStackAggregator aggregator = new NetworkStackAggregator();
 
-        // Barrels
         for (BarrelIdentity barrelIdentity : getOutputAbleBarrels()) {
-            final Integer currentAmount = itemStacks.get(barrelIdentity.getItemStack());
-            final long newAmount;
-            if (currentAmount == null) {
-                newAmount = barrelIdentity.getAmount();
-            } else {
-                long newLong = (long) currentAmount + barrelIdentity.getAmount();
-                if (newLong > Integer.MAX_VALUE) {
-                    newAmount = Integer.MAX_VALUE;
-                } else {
-                    newAmount = currentAmount + barrelIdentity.getAmount();
-                }
+            final ItemStack sample = barrelIdentity.getItemStack();
+            if (sample != null && !sample.getType().isAir()) {
+                aggregator.add(sample, (int) Math.min(barrelIdentity.getAmount(), Integer.MAX_VALUE));
             }
-            itemStacks.put(barrelIdentity.getItemStack(), (int) newAmount);
         }
 
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
             int[] slots = blockMenu.getPreset().getSlotsAccessedByItemTransport(ItemTransportFlow.WITHDRAW);
             final ItemStack itemStack = blockMenu.getItemInSlot(slots[0]);
-            if (itemStack == null || itemStack.getType() == Material.AIR) {
-                continue;
+            if (itemStack != null && itemStack.getType() != Material.AIR) {
+                aggregator.add(itemStack, itemStack.getAmount());
             }
-            final ItemStack clone = StackUtils.getAsQuantity(itemStack, 1);
-            final Integer currentAmount = itemStacks.get(clone);
-            final int newAmount;
-            if (currentAmount == null) {
-                newAmount = itemStack.getAmount();
-            } else {
-                long newLong = (long) currentAmount + (long) itemStack.getAmount();
-                if (newLong > Integer.MAX_VALUE) {
-                    newAmount = Integer.MAX_VALUE;
-                } else {
-                    newAmount = currentAmount + itemStack.getAmount();
-                }
-            }
-            itemStacks.put(clone, newAmount);
         }
 
         for (BlockMenu blockMenu : getCrafterOutputs()) {
             int[] slots = blockMenu.getPreset().getSlotsAccessedByItemTransport(ItemTransportFlow.WITHDRAW);
             for (int slot : slots) {
                 final ItemStack itemStack = blockMenu.getItemInSlot(slot);
-                if (itemStack == null || itemStack.getType() == Material.AIR) {
-                    continue;
+                if (itemStack != null && itemStack.getType() != Material.AIR) {
+                    aggregator.add(itemStack, itemStack.getAmount());
                 }
-                final ItemStack clone = StackUtils.getAsQuantity(itemStack, 1);
-                final Integer currentAmount = itemStacks.get(clone);
-                final int newAmount;
-                if (currentAmount == null) {
-                    newAmount = itemStack.getAmount();
-                } else {
-                    long newLong = (long) currentAmount + (long) itemStack.getAmount();
-                    if (newLong > Integer.MAX_VALUE) {
-                        newAmount = Integer.MAX_VALUE;
-                    } else {
-                        newAmount = currentAmount + itemStack.getAmount();
-                    }
-                }
-                itemStacks.put(clone, newAmount);
             }
         }
 
@@ -407,30 +370,12 @@ public class NetworkRoot extends NetworkNode {
             for (int slot : slots) {
                 final ItemStack itemStack = blockMenu.getItemInSlot(slot);
                 if (itemStack != null && itemStack.getType() != Material.AIR) {
-                    final ItemStack clone = itemStack.clone();
-
-                    clone.setAmount(1);
-
-                    final Integer currentAmount = itemStacks.get(clone);
-                    int newAmount;
-
-                    if (currentAmount == null) {
-                        newAmount = itemStack.getAmount();
-                    } else {
-                        long newLong = (long) currentAmount + (long) itemStack.getAmount();
-                        if (newLong > Integer.MAX_VALUE) {
-                            newAmount = Integer.MAX_VALUE;
-                        } else {
-                            newAmount = currentAmount + itemStack.getAmount();
-                        }
-                    }
-
-                    itemStacks.put(clone, newAmount);
+                    aggregator.add(itemStack, itemStack.getAmount());
                 }
             }
         }
-        
-        return itemStacks;
+
+        return aggregator.asMap();
     }
 
     @Deprecated

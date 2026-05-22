@@ -19,6 +19,10 @@ Rama de desarrollo: **`main`** (la rama `1.21-latin` quedó obsoleta).
 | **Concurrencia** | Sets compartidos en tick | `ConcurrentHashMap` en `NetworkRoot` |
 | **#240** | Network Grabber duplica items Slimefun | `NetworkTransportUtils.pullIntoNetwork` + no extraer de menús `NTW_*`; `markDirty` en origen |
 | **Greedy** | Plantilla coincide pero push falla → item “consumido” en lógica netex | `addItemStack0` solo sale del greedy si `incoming.getAmount() == 0` |
+| **#226** | Terracotta / bloques vanilla duplicados en grid (clave `ItemStack` en `HashMap`) | `NetworkStackAggregator` + `StackUtils.itemsMatch` en `getAllNetworkItems` |
+| **#235** | Vanilla Grabber lento / atascado en OUTPUT | Inyección directa a red + `pullFromInventory` + flush de slot 25 |
+| **Grid input** | Insertar en red sin consumir slot | `NetworkTransportUtils` en `AbstractGrid.tryAddItem` |
+| **Quantum input** | Slot INPUT no se vacía tras absorber | `replaceExistingItem` + `markDirty` en `tryInputItem` |
 
 ## Autoupdate
 
