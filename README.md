@@ -22,6 +22,41 @@
 
 Este repositorio es el **port estable de DrakesCraft-Labs**: parte del árbol **Networks-Experimental (Netex)** y de los parches de producción del monorepo Drake, adaptado a **Paper / Purpur 1.21.11**, **Java 21** y el stack **Slimefun 4 Drake**.
 
+### 📡 Topología y Conectividad de la Red
+
+```mermaid
+graph TD
+    %% Styling
+    classDef nodeCore fill:#311b92,stroke:#f5d76e,stroke-width:2px,color:#fff;
+    classDef nodeStor fill:#1a237e,stroke:#8e44ad,stroke-width:1.5px,color:#fff;
+    classDef nodeMach fill:#006064,stroke:#3b82f6,stroke-width:1px,color:#fff;
+    classDef nodePwr fill:#4a148c,stroke:#ffd54f,stroke-width:1px,color:#fff;
+
+    Grid["Network Grid<br/>(Acceso GUI central + Crafting)"]
+    Cable["Network Cables / Bridges<br/>(Bus de datos de la Red)"]
+    Quantum["Quantum Storage / Cells<br/>(Almacenamiento e inventarios)"]
+    Importer["Importer / Grabber<br/>(Ingreso automático de ítems)"]
+    Exporter["Exporter / Pusher<br/>(Salida automática a cofres/máquinas)"]
+    Capacitor["Network Capacitor<br/>(Almacenador de Energía SF)"]
+    Power["Power Outlet / Display<br/>(Distribución de poder)"]
+    Transmitter["Wireless Transmitter<br/>(Envío transdimensional)"]
+    Receiver["Wireless Receiver<br/>(Recepción de ítems remota)"]
+
+    Grid <-->|Conexión directa| Cable
+    Cable <-->|Carga/Descarga física| Quantum
+    Importer -->|Introduce ítems a| Cable
+    Cable -->|Despacha ítems a| Exporter
+    Capacitor -->|Suministra poder a| Cable
+    Cable -->|Estado y monitoreo| Power
+    Transmitter -.->|Ondas inalámbricas| Receiver
+    Receiver -->|Vuelca ítems en| Cable
+
+    class Grid,Cable nodeCore;
+    class Quantum nodeStor;
+    class Importer,Exporter,Transmitter,Receiver nodeMach;
+    class Capacitor,Power nodePwr;
+```
+
 ---
 
 ## Descarga
