@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="docs/assets/networks-drake-banner.svg" alt="NetworksV6 Drake — banner" width="920"/>
+  <img
+    src="https://raw.githubusercontent.com/DrakesCraft-Labs/NetworksV6-drake/main/docs/assets/networks-drake-banner.svg"
+    alt="NetworksV6 Drake banner"
+    width="920"
+  />
 </p>
 
 <h1 align="center">NetworksV6-Drake</h1>
