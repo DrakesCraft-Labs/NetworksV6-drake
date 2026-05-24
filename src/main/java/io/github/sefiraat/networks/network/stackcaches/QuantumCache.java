@@ -107,10 +107,21 @@ public class QuantumCache extends ItemStackCache {
 
     public void updateMetaLore(ItemMeta itemMeta) {
         final List<String> lore = itemMeta.hasLore() ? itemMeta.getLore() : new ArrayList<>();
-        lore.set(lore.size() - 2,Theme.CLICK_INFO + "Holding: " +
-                     (this.getItemMeta() != null && this.getItemMeta().hasDisplayName() ? this.getItemMeta().getDisplayName() : this.getItemStack().getType().name())
-        );
-        lore.set(lore.size() - 1, Theme.CLICK_INFO + "Amount: " + this.getAmount());
+        final String holding = Theme.CLICK_INFO + "Holding: " +
+            (this.getItemMeta() != null && this.getItemMeta().hasDisplayName() ? this.getItemMeta().getDisplayName() : this.getItemStack().getType().name());
+        final String amount = Theme.CLICK_INFO + "Amount: " + this.getAmount();
+
+        if (lore.size() >= 2
+            && lore.get(lore.size() - 2).contains("Holding:")
+            && lore.get(lore.size() - 1).contains("Amount:")
+        ) {
+            lore.set(lore.size() - 2, holding);
+            lore.set(lore.size() - 1, amount);
+        } else {
+            lore.add("");
+            lore.add(holding);
+            lore.add(amount);
+        }
         itemMeta.setLore(lore);
     }
 }
