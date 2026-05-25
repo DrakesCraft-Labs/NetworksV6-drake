@@ -87,6 +87,7 @@ jobs:
             exit 1
           fi
           jar tf "$SRC" | grep -q '^dev/drake/dough/collections/Pair.class$'
+          ! jar tf "$SRC" | grep -q '^dev/drake/dough/protection/Interaction.class$'
           jar tf "$SRC" | grep -q '^dev/drake/sefilib/persistence/PersistenceTypes.class$'
           jar tf "$SRC" | grep -q '^io/github/sefiraat/networks/libs/xseries/'
           jar tf "$SRC" | grep -q '^io/github/sefiraat/networks/libs/bstats/bukkit/Metrics.class$'
