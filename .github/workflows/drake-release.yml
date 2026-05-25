@@ -86,6 +86,10 @@ jobs:
             echo "No se encontró $SRC"
             exit 1
           fi
+          jar tf "$SRC" | grep -q '^dev/drake/dough/collections/Pair.class$'
+          jar tf "$SRC" | grep -q '^dev/drake/sefilib/persistence/PersistenceTypes.class$'
+          jar tf "$SRC" | grep -q '^io/github/sefiraat/networks/libs/xseries/'
+          jar tf "$SRC" | grep -q '^io/github/sefiraat/networks/libs/bstats/bukkit/Metrics.class$'
           TAG="${GITHUB_REF_NAME}"
           if [ "$TAG" = "" ] || [ "$TAG" = "main" ]; then
             TAG="${{ inputs.tag }}"

@@ -63,6 +63,50 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire.version}</version>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.2</version>
+                <configuration>
+                    <createDependencyReducedPom>false</createDependencyReducedPom>
+                    <artifactSet>
+                        <includes>
+                            <include>com.github.drakescraft_labs:dough-core</include>
+                            <include>com.github.drakescraft_labs:sefilib-drake</include>
+                            <include>com.github.cryptomorin:XSeries</include>
+                        </includes>
+                    </artifactSet>
+                    <relocations>
+                        <relocation>
+                            <pattern>com.cryptomorin.xseries</pattern>
+                            <shadedPattern>io.github.sefiraat.networks.libs.xseries</shadedPattern>
+                        </relocation>
+                        <relocation>
+                            <pattern>org.bstats</pattern>
+                            <shadedPattern>io.github.sefiraat.networks.libs.bstats</shadedPattern>
+                        </relocation>
+                    </relocations>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/MANIFEST.MF</exclude>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <resources>
             <resource>
@@ -90,10 +134,6 @@
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
-        </repository>
-        <repository>
-            <id>github-drakes-foundry</id>
-            <url>https://maven.pkg.github.com/DrakesCraft-Labs/drakes-slimefun-labs</url>
         </repository>
         <repository>
             <id>bg-repo</id>
@@ -127,7 +167,6 @@
             <groupId>com.github.drakescraft_labs</groupId>
             <artifactId>sefilib-drake</artifactId>
             <version>${sefilib.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.drakescraft_labs</groupId>
