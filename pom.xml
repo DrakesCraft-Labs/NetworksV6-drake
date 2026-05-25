@@ -90,6 +90,7 @@
                         <filter>
                             <artifact>*:*</artifact>
                             <excludes>
+                                <exclude>dev/drake/dough/protection/**</exclude>
                                 <exclude>META-INF/MANIFEST.MF</exclude>
                                 <exclude>META-INF/*.SF</exclude>
                                 <exclude>META-INF/*.DSA</exclude>
