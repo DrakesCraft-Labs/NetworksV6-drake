@@ -206,9 +206,18 @@ public class NetworkAutoCrafter extends NetworkObject {
             if (instance.getRecipe() == null) {
                 returnItems(root, inputs, blockMenu);
                 return false;
-            } else if (Arrays.equals(instance.getRecipeItems(), inputs)) {
-                setCache(blockMenu, instance);
-                crafted = instance.getRecipe().getResult();
+            } else {
+                boolean recipeMatches = true;
+                for (int j = 0; j < 9; j++) {
+                    if (!StackUtils.itemsMatch(instance.getRecipeItems()[j], inputs[j])) {
+                        recipeMatches = false;
+                        break;
+                    }
+                }
+                if (recipeMatches) {
+                    setCache(blockMenu, instance);
+                    crafted = instance.getRecipe().getResult();
+                }
             }
         }
 

@@ -157,7 +157,7 @@ public class NetworkEncoder extends NetworkObject {
         }
 
         // If no item crafted OR result doesn't fit, escape
-        if (crafted.getType() == Material.AIR) {
+        if (crafted == null || crafted.getType() == Material.AIR) {
             player.sendMessage(Theme.WARNING + "Doesn't look like this is a valid recipe.");
             return;
         }
