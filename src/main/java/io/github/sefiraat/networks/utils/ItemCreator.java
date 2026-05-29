@@ -25,17 +25,19 @@ public class ItemCreator {
     }
 
     public static ItemStack create(ItemStack item, String name, String... lore) {
-        ItemMeta meta = item.getItemMeta();
+        ItemStack displayItem = item.clone();
+        ItemMeta meta = displayItem.getItemMeta();
         meta.setDisplayName(name);
         meta.setLore(Arrays.stream(lore).toList());
-        item.setItemMeta(meta);
-        return item;
+        displayItem.setItemMeta(meta);
+        return displayItem;
     }
 
     public static ItemStack create(ItemStack item, String name) {
-        ItemMeta meta = item.getItemMeta();
+        ItemStack displayItem = item.clone();
+        ItemMeta meta = displayItem.getItemMeta();
         meta.setDisplayName(name);
-        item.setItemMeta(meta);
-        return item;
+        displayItem.setItemMeta(meta);
+        return displayItem;
     }
 }
