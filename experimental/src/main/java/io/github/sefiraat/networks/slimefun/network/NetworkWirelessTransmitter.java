@@ -147,6 +147,9 @@ public class NetworkWirelessTransmitter extends NetworkObject {
         }
 
         final BlockMenu linkedBlockMenu = BlockStorage.getInventory(linkedLocation);
+        if (linkedBlockMenu == null) {
+            return;
+        }
         final ItemStack itemStack = linkedBlockMenu.getItemInSlot(NetworkWirelessReceiver.RECEIVED_SLOT);
 
         if (itemStack == null || itemStack.getType() == Material.AIR) {

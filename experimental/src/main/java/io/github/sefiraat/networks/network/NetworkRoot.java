@@ -241,7 +241,7 @@ public class NetworkRoot extends NetworkNode {
 
     @Nullable
     public static NetworkStorage getNetworkStorage(@NotNull BlockMenu blockMenu, boolean includeEmpty) {
-        final QuantumCache cache = NetworkQuantumStorage.getCaches().get(blockMenu.getLocation());
+        final QuantumCache cache = NetworkQuantumStorage.getDatabaseCache(blockMenu.getLocation());
 
         if (cache == null) {
             return null;

@@ -194,6 +194,9 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
                     output.setAmount(output.getAmount() - additional);
                     fetched.setAmount(fetched.getAmount() + additional);
                 }
+                if (output.getAmount() <= 0) {
+                    blockMenu.replaceExistingItem(OUTPUT_SLOT, null);
+                }
             }
             syncBlock(blockMenu, cache);
             return fetched;
@@ -670,5 +673,22 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
     @Override
     public boolean canStack(@Nonnull ItemMeta sfItemMeta, @Nonnull ItemMeta itemMeta) {
         return sfItemMeta.getPersistentDataContainer().equals(itemMeta.getPersistentDataContainer());
+    }
+
+    @Nullable
+    public static QuantumCache getDatabaseCache(@Nonnull Location location) {
+        QuantumCache cache = CACHES.get(location);
+        if (cache != null) {
+            return cache;
+        }
+
+        final SlimefunItem item = BlockStorage.check(location);
+        if (item instanceof NetworkQuantumStorage quantumStorage) {
+            final BlockMenu blockMenu = BlockStorage.getInventory(location);
+            if (blockMenu != null) {
+                return quantumStorage.addCache(blockMenu);
+            }
+        }
+        return null;
     }
 }
