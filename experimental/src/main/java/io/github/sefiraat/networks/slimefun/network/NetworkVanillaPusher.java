@@ -11,8 +11,8 @@ import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
 import dev.drake.dough.inventory.InvUtils;
-import dev.drake.dough.protection.Interaction;
-import dev.drake.dough.protection.ProtectionManager;
+import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.Interaction;
+import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.ProtectionManager;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
 import org.bukkit.*;
@@ -94,23 +94,10 @@ public class NetworkVanillaPusher extends NetworkDirectional {
             return;
         }
 
+        final int before = stack.getAmount();
+
         boolean wildChests = Networks.getSupportedPluginManager().isWildChests();
         boolean isChest = wildChests && WildChestsAPI.getChest(targetBlock.getLocation()) != null;
-        /*
-        MenuProvider mp = c.getMenuProvider(nms, ((CraftWorld) cb.getWorld()).getHandle(), cb.getPosition());
-        c.get
-
-
-        if (nmsBlock instanceof AbstractFurnaceBlock furnace) {
-            handleFurnace(stack, furnace);
-        } else if (nmsBlock instanceof BrewingStandBlock brewer) {
-            handleBrewingStand(stack, brewer);
-        } else if (wildChests && isChest) {
-        } else if (InvUtils.fits(holder.getInventory(), stack)) {
-            holder.getInventory().addItem(stack);
-            stack.setAmount(0);
-        }
-         */
 
         if (inv instanceof FurnaceInventory furnace) {
             handleFurnace(stack, furnace);
@@ -120,6 +107,19 @@ public class NetworkVanillaPusher extends NetworkDirectional {
         } else if (InvUtils.fits(holder.getInventory(), stack)) {
             holder.getInventory().addItem(stack);
             stack.setAmount(0);
+        }
+
+        if (stack.getAmount() < before) {
+            if (holder instanceof org.bukkit.block.DoubleChest doubleChest) {
+                if (doubleChest.getLeftSide() instanceof org.bukkit.block.BlockState left) {
+                    left.update(true, false);
+                }
+                if (doubleChest.getRightSide() instanceof org.bukkit.block.BlockState right) {
+                    right.update(true, false);
+                }
+            } else {
+                state.update(true, false);
+            }
         }
         blockMenu.markDirty();
     }

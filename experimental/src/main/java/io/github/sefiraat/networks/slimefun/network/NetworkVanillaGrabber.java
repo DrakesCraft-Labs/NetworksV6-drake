@@ -11,8 +11,8 @@ import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
-import dev.drake.dough.protection.Interaction;
-import dev.drake.dough.protection.ProtectionManager;
+import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.Interaction;
+import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.ProtectionManager;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
 import org.bukkit.*;
@@ -46,7 +46,7 @@ public class NetworkVanillaGrabber extends NetworkDirectional {
                                  RecipeType recipeType,
                                  ItemStack[] recipe
     ) {
-        super(itemGroup, item, recipeType, recipe, NodeType.PUSHER);
+        super(itemGroup, item, recipeType, recipe, NodeType.GRABBER);
         this.getSlotsToDrop().add(OUTPUT_SLOT);
     }
 
@@ -105,28 +105,38 @@ public class NetworkVanillaGrabber extends NetworkDirectional {
         if (inventory instanceof FurnaceInventory furnaceInventory) {
             final ItemStack furnaceInventoryResult = furnaceInventory.getResult();
             final ItemStack furnaceInventoryFuel = furnaceInventory.getFuel();
-            grabItem(blockMenu, furnaceInventoryResult);
+            if (grabItem(blockMenu, furnaceInventoryResult)) {
+                updateBlockState(holder, blockState);
+                return;
+            }
 
             if (furnaceInventoryFuel != null && furnaceInventoryFuel.getType() == Material.BUCKET) {
-                grabItem(blockMenu, furnaceInventoryFuel);
+                if (grabItem(blockMenu, furnaceInventoryFuel)) {
+                    updateBlockState(holder, blockState);
+                }
             }
 
         } else if (inventory instanceof BrewerInventory brewerInventory) {
             for (int i = 0; i < 3; i++) {
                 final ItemStack stack = brewerInventory.getContents()[i];
                 if (stack != null && stack.getType() != Material.AIR) { // 网拓复制过来的，包能跑
-                final PotionMeta potionMeta = (PotionMeta) stack.getItemMeta();
+                    final PotionMeta potionMeta = (PotionMeta) stack.getItemMeta();
                     if (Slimefun.getMinecraftVersion().isAtLeast(com.github.drakescraft_labs.slimefun4.api.MinecraftVersion.MINECRAFT_1_20_5)) {
-                    // 1.20.5 or higher
-                    if (potionMeta.getBasePotionType() == PotionType.WATER) {
-                        grabItem(blockMenu, stack);
-                    }
-                } else {
-                    // Below 1.20.5
+                        // 1.20.5 or higher
+                        if (potionMeta.getBasePotionType() == PotionType.WATER) {
+                            if (grabItem(blockMenu, stack)) {
+                                updateBlockState(holder, blockState);
+                                return;
+                            }
+                        }
+                    } else {
+                        // Below 1.20.5
                         PotionData bpd = potionMeta.getBasePotionData();
                         if (bpd != null && bpd.getType() != PotionType.WATER) {
-                            grabItem(blockMenu, stack);
-                            break;
+                            if (grabItem(blockMenu, stack)) {
+                                updateBlockState(holder, blockState);
+                                return;
+                            }
                         }
                     }
                 }
@@ -134,9 +144,23 @@ public class NetworkVanillaGrabber extends NetworkDirectional {
         } else {
             for (ItemStack stack : inventory.getContents()) {
                 if (grabItem(blockMenu, stack)) {
+                    updateBlockState(holder, blockState);
                     return;
                 }
             }
+        }
+    }
+
+    private void updateBlockState(InventoryHolder holder, BlockState state) {
+        if (holder instanceof org.bukkit.block.DoubleChest doubleChest) {
+            if (doubleChest.getLeftSide() instanceof org.bukkit.block.BlockState left) {
+                left.update(true, false);
+            }
+            if (doubleChest.getRightSide() instanceof org.bukkit.block.BlockState right) {
+                right.update(true, false);
+            }
+        } else {
+            state.update(true, false);
         }
     }
 

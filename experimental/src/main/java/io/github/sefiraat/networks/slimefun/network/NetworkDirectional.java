@@ -16,8 +16,8 @@ import com.github.drakescraft_labs.slimefun4.api.items.settings.IntRangeSetting;
 import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
 import com.github.drakescraft_labs.slimefun4.core.handlers.BlockPlaceHandler;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
-import dev.drake.dough.protection.Interaction;
-import dev.drake.dough.protection.ProtectionManager;
+import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.Interaction;
+import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.ProtectionManager;
 import me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ClickAction;
 import com.github.drakescraft_labs.slimefun4.legacy.Objects.handlers.BlockTicker;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
@@ -215,7 +215,18 @@ public abstract class NetworkDirectional extends NetworkObject {
         BlockFace direction = SELECTED_DIRECTION_MAP.get(blockMenu.getLocation().clone());
 
         if (direction == null) {
-            direction = BlockFace.valueOf(BlockStorage.getLocationInfo(blockMenu.getLocation(), DIRECTION));
+            final String string = BlockStorage.getLocationInfo(blockMenu.getLocation(), DIRECTION);
+            if (string == null) {
+                direction = BlockFace.SELF;
+                BlockStorage.addBlockInfo(blockMenu.getLocation(), DIRECTION, BlockFace.SELF.name());
+            } else {
+                try {
+                    direction = BlockFace.valueOf(string);
+                } catch (IllegalArgumentException e) {
+                    direction = BlockFace.SELF;
+                    BlockStorage.addBlockInfo(blockMenu.getLocation(), DIRECTION, BlockFace.SELF.name());
+                }
+            }
             SELECTED_DIRECTION_MAP.put(blockMenu.getLocation().clone(), direction);
         }
         return direction;

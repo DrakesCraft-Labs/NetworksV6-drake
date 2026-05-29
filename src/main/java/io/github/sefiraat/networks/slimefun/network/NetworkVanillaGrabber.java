@@ -59,7 +59,7 @@ public class NetworkVanillaGrabber extends NetworkDirectional {
                                  RecipeType recipeType,
                                  ItemStack[] recipe
     ) {
-        super(itemGroup, item, recipeType, recipe, NodeType.PUSHER);
+        super(itemGroup, item, recipeType, recipe, NodeType.GRABBER);
         this.getSlotsToDrop().add(OUTPUT_SLOT);
     }
 
