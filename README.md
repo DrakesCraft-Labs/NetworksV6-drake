@@ -65,7 +65,29 @@ graph TD
 |--------|--------|
 | **Releases (recomendado)** | [Releases de NetworksV6-drake](https://github.com/DrakesCraft-Labs/NetworksV6-drake/releases) — JAR `NetworksV6-Drake-v*.jar` |
 | **CI (último build main)** | Artefacto `NetworksV6-Drake-SNAPSHOT` en [Actions → Drake CI](https://github.com/DrakesCraft-Labs/NetworksV6-drake/actions/workflows/drake-ci.yml) |
-| **Build local** | `target/NetworksV6-Drake-v11-SNAPSHOT.jar` tras `mvn test package` |
+| **Build local** | `target/NetworksV6-Drake-v11-SNAPSHOT.jar` tras instalar las dependencias Drake locales y ejecutar `mvn test package` |
+
+### Build local para colaboradores Drake
+
+Este repo usa artefactos internos del stack Drake que aun no estan publicados en un repositorio Maven publico:
+
+- `com.github.drakescraft_labs:slimefun-core`
+- `com.github.drakescraft_labs:dough-core`
+- `com.github.drakescraft_labs:sefilib-drake`
+- `com.github.drakescraft_labs:InfinityExpansion-drake`
+
+Antes de empaquetar Networks en una maquina limpia, instala esos modulos desde `DrakesCraft-Labs/drakes-slimefun-labs`:
+
+```powershell
+git clone https://github.com/DrakesCraft-Labs/drakes-slimefun-labs.git
+Set-Location -LiteralPath ".\drakes-slimefun-labs"
+mvn -pl :slimefun-core,:dough-core,:sefilib-drake,:InfinityExpansion-drake -am -DskipTests install
+
+Set-Location -LiteralPath "..\NetworksV6-drake"
+mvn -DskipTests package
+```
+
+Si Maven falla resolviendo `com.github.drakescraft_labs:*`, no es un error de codigo de Networks: falta instalar primero el stack Drake local.
 
 ### Publicar una release
 
