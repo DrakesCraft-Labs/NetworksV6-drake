@@ -123,7 +123,7 @@ public class NetworkVanillaGrabber extends NetworkDirectional {
                     final PotionMeta potionMeta = (PotionMeta) stack.getItemMeta();
                     if (Slimefun.getMinecraftVersion().isAtLeast(com.github.drakescraft_labs.slimefun4.api.MinecraftVersion.MINECRAFT_1_20_5)) {
                         // 1.20.5 or higher
-                        if (potionMeta.getBasePotionType() == PotionType.WATER) {
+                        if (potionMeta.getBasePotionType() != PotionType.WATER) {
                             if (grabItem(blockMenu, stack)) {
                                 updateBlockState(holder, blockState);
                                 return;

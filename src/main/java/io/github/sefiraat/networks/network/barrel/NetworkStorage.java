@@ -27,7 +27,7 @@ public class NetworkStorage extends BarrelIdentity {
             return null;
         }
 
-        final QuantumCache cache = NetworkQuantumStorage.getCaches().get(blockMenu.getLocation());
+        final QuantumCache cache = NetworkQuantumStorage.getDatabaseCache(blockMenu.getLocation());
 
         if (cache == null) {
             return null;
@@ -40,7 +40,7 @@ public class NetworkStorage extends BarrelIdentity {
     public void depositItemStack(ItemStack[] itemsToDeposit) {
         if (BlockStorage.check(this.getLocation()) instanceof NetworkQuantumStorage) {
             final BlockMenu blockMenu = BlockStorage.getInventory(this.getLocation());
-            final QuantumCache cache = NetworkQuantumStorage.getCaches().get(this.getLocation());
+            final QuantumCache cache = NetworkQuantumStorage.getDatabaseCache(this.getLocation());
             if (cache != null) {
                 NetworkQuantumStorage.tryInputItem(blockMenu.getLocation(), itemsToDeposit, cache);
             }

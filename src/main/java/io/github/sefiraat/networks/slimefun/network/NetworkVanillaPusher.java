@@ -107,8 +107,15 @@ public class NetworkVanillaPusher extends NetworkDirectional {
             handleBrewingStand(stack, brewer);
         } else if (wildChests && isChest) {
         } else if (InvUtils.fits(holder.getInventory(), stack)) {
-            holder.getInventory().addItem(stack);
-            stack.setAmount(0);
+            java.util.Map<Integer, ItemStack> remaining = holder.getInventory().addItem(stack);
+            if (remaining.isEmpty()) {
+                stack.setAmount(0);
+            } else {
+                ItemStack leftover = remaining.get(0);
+                if (leftover != null) {
+                    stack.setAmount(leftover.getAmount());
+                }
+            }
         }
 
         if (stack.getAmount() < before) {

@@ -160,7 +160,18 @@ public abstract class NetworkDirectional extends NetworkObject {
 
     @Nullable
     public static BlockFace getSelectedFace(@Nonnull Location location) {
-        return SELECTED_DIRECTION_MAP.get(location);
+        BlockFace face = SELECTED_DIRECTION_MAP.get(location);
+        if (face == null) {
+            final String string = BlockStorage.getLocationInfo(location, DIRECTION);
+            if (string != null) {
+                try {
+                    face = BlockFace.valueOf(string);
+                    SELECTED_DIRECTION_MAP.put(location.clone(), face);
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+        }
+        return face;
     }
 
     private void updateGui(@Nullable BlockMenu blockMenu) {
