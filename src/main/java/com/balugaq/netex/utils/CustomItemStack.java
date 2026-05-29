@@ -157,7 +157,7 @@ public class CustomItemStack implements Cloneable {
      * @param list      the list of lore
      */
     public CustomItemStack(@NotNull ItemStack itemStack, @NotNull List<String> list) {
-        this(itemStack, list.get(0), list.subList(1, list.size()).toArray(new String[0]));
+        this(itemStack, firstLine(list), remainingLines(list));
     }
 
     /**
@@ -168,6 +168,17 @@ public class CustomItemStack implements Cloneable {
      */
     public CustomItemStack(@NotNull Material material, @NotNull List<String> list) {
         this(new ItemStack(material), list);
+    }
+
+    private static @Nullable String firstLine(@NotNull List<String> list) {
+        return list.isEmpty() ? null : list.get(0);
+    }
+
+    private static String @NotNull [] remainingLines(@NotNull List<String> list) {
+        if (list.size() <= 1) {
+            return new String[0];
+        }
+        return list.subList(1, list.size()).toArray(new String[0]);
     }
 
     /**
