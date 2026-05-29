@@ -427,6 +427,9 @@ public class NetworkRoot extends NetworkNode {
 
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
             int[] slots = blockMenu.getPreset().getSlotsAccessedByItemTransport(ItemTransportFlow.WITHDRAW);
+            if (slots.length == 0) {
+                continue;
+            }
             final ItemStack itemStack = blockMenu.getItemInSlot(slots[0]);
             if (itemStack != null && itemStack.getType() != Material.AIR) {
                 aggregator.add(itemStack, itemStack.getAmount());
@@ -604,6 +607,9 @@ public class NetworkRoot extends NetworkNode {
         // Greedy Blocks
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
             int[] slots = blockMenu.getPreset().getSlotsAccessedByItemTransport(ItemTransportFlow.WITHDRAW);
+            if (slots.length == 0) {
+                continue;
+            }
             final ItemStack itemStack = blockMenu.getItemInSlot(slots[0]);
             if (itemStack == null
                     || itemStack.getType() == Material.AIR
@@ -647,6 +653,9 @@ public class NetworkRoot extends NetworkNode {
 
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
             int[] slots = blockMenu.getPreset().getSlotsAccessedByItemTransport(ItemTransportFlow.WITHDRAW);
+            if (slots.length == 0) {
+                continue;
+            }
             ItemStack inputSlotItem = blockMenu.getItemInSlot(slots[0]);
             if (inputSlotItem != null && StackUtils.itemsMatch(inputSlotItem, itemStack)) {
                 totalAmount += inputSlotItem.getAmount();
@@ -683,6 +692,9 @@ public class NetworkRoot extends NetworkNode {
 
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
             int[] slots = blockMenu.getPreset().getSlotsAccessedByItemTransport(ItemTransportFlow.WITHDRAW);
+            if (slots.length == 0) {
+                continue;
+            }
             ItemStack inputSlotItem = blockMenu.getItemInSlot(slots[0]);
             if (inputSlotItem != null) {
                 for (ItemStack itemStack : itemStacks) {
@@ -1130,6 +1142,9 @@ public class NetworkRoot extends NetworkNode {
         // Greedy Blocks
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
             int[] slots = blockMenu.getPreset().getSlotsAccessedByItemTransport(ItemTransportFlow.WITHDRAW);
+            if (slots.length == 0) {
+                continue;
+            }
             final ItemStack itemStack = blockMenu.getItemInSlot(slots[0]);
             if (itemStack == null
                     || itemStack.getType() == Material.AIR
