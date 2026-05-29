@@ -4,6 +4,7 @@ import io.github.sefiraat.networks.network.NetworkRoot;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
+import com.github.drakescraft_labs.slimefun4.legacy.api.item_transport.ItemTransportFlow;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -17,6 +18,7 @@ import javax.annotation.Nullable;
 public final class NetworkTransportUtils {
 
     private static final String NETWORK_ID_PREFIX = "NTW_";
+    private static final int[] EMPTY_SLOTS = new int[0];
 
     private NetworkTransportUtils() {}
 
@@ -94,6 +96,22 @@ public final class NetworkTransportUtils {
             @Nonnull BlockMenu menu,
             int slot) {
         return pullIntoNetwork(root, accessor, menu, slot);
+    }
+
+    /**
+     * Resuelve slots de transporte con compatibilidad para presets antiguos.
+     * Algunos addons solo sobreescriben el metodo simple por flow; el overload con menu/item puede devolver vacio.
+     */
+    @Nonnull
+    public static int[] getTransportSlots(
+            @Nonnull BlockMenu menu,
+            @Nonnull ItemTransportFlow flow,
+            @Nullable ItemStack stack) {
+        int[] slots = menu.getPreset().getSlotsAccessedByItemTransport(menu, flow, stack);
+        if (slots == null || slots.length == 0) {
+            slots = menu.getPreset().getSlotsAccessedByItemTransport(flow);
+        }
+        return slots == null ? EMPTY_SLOTS : slots;
     }
 
     /**

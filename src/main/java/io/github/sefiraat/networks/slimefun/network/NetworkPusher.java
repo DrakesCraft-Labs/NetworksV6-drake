@@ -83,7 +83,7 @@ public class NetworkPusher extends NetworkDirectional {
             clone.setAmount(1);
             final ItemRequest itemRequest = new ItemRequest(clone, clone.getMaxStackSize());
 
-            int[] slots = targetMenu.getPreset().getSlotsAccessedByItemTransport(targetMenu, ItemTransportFlow.INSERT, clone);
+            int[] slots = NetworkTransportUtils.getTransportSlots(targetMenu, ItemTransportFlow.INSERT, clone);
 
             for (int slot : slots) {
                 final ItemStack itemStack = targetMenu.getItemInSlot(slot);
