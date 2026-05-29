@@ -81,6 +81,13 @@ public final class NetworkTransportUtils {
 
         if (inventory.getHolder() instanceof org.bukkit.block.BlockState state) {
             state.update(true, false);
+        } else if (inventory.getHolder() instanceof org.bukkit.block.DoubleChest doubleChest) {
+            if (doubleChest.getLeftSide() instanceof org.bukkit.block.BlockState left) {
+                left.update(true, false);
+            }
+            if (doubleChest.getRightSide() instanceof org.bukkit.block.BlockState right) {
+                right.update(true, false);
+            }
         }
 
         root.uncontrolAccessInput(accessor);
