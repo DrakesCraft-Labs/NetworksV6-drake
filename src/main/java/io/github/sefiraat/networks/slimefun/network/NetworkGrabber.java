@@ -48,7 +48,7 @@ public class NetworkGrabber extends NetworkDirectional {
             return;
         }
 
-        int[] slots = targetMenu.getPreset().getSlotsAccessedByItemTransport(targetMenu, ItemTransportFlow.WITHDRAW, null);
+        int[] slots = NetworkTransportUtils.getTransportSlots(targetMenu, ItemTransportFlow.WITHDRAW, null);
 
         for (int slot : slots) {
             final ItemStack itemStack = targetMenu.getItemInSlot(slot);
