@@ -99,7 +99,7 @@ public class NetworkVanillaGrabber extends NetworkDirectional {
             return;
         }
 
-        final BlockState blockState = BlockStateRefreshListener.getState(targetBlock);
+        final BlockState blockState = BlockStateRefreshListener.getFreshState(targetBlock);
 
         if (!(blockState instanceof InventoryHolder holder)) {
             return;
