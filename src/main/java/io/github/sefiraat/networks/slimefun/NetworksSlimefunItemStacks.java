@@ -326,7 +326,7 @@ public class NetworksSlimefunItemStacks {
             new ItemStack(Material.ORANGE_STAINED_GLASS),
             Theme.MACHINE,
             "Network Vanilla Grabber",
-            "The Network Vanilla Pusher will try",
+            "The Network Vanilla Grabber will try",
             "to grab the first possible item from",
             "the chosen vanilla inventory.",
             "You need to grab items from this",

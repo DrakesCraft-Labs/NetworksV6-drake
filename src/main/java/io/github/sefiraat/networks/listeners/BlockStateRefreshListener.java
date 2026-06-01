@@ -1,7 +1,6 @@
 package io.github.sefiraat.networks.listeners;
 
 import dev.drake.dough.blocks.BlockPosition;
-import it.unimi.dsi.fastutil.longs.Long2BooleanOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import org.bukkit.block.Block;
@@ -48,7 +47,12 @@ public class BlockStateRefreshListener implements Listener {
         return block.getState(r);
     }
 
-    void setNotUseSnapshot(long position) {
+    public static BlockState getFreshState(Block block) {
+        setNotUseSnapshot(bp(block.getX(), block.getY(), block.getZ()));
+        return block.getState(false);
+    }
+
+    private static void setNotUseSnapshot(long position) {
         set.remove(position);
     }
 

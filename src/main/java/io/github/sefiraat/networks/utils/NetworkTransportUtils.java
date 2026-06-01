@@ -1,6 +1,8 @@
 package io.github.sefiraat.networks.utils;
 
 import io.github.sefiraat.networks.network.NetworkRoot;
+import io.github.sefiraat.networks.slimefun.network.NetworkVanillaGrabber;
+import io.github.sefiraat.networks.slimefun.network.NetworkVanillaPusher;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
@@ -129,6 +131,15 @@ public final class NetworkTransportUtils {
             return false;
         }
         final SlimefunItem item = BlockStorage.check(menu.getBlock());
-        return item == null || !item.getId().startsWith(NETWORK_ID_PREFIX);
+        return isExternalInventoryType(item == null ? null : item.getId(), item == null ? null : item.getClass());
+    }
+
+    static boolean isExternalInventoryType(@Nullable String itemId, @Nullable Class<?> itemType) {
+        if (itemId == null || !itemId.startsWith(NETWORK_ID_PREFIX)) {
+            return true;
+        }
+        return itemType != null
+                && (NetworkVanillaGrabber.class.isAssignableFrom(itemType)
+                || NetworkVanillaPusher.class.isAssignableFrom(itemType));
     }
 }
