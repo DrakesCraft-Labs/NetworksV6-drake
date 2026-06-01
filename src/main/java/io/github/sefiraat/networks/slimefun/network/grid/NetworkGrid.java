@@ -16,8 +16,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NetworkGrid extends AbstractGrid {
 
@@ -41,7 +41,7 @@ public class NetworkGrid extends AbstractGrid {
     private static final int PAGE_PREVIOUS = 44;
     private static final int PAGE_NEXT = 53;
 
-    private static final Map<Location, GridCache> CACHE_MAP = new HashMap<>();
+    private static final Map<Location, GridCache> CACHE_MAP = new ConcurrentHashMap<>();
 
     public NetworkGrid(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(itemGroup, item, recipeType, recipe);
@@ -80,7 +80,7 @@ public class NetworkGrid extends AbstractGrid {
 
                 menu.replaceExistingItem(getPagePrevious(), getPagePreviousStack());
                 menu.addMenuClickHandler(getPagePrevious(), (p, slot, item, action) -> {
-                    GridCache gridCache = getCacheMap().get(menu.getLocation());
+                    GridCache gridCache = getCache(menu);
                     gridCache.setPage(gridCache.getPage() <= 0 ? 0 : gridCache.getPage() - 1);
                     getCacheMap().put(menu.getLocation(), gridCache);
                     return false;
@@ -88,7 +88,7 @@ public class NetworkGrid extends AbstractGrid {
 
                 menu.replaceExistingItem(getPageNext(), getPageNextStack());
                 menu.addMenuClickHandler(getPageNext(), (p, slot, item, action) -> {
-                    GridCache gridCache = getCacheMap().get(menu.getLocation());
+                    GridCache gridCache = getCache(menu);
                     gridCache.setPage(gridCache.getPage() >= gridCache.getMaxPages() ? gridCache.getMaxPages() : gridCache.getPage() + 1);
                     getCacheMap().put(menu.getLocation(), gridCache);
                     return false;
@@ -96,7 +96,7 @@ public class NetworkGrid extends AbstractGrid {
 
                 menu.replaceExistingItem(getChangeSort(), getChangeSortStack());
                 menu.addMenuClickHandler(getChangeSort(), (p, slot, item, action) -> {
-                    GridCache gridCache = getCacheMap().get(menu.getLocation());
+                    GridCache gridCache = getCache(menu);
                     if (gridCache.getSortOrder() == GridCache.SortOrder.ALPHABETICAL) {
                         gridCache.setSortOrder(GridCache.SortOrder.NUMBER);
                     } else {
@@ -108,7 +108,7 @@ public class NetworkGrid extends AbstractGrid {
 
                 menu.replaceExistingItem(getFilterSlot(), getFilterStack());
                 menu.addMenuClickHandler(getFilterSlot(), (p, slot, item, action) -> {
-                    GridCache gridCache = getCacheMap().get(menu.getLocation());
+                    GridCache gridCache = getCache(menu);
                     return setFilter(p, menu, gridCache, action);
                 });
 
@@ -133,6 +133,13 @@ public class NetworkGrid extends AbstractGrid {
     @Nonnull
     public Map<Location, GridCache> getCacheMap() {
         return CACHE_MAP;
+    }
+
+    private GridCache getCache(@Nonnull BlockMenu menu) {
+        return CACHE_MAP.computeIfAbsent(
+            menu.getLocation().clone(),
+            location -> new GridCache(0, 0, GridCache.SortOrder.ALPHABETICAL)
+        );
     }
 
     public int[] getBackgroundSlots() {

@@ -52,6 +52,11 @@ public class NetworkWirelessConfigurator extends SlimefunItem {
                                     Interaction.INTERACT_BLOCK)) {
                                 final ItemStack heldItem = player.getInventory().getItemInMainHand();
                                 final BlockMenu blockMenu = BlockStorage.getInventory(block);
+                                if (blockMenu == null) {
+                                    player.sendMessage(Theme.ERROR + "This wireless block is missing its inventory.");
+                                    e.cancel();
+                                    return;
+                                }
                                 if (slimefunItem instanceof NetworkWirelessTransmitter transmitter
                                         && player.isSneaking()) {
                                     setTransmitter(transmitter, heldItem, blockMenu, player);

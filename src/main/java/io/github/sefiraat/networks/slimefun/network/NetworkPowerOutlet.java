@@ -56,7 +56,11 @@ public class NetworkPowerOutlet extends NetworkDirectional {
         final String charge = BlockStorage.getLocationInfo(targetBlock.getLocation(), "energy-charge");
         int chargeInt = 0;
         if (charge != null) {
-            chargeInt = Integer.parseInt(charge);
+            try {
+                chargeInt = Integer.parseInt(charge);
+            } catch (NumberFormatException ignored) {
+                chargeInt = 0;
+            }
         }
 
         final int capacity = component.getCapacity();

@@ -35,9 +35,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveItem {
 
@@ -94,7 +94,7 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
     private static final int[] OUTPUT_SLOTS = new int[]{6, 8};
     private static final int[] BACKGROUND_SLOTS = new int[]{9, 10, 11, 12, 14, 15, 16, 17};
 
-    private static final Map<Location, QuantumCache> CACHES = new HashMap<>();
+    private static final Map<Location, QuantumCache> CACHES = new ConcurrentHashMap<>();
 
     static {
         final ItemMeta itemMeta = NO_ITEM.getItemMeta();
@@ -118,7 +118,7 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
             new BlockTicker() {
                 @Override
                 public boolean isSynchronized() {
-                    return false;
+                    return true;
                 }
 
                 @Override
@@ -150,10 +150,9 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
             return;
         }
 
-        final QuantumCache cache = CACHES.get(blockMenu.getLocation());
-
+        QuantumCache cache = CACHES.get(blockMenu.getLocation());
         if (cache == null) {
-            return;
+            cache = addCache(blockMenu);
         }
 
         if (blockMenu.hasViewer()) {
@@ -179,7 +178,10 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
         }
 
         if (fetched != null && fetched.getType() != Material.AIR) {
-            blockMenu.pushItem(fetched, OUTPUT_SLOT);
+            final ItemStack leftover = NetworkTransportUtils.pushIntoMenu(blockMenu, fetched, OUTPUT_SLOT);
+            if (leftover != null && leftover.getAmount() > 0) {
+                cache.increaseAmount(leftover.getAmount());
+            }
             syncBlock(blockMenu.getLocation(), cache);
             blockMenu.markDirty();
         }
@@ -190,6 +192,9 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
 
     private void toggleVoid(@Nonnull BlockMenu blockMenu) {
         final QuantumCache cache = CACHES.get(blockMenu.getLocation());
+        if (cache == null) {
+            return;
+        }
         cache.setVoidExcess(!cache.isVoidExcess());
         updateDisplayItem(blockMenu, cache);
         syncBlock(blockMenu.getLocation(), cache);
@@ -197,9 +202,9 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
     }
 
     private void setItem(@Nonnull BlockMenu blockMenu, @Nonnull Player player) {
-        final ItemStack itemStack = player.getItemOnCursor().clone();
+        final ItemStack cursor = player.getItemOnCursor();
 
-        if (isBlacklisted(itemStack)) {
+        if (isBlacklisted(cursor)) {
             return;
         }
 
@@ -208,6 +213,7 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
             player.sendMessage(Theme.WARNING + "Quantum Storage must be empty before changing the set item.");
             return;
         }
+        final ItemStack itemStack = cursor.clone();
         itemStack.setAmount(1);
         cache.setItemStack(itemStack);
         updateDisplayItem(blockMenu, cache);
@@ -376,8 +382,9 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
         }
     }
 
-    private static boolean isBlacklisted(@Nonnull ItemStack itemStack) {
-        return itemStack.getType() == Material.AIR
+    private static boolean isBlacklisted(@Nullable ItemStack itemStack) {
+        return itemStack == null
+            || itemStack.getType() == Material.AIR
             || itemStack.getType().getMaxDurability() < 0
             || Tag.SHULKER_BOXES.isTagged(itemStack.getType())
             || SlimefunItem.getByItem(itemStack) instanceof NetworkQuantumStorage;

@@ -108,6 +108,7 @@ public class NetworkRemote extends SlimefunItem {
         BlockMenu blockMenu = BlockStorage.getInventory(location);
         SlimefunItem slimefunItem = BlockStorage.check(location);
         if (slimefunItem instanceof NetworkGrid
+                && blockMenu != null
                 && Slimefun.getProtectionManager().hasPermission(Bukkit.getOfflinePlayer(player.getUniqueId()), location, Interaction.INTERACT_BLOCK)) {
             blockMenu.open(player);
         } else {

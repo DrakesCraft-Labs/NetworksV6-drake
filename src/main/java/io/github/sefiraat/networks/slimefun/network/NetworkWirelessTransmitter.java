@@ -6,6 +6,7 @@ import io.github.sefiraat.networks.network.NodeType;
 import io.github.sefiraat.networks.network.stackcaches.ItemRequest;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import io.github.sefiraat.networks.utils.ItemCreator;
+import io.github.sefiraat.networks.utils.NetworkTransportUtils;
 import io.github.sefiraat.networks.utils.Theme;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
@@ -29,8 +30,9 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
+import javax.annotation.Nullable;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NetworkWirelessTransmitter extends NetworkObject {
 
@@ -56,7 +58,7 @@ public class NetworkWirelessTransmitter extends NetworkObject {
     private static final int REQUIRED_POWER = 500;
     private static final int TICKS_PER = 2;
 
-    private final Map<Location, Location> linkedLocations = new HashMap<>();
+    private final Map<Location, Location> linkedLocations = new ConcurrentHashMap<>();
 
     public NetworkWirelessTransmitter(ItemGroup itemGroup,
                                       SlimefunItemStack item,
@@ -68,12 +70,12 @@ public class NetworkWirelessTransmitter extends NetworkObject {
 
         addItemHandler(
             new BlockTicker() {
-                private final Map<Location, Integer> tickMap = new HashMap<>();
-                private final Map<Location, Boolean> firstTick = new HashMap<>();
+                private final Map<Location, Integer> tickMap = new ConcurrentHashMap<>();
+                private final Map<Location, Boolean> firstTick = new ConcurrentHashMap<>();
 
                 @Override
                 public boolean isSynchronized() {
-                    return false;
+                    return true;
                 }
 
                 @Override
@@ -84,43 +86,50 @@ public class NetworkWirelessTransmitter extends NetworkObject {
 
                         boolean isFirstTick = firstTick.getOrDefault(block.getLocation(), true);
                         if (isFirstTick) {
-                            final String xString = BlockStorage.getLocationInfo(
-                                block.getLocation(),
-                                LINKED_LOCATION_KEY_X
-                            );
-                            final String yString = BlockStorage.getLocationInfo(
-                                block.getLocation(),
-                                LINKED_LOCATION_KEY_Y
-                            );
-                            final String zString = BlockStorage.getLocationInfo(
-                                block.getLocation(),
-                                LINKED_LOCATION_KEY_Z
-                            );
-                            if (xString != null && yString != null && zString != null) {
-                                final Location linkedLocation = new Location(
-                                    block.getWorld(),
-                                    Integer.parseInt(xString),
-                                    Integer.parseInt(yString),
-                                    Integer.parseInt(zString)
-                                );
+                            final Location linkedLocation = loadLinkedLocation(block);
+                            if (linkedLocation != null) {
                                 linkedLocations.put(block.getLocation(), linkedLocation);
                             }
                             firstTick.put(block.getLocation(), false);
                         }
 
-                        int tick = tickMap.getOrDefault(block.getLocation(), 0);
+                        int tick = tickMap.getOrDefault(block.getLocation(), 0) + 1;
                         if (tick >= TICKS_PER) {
                             onTick(blockMenu);
-                            tickMap.remove(block.getLocation());
                             tick = 0;
-                        } else {
-                            tick++;
                         }
-                        tickMap.put(block.getLocation(), tick + 1);
+                        tickMap.put(block.getLocation(), tick);
                     }
                 }
             }
         );
+    }
+
+    @Nullable
+    private Location loadLinkedLocation(@Nonnull Block block) {
+        final Location location = block.getLocation();
+        final String xString = BlockStorage.getLocationInfo(location, LINKED_LOCATION_KEY_X);
+        final String yString = BlockStorage.getLocationInfo(location, LINKED_LOCATION_KEY_Y);
+        final String zString = BlockStorage.getLocationInfo(location, LINKED_LOCATION_KEY_Z);
+
+        if (xString == null || yString == null || zString == null) {
+            return null;
+        }
+
+        try {
+            return new Location(
+                block.getWorld(),
+                Integer.parseInt(xString),
+                Integer.parseInt(yString),
+                Integer.parseInt(zString)
+            );
+        } catch (NumberFormatException e) {
+            BlockStorage.addBlockInfo(location, LINKED_LOCATION_KEY_X, null);
+            BlockStorage.addBlockInfo(location, LINKED_LOCATION_KEY_Y, null);
+            BlockStorage.addBlockInfo(location, LINKED_LOCATION_KEY_Z, null);
+            linkedLocations.remove(location);
+            return null;
+        }
     }
 
     private void onTick(@Nonnull BlockMenu blockMenu) {
@@ -167,9 +176,17 @@ public class NetworkWirelessTransmitter extends NetworkObject {
             );
 
             if (stackToPush != null) {
+                final boolean moved = NetworkTransportUtils.pushIntoMenuOrReturn(
+                    definition.getNode().getRoot(),
+                    blockMenu.getLocation(),
+                    linkedBlockMenu,
+                    stackToPush,
+                    NetworkWirelessReceiver.RECEIVED_SLOT
+                );
+                if (!moved) {
+                    return;
+                }
                 definition.getNode().getRoot().removeRootPower(REQUIRED_POWER);
-                linkedBlockMenu.pushItem(stackToPush, NetworkWirelessReceiver.RECEIVED_SLOT);
-                linkedBlockMenu.markDirty();
                 if (definition.getNode().getRoot().isDisplayParticles()) {
                     final Location particleLocation = blockMenu.getLocation().clone().add(0.5, 1.1, 0.5);
                     final Location particleLocation2 = linkedBlockMenu.getLocation().clone().add(0.5, 2.1, 0.5);

@@ -3,6 +3,7 @@ package io.github.sefiraat.networks.slimefun.network;
 import io.github.sefiraat.networks.network.stackcaches.QuantumCache;
 import io.github.sefiraat.networks.utils.ItemCreator;
 import io.github.sefiraat.networks.utils.Keys;
+import io.github.sefiraat.networks.utils.NetworkTransportUtils;
 import io.github.sefiraat.networks.utils.Theme;
 import io.github.sefiraat.networks.utils.datatypes.DataTypeMethods;
 import io.github.sefiraat.networks.utils.datatypes.PersistentQuantumStorageType;
@@ -82,7 +83,9 @@ public class NetworkQuantumWorkbench extends SlimefunItem {
 
             @Override
             public boolean canOpen(@Nonnull Block block, @Nonnull Player player) {
-                return BlockStorage.check(block).canUse(player, false)
+                final SlimefunItem item = BlockStorage.check(block);
+                return item != null
+                    && item.canUse(player, false)
                     && Slimefun.getProtectionManager().hasPermission(player, block.getLocation(), Interaction.INTERACT_BLOCK);
             }
 
@@ -108,7 +111,7 @@ public class NetworkQuantumWorkbench extends SlimefunItem {
         final ItemStack itemInOutput = menu.getItemInSlot(OUTPUT_SLOT);
 
         // Quick escape, we only allow crafting if the output is empty
-        if (itemInOutput != null) {
+        if (itemInOutput != null && itemInOutput.getType() != Material.AIR) {
             return;
         }
 
@@ -134,7 +137,7 @@ public class NetworkQuantumWorkbench extends SlimefunItem {
 
         if (crafted != null) {
             final ItemStack coreItem = inputs[4];
-            final SlimefunItem oldQuantum = SlimefunItem.getByItem(coreItem);
+            final SlimefunItem oldQuantum = coreItem == null ? null : SlimefunItem.getByItem(coreItem);
 
             if (oldQuantum instanceof NetworkQuantumStorage) {
                 final ItemMeta oldMeta = coreItem.getItemMeta();
@@ -142,7 +145,7 @@ public class NetworkQuantumWorkbench extends SlimefunItem {
                 final NetworkQuantumStorage newQuantum = (NetworkQuantumStorage) SlimefunItem.getByItem(crafted);
                 final QuantumCache oldCache = DataTypeMethods.getCustom(oldMeta, Keys.QUANTUM_STORAGE_INSTANCE, PersistentQuantumStorageType.TYPE);
 
-                if (oldCache != null) {
+                if (oldCache != null && oldCache.getItemStack() != null) {
                     final QuantumCache newCache = new QuantumCache(
                         oldCache.getItemStack().clone(),
                         oldCache.getAmount(),
@@ -155,11 +158,14 @@ public class NetworkQuantumWorkbench extends SlimefunItem {
                 }
             }
 
-            menu.pushItem(crafted, OUTPUT_SLOT);
+            NetworkTransportUtils.pushIntoMenu(menu, crafted, OUTPUT_SLOT);
             menu.markDirty();
             for (int recipeSlot : RECIPE_SLOTS) {
                 if (menu.getItemInSlot(recipeSlot) != null) {
                     menu.consumeItem(recipeSlot, 1, true);
+                    if (menu.getItemInSlot(recipeSlot) != null && menu.getItemInSlot(recipeSlot).getAmount() <= 0) {
+                        menu.replaceExistingItem(recipeSlot, null);
+                    }
                 }
             }
         }
@@ -179,8 +185,10 @@ public class NetworkQuantumWorkbench extends SlimefunItem {
             @Override
             public void onPlayerBreak(BlockBreakEvent event, ItemStack itemStack, List<ItemStack> drops) {
                 BlockMenu menu = BlockStorage.getInventory(event.getBlock());
-                menu.dropItems(menu.getLocation(), RECIPE_SLOTS);
-                menu.dropItems(menu.getLocation(), OUTPUT_SLOT);
+                if (menu != null) {
+                    menu.dropItems(menu.getLocation(), RECIPE_SLOTS);
+                    menu.dropItems(menu.getLocation(), OUTPUT_SLOT);
+                }
             }
         };
     }

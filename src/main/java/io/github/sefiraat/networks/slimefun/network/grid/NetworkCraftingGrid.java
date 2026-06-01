@@ -6,6 +6,7 @@ import io.github.sefiraat.networks.network.NodeDefinition;
 import io.github.sefiraat.networks.network.SupportedRecipes;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import io.github.sefiraat.networks.utils.ItemCreator;
+import io.github.sefiraat.networks.utils.NetworkTransportUtils;
 import io.github.sefiraat.networks.utils.Theme;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
@@ -24,8 +25,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NetworkCraftingGrid extends AbstractGrid {
 
@@ -57,7 +58,7 @@ public class NetworkCraftingGrid extends AbstractGrid {
         Theme.CLICK_INFO + "Shift Left Click: " + Theme.PASSIVE + "Try to return items"
     );
 
-    private static final Map<Location, GridCache> CACHE_MAP = new HashMap<>();
+    private static final Map<Location, GridCache> CACHE_MAP = new ConcurrentHashMap<>();
 
 
     public NetworkCraftingGrid(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
@@ -104,7 +105,7 @@ public class NetworkCraftingGrid extends AbstractGrid {
 
                 menu.replaceExistingItem(getPagePrevious(), getPagePreviousStack());
                 menu.addMenuClickHandler(getPagePrevious(), (p, slot, item, action) -> {
-                    GridCache gridCache = getCacheMap().get(menu.getLocation());
+                    GridCache gridCache = getCache(menu);
                     gridCache.setPage(gridCache.getPage() <= 0 ? 0 : gridCache.getPage() - 1);
                     CACHE_MAP.put(menu.getLocation(), gridCache);
                     return false;
@@ -112,7 +113,7 @@ public class NetworkCraftingGrid extends AbstractGrid {
 
                 menu.replaceExistingItem(getPageNext(), getPageNextStack());
                 menu.addMenuClickHandler(getPageNext(), (p, slot, item, action) -> {
-                    GridCache gridCache = getCacheMap().get(menu.getLocation());
+                    GridCache gridCache = getCache(menu);
                     gridCache.setPage(gridCache.getPage() >= gridCache.getMaxPages() ? gridCache.getMaxPages() : gridCache.getPage() + 1);
                     getCacheMap().put(menu.getLocation(), gridCache);
                     return false;
@@ -120,7 +121,7 @@ public class NetworkCraftingGrid extends AbstractGrid {
 
                 menu.replaceExistingItem(getChangeSort(), getChangeSortStack());
                 menu.addMenuClickHandler(getChangeSort(), (p, slot, item, action) -> {
-                    GridCache gridCache = getCacheMap().get(menu.getLocation());
+                    GridCache gridCache = getCache(menu);
                     if (gridCache.getSortOrder() == GridCache.SortOrder.ALPHABETICAL) {
                         gridCache.setSortOrder(GridCache.SortOrder.NUMBER);
                     } else {
@@ -132,7 +133,7 @@ public class NetworkCraftingGrid extends AbstractGrid {
 
                 menu.replaceExistingItem(getFilterSlot(), getFilterStack());
                 menu.addMenuClickHandler(getFilterSlot(), (p, slot, item, action) -> {
-                    GridCache gridCache = getCacheMap().get(menu.getLocation());
+                    GridCache gridCache = getCache(menu);
                     return setFilter(p, menu, gridCache, action);
                 });
 
@@ -158,6 +159,13 @@ public class NetworkCraftingGrid extends AbstractGrid {
     @Override
     protected Map<Location, GridCache> getCacheMap() {
         return CACHE_MAP;
+    }
+
+    private GridCache getCache(@Nonnull BlockMenu menu) {
+        return CACHE_MAP.computeIfAbsent(
+            menu.getLocation().clone(),
+            location -> new GridCache(0, 0, GridCache.SortOrder.ALPHABETICAL)
+        );
     }
 
     @Override
@@ -198,7 +206,7 @@ public class NetworkCraftingGrid extends AbstractGrid {
     private void tryCraft(@Nonnull BlockMenu menu, @Nonnull Player player) {
         // Get node and, if it doesn't exist - escape
         final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(menu.getLocation());
-        if (definition.getNode() == null) {
+        if (definition == null || definition.getNode() == null) {
             return;
         }
 
@@ -227,12 +235,12 @@ public class NetworkCraftingGrid extends AbstractGrid {
         }
 
         // If no item crafted OR result doesn't fit, escape
-        if (crafted.getType() == Material.AIR || !menu.fits(crafted, CRAFT_OUTPUT_SLOT)) {
+        if (crafted == null || crafted.getType() == Material.AIR || !menu.fits(crafted, CRAFT_OUTPUT_SLOT)) {
             return;
         }
 
         // Push item
-        menu.pushItem(crafted, CRAFT_OUTPUT_SLOT);
+        NetworkTransportUtils.pushIntoMenuOrReturn(definition.getNode().getRoot(), menu.getLocation(), menu, crafted, CRAFT_OUTPUT_SLOT);
         menu.markDirty();
 
         // Let's clear down all the items
@@ -244,6 +252,9 @@ public class NetworkCraftingGrid extends AbstractGrid {
                 itemInSlotClone.setAmount(1);
                 ItemUtils.consumeItem(menu.getItemInSlot(recipeSlot), 1, true);
                 // We have consumed a slot item and now the slot it empty - try to refill
+                if (menu.getItemInSlot(recipeSlot) != null && menu.getItemInSlot(recipeSlot).getAmount() <= 0) {
+                    menu.replaceExistingItem(recipeSlot, null);
+                }
                 if (menu.getItemInSlot(recipeSlot) == null) {
                     // Process item request
                     final GridItemRequest request = new GridItemRequest(itemInSlotClone, 1, player);
@@ -260,7 +271,7 @@ public class NetworkCraftingGrid extends AbstractGrid {
         // Get node and, if it doesn't exist - escape
         final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(menu.getLocation());
 
-        if (definition.getNode() == null) {
+        if (definition == null || definition.getNode() == null) {
             return;
         }
 
@@ -270,7 +281,11 @@ public class NetworkCraftingGrid extends AbstractGrid {
             if (stack == null || stack.getType() == Material.AIR) {
                 continue;
             }
-            definition.getNode().getRoot().addItemStack(stack);
+            definition.getNode().getRoot().addItemStack0(menu.getLocation(), stack);
+            if (stack.getAmount() <= 0) {
+                menu.replaceExistingItem(recipeSlot, null);
+            }
+            menu.markDirty();
         }
     }
 }

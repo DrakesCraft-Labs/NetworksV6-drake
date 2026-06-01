@@ -2,7 +2,6 @@ package io.github.sefiraat.networks.slimefun.network;
 
 import dev.drake.sefilib.misc.ParticleUtils;
 import io.github.sefiraat.networks.NetworkStorage;
-import io.github.sefiraat.networks.Networks;
 import io.github.sefiraat.networks.network.NodeDefinition;
 import io.github.sefiraat.networks.utils.NetworkTransportUtils;
 import io.github.sefiraat.networks.network.NodeType;
@@ -22,7 +21,6 @@ import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenuPreset;
 import com.github.drakescraft_labs.slimefun4.legacy.api.item_transport.ItemTransportFlow;
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -62,7 +60,7 @@ public class NetworkVacuum extends NetworkObject {
 
                 @Override
                 public boolean isSynchronized() {
-                    return false;
+                    return true;
                 }
 
                 @Override
@@ -70,8 +68,10 @@ public class NetworkVacuum extends NetworkObject {
                     if (tick <= 1) {
                         final BlockMenu blockMenu = BlockStorage.getInventory(block);
                         addToRegistry(block);
-                        tryAddItem(blockMenu);
-                        Bukkit.getScheduler().runTask(Networks.getInstance(), bukkitTask -> findItem(blockMenu));
+                        if (blockMenu != null) {
+                            tryAddItem(blockMenu);
+                            findItem(blockMenu);
+                        }
                     }
                 }
 
@@ -109,7 +109,7 @@ public class NetworkVacuum extends NetworkObject {
     private void tryAddItem(@Nonnull BlockMenu blockMenu) {
         final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(blockMenu.getLocation());
 
-        if (definition.getNode() == null) {
+        if (definition == null || definition.getNode() == null) {
             return;
         }
 

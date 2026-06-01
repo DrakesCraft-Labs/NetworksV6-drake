@@ -8,6 +8,7 @@ import io.github.sefiraat.networks.network.SupportedRecipes;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import io.github.sefiraat.networks.slimefun.tools.CraftingBlueprint;
 import io.github.sefiraat.networks.utils.ItemCreator;
+import io.github.sefiraat.networks.utils.NetworkTransportUtils;
 import io.github.sefiraat.networks.utils.StackUtils;
 import io.github.sefiraat.networks.utils.Theme;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
@@ -124,7 +125,8 @@ public class NetworkEncoder extends NetworkObject {
 
         ItemStack blueprint = blockMenu.getItemInSlot(BLANK_BLUEPRINT_SLOT);
 
-        if (!(SlimefunItem.getByItem(blueprint) instanceof CraftingBlueprint)) {
+        if (blueprint == null || blueprint.getType() == Material.AIR
+            || !(SlimefunItem.getByItem(blueprint) instanceof CraftingBlueprint)) {
             player.sendMessage(Theme.WARNING + "You need to provide a blank blueprint");
             return;
         }
@@ -165,16 +167,22 @@ public class NetworkEncoder extends NetworkObject {
         final ItemStack blueprintClone = StackUtils.getAsQuantity(blueprint, 1);
 
         blueprint.setAmount(blueprint.getAmount() - 1);
+        if (blueprint.getAmount() <= 0) {
+            blockMenu.replaceExistingItem(BLANK_BLUEPRINT_SLOT, null);
+        }
         CraftingBlueprint.setBlueprint(blueprintClone, inputs, crafted);
 
         for (int recipeSlot : RECIPE_SLOTS) {
             ItemStack slotItem = blockMenu.getItemInSlot(recipeSlot);
             if (slotItem != null) {
                 slotItem.setAmount(slotItem.getAmount() - 1);
+                if (slotItem.getAmount() <= 0) {
+                    blockMenu.replaceExistingItem(recipeSlot, null);
+                }
             }
         }
 
-        blockMenu.pushItem(blueprintClone, OUTPUT_SLOT);
+        NetworkTransportUtils.pushIntoMenu(blockMenu, blueprintClone, OUTPUT_SLOT);
         blockMenu.markDirty();
         root.removeRootPower(CHARGE_COST);
     }

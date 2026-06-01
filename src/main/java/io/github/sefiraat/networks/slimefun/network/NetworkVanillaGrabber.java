@@ -92,7 +92,16 @@ public class NetworkVanillaGrabber extends NetworkDirectional {
         final BlockFace direction = getCurrentDirection(blockMenu);
         final Block block = blockMenu.getBlock();
         final Block targetBlock = block.getRelative(direction);
-        final UUID uuid = UUID.fromString(BlockStorage.getLocationInfo(block.getLocation(), OWNER_KEY));
+        final String owner = BlockStorage.getLocationInfo(block.getLocation(), OWNER_KEY);
+        if (owner == null) {
+            return;
+        }
+        final UUID uuid;
+        try {
+            uuid = UUID.fromString(owner);
+        } catch (IllegalArgumentException e) {
+            return;
+        }
         final OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
 
         if (!Slimefun.getProtectionManager().hasPermission(offlinePlayer, targetBlock, Interaction.INTERACT_BLOCK)) {

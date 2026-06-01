@@ -46,7 +46,15 @@ public class NetworkUtils {
             return;
         }
 
-        directional.setDirection(blockMenu, BlockFace.valueOf(string));
+        final BlockFace blockFace;
+        try {
+            blockFace = BlockFace.valueOf(string);
+        } catch (IllegalArgumentException e) {
+            player.sendMessage(Theme.ERROR + "Direction: " + Theme.PASSIVE + "Stored config is invalid");
+            return;
+        }
+
+        directional.setDirection(blockMenu, blockFace);
         player.sendMessage(Theme.ERROR + "Direction: " + Theme.PASSIVE + "Successfully applied");
 
         if (directional.getItemSlots().length > 0) {
@@ -54,7 +62,7 @@ public class NetworkUtils {
                 final ItemStack stackToDrop = blockMenu.getItemInSlot(slot);
                 if (stackToDrop != null && stackToDrop.getType() != Material.AIR) {
                     blockMenu.getLocation().getWorld().dropItem(blockMenu.getLocation(), stackToDrop.clone());
-                    stackToDrop.setAmount(0);
+                    blockMenu.replaceExistingItem(slot, null);
                     blockMenu.markDirty();
                 }
             }
@@ -63,9 +71,15 @@ public class NetworkUtils {
         if (templateStacks != null) {
             int i = 0;
             for (ItemStack templateStack : templateStacks) {
+                if (i >= directional.getItemSlots().length) {
+                    break;
+                }
                 if (templateStack != null && templateStack.getType() != Material.AIR) {
                     boolean worked = false;
                     for (ItemStack stack : player.getInventory()) {
+                        if (stack == null || stack.getType() == Material.AIR) {
+                            continue;
+                        }
                         if (StackUtils.itemsMatch(stack, templateStack)) {
                             final ItemStack stackClone = StackUtils.getAsQuantity(stack, 1);
                             stack.setAmount(stack.getAmount() - 1);
