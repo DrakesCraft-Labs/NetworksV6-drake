@@ -50,6 +50,11 @@ public class NetworkConfigurator extends SlimefunItem {
                             if (Slimefun.getProtectionManager().hasPermission(Bukkit.getOfflinePlayer(player.getUniqueId()), block, Interaction.INTERACT_BLOCK)
                                     && slimefunItem instanceof NetworkDirectional directional) {
                                 final BlockMenu blockMenu = BlockStorage.getInventory(block);
+                                if (blockMenu == null) {
+                                    player.sendMessage(Theme.ERROR + "This Networks interface is missing its inventory.");
+                                    e.cancel();
+                                    return;
+                                }
                                 if (player.isSneaking()) {
                                     setConfigurator(directional, e.getItem(), blockMenu, player);
                                 } else {

@@ -22,20 +22,19 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NetworkController extends NetworkObject {
 
     private static final String CRAYON = "crayon";
-    private static final Map<Location, NetworkRoot> NETWORKS = new HashMap<>();
-    private static final Set<Location> CRAYONS = new HashSet<>();
+    private static final Map<Location, NetworkRoot> NETWORKS = new ConcurrentHashMap<>();
+    private static final Set<Location> CRAYONS = ConcurrentHashMap.newKeySet();
 
     private final ItemSetting<Integer> maxNodes;
-    protected final Map<Location, Boolean> firstTickMap = new HashMap<>();
+    protected final Map<Location, Boolean> firstTickMap = new ConcurrentHashMap<>();
 
     public NetworkController(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(itemGroup, item, recipeType, recipe, NodeType.CONTROLLER);
@@ -47,7 +46,7 @@ public class NetworkController extends NetworkObject {
             new BlockTicker() {
                 @Override
                 public boolean isSynchronized() {
-                    return false;
+                    return true;
                 }
 
                 @Override

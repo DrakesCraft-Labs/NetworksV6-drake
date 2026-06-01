@@ -46,7 +46,7 @@ public class NetworkPowerDisplay extends NetworkObject {
             new BlockTicker() {
                 @Override
                 public boolean isSynchronized() {
-                    return false;
+                    return true;
                 }
 
                 @Override
@@ -65,7 +65,7 @@ public class NetworkPowerDisplay extends NetworkObject {
         if (blockMenu.hasViewer()) {
             final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(blockMenu.getLocation());
 
-            if (definition.getNode() == null) {
+            if (definition == null || definition.getNode() == null) {
                 blockMenu.replaceExistingItem(DISPLAY_SLOT, EMPTY);
                 return;
             }

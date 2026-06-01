@@ -108,6 +108,48 @@ public final class NetworkTransportUtils {
     }
 
     /**
+     * Inserta una copia del stack en un BlockMenu y sincroniza el amount restante en el stack original.
+     * BlockMenu#pushItem puede guardar la misma referencia recibida si el slot esta vacio.
+     */
+    @Nullable
+    public static ItemStack pushIntoMenu(
+            @Nonnull BlockMenu targetMenu,
+            @Nonnull ItemStack stack,
+            int... slots) {
+        if (stack.getType() == Material.AIR || stack.getAmount() <= 0) {
+            stack.setAmount(0);
+            return null;
+        }
+
+        final ItemStack leftover = targetMenu.pushItem(stack.clone(), slots);
+        if (leftover == null || leftover.getType() == Material.AIR || leftover.getAmount() <= 0) {
+            stack.setAmount(0);
+            return null;
+        }
+
+        stack.setAmount(leftover.getAmount());
+        return leftover;
+    }
+
+    public static boolean pushIntoMenuOrReturn(
+            @Nonnull NetworkRoot root,
+            @Nonnull org.bukkit.Location accessor,
+            @Nonnull BlockMenu targetMenu,
+            @Nonnull ItemStack stack,
+            int... slots) {
+        final int before = stack.getAmount();
+        final ItemStack leftover = pushIntoMenu(targetMenu, stack, slots);
+        final int moved = before - (leftover == null ? 0 : leftover.getAmount());
+
+        if (leftover != null && leftover.getAmount() > 0) {
+            root.uncontrolAccessInput(accessor);
+            root.addItemStack0(accessor, leftover);
+        }
+
+        return moved > 0;
+    }
+
+    /**
      * Resuelve slots de transporte con compatibilidad para presets antiguos.
      * Algunos addons solo sobreescriben el metodo simple por flow; el overload con menu/item puede devolver vacio.
      */

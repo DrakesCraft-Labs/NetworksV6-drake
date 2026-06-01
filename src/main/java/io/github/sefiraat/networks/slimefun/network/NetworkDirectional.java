@@ -43,10 +43,10 @@ import javax.annotation.Nullable;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class NetworkDirectional extends NetworkObject {
 
@@ -69,7 +69,7 @@ public abstract class NetworkDirectional extends NetworkObject {
         BlockFace.WEST
     );
 
-    private static final Map<Location, BlockFace> SELECTED_DIRECTION_MAP = new HashMap<>();
+    private static final Map<Location, BlockFace> SELECTED_DIRECTION_MAP = new ConcurrentHashMap<>();
 
     private final ItemSetting<Integer> tickRate;
 
@@ -85,7 +85,10 @@ public abstract class NetworkDirectional extends NetworkObject {
                     NetworkStorage.removeNode(event.getBlock().getLocation());
                     BlockStorage.addBlockInfo(event.getBlock(), OWNER_KEY, event.getPlayer().getUniqueId().toString());
                     BlockStorage.addBlockInfo(event.getBlock(), DIRECTION, BlockFace.SELF.name());
-                    NetworkUtils.applyConfig(NetworkDirectional.this, BlockStorage.getInventory(event.getBlock()), event.getPlayer());
+                    final BlockMenu blockMenu = BlockStorage.getInventory(event.getBlock());
+                    if (blockMenu != null) {
+                        NetworkUtils.applyConfig(NetworkDirectional.this, blockMenu, event.getPlayer());
+                    }
                 }
             },
             new BlockTicker() {
@@ -203,7 +206,7 @@ public abstract class NetworkDirectional extends NetworkObject {
 
             @Override
             public void newInstance(@Nonnull BlockMenu blockMenu, @Nonnull Block b) {
-                final BlockFace direction;
+                BlockFace direction;
                 final String string = BlockStorage.getLocationInfo(blockMenu.getLocation(), DIRECTION);
 
                 if (string == null) {
@@ -211,7 +214,12 @@ public abstract class NetworkDirectional extends NetworkObject {
                     direction = BlockFace.SELF;
                     BlockStorage.addBlockInfo(blockMenu.getLocation(), DIRECTION, BlockFace.SELF.name());
                 } else {
-                    direction = BlockFace.valueOf(string);
+                    try {
+                        direction = BlockFace.valueOf(string);
+                    } catch (IllegalArgumentException e) {
+                        direction = BlockFace.SELF;
+                        BlockStorage.addBlockInfo(blockMenu.getLocation(), DIRECTION, BlockFace.SELF.name());
+                    }
                 }
                 SELECTED_DIRECTION_MAP.put(blockMenu.getLocation().clone(), direction);
 
@@ -262,7 +270,8 @@ public abstract class NetworkDirectional extends NetworkObject {
         if (targetMenu != null) {
             final Location location = targetMenu.getLocation();
             final SlimefunItem item = BlockStorage.check(location);
-            if (item.canUse(player, true)
+            if (item != null
+                && item.canUse(player, true)
                 && Slimefun.getProtectionManager().hasPermission(player, blockMenu.getLocation(), Interaction.INTERACT_BLOCK)
             ) {
                 targetMenu.open(player);

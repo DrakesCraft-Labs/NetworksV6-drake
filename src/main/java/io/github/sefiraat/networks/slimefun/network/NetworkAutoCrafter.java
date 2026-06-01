@@ -11,6 +11,7 @@ import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import io.github.sefiraat.networks.slimefun.tools.CraftingBlueprint;
 import io.github.sefiraat.networks.utils.ItemCreator;
 import io.github.sefiraat.networks.utils.Keys;
+import io.github.sefiraat.networks.utils.NetworkTransportUtils;
 import io.github.sefiraat.networks.utils.StackUtils;
 import io.github.sefiraat.networks.utils.Theme;
 import io.github.sefiraat.networks.utils.datatypes.DataTypeMethods;
@@ -40,6 +41,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NetworkAutoCrafter extends NetworkObject {
 
@@ -63,7 +65,7 @@ public class NetworkAutoCrafter extends NetworkObject {
     private final int chargePerCraft;
     private final boolean withholding;
 
-    private static final Map<Location, BlueprintInstance> INSTANCE_MAP = new HashMap<>();
+    private static final Map<Location, BlueprintInstance> INSTANCE_MAP = new ConcurrentHashMap<>();
 
     public NetworkAutoCrafter(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe, int chargePerCraft, boolean withholding) {
         super(itemGroup, item, recipeType, recipe, NodeType.CRAFTER);
@@ -78,7 +80,7 @@ public class NetworkAutoCrafter extends NetworkObject {
             new BlockTicker() {
                 @Override
                 public boolean isSynchronized() {
-                    return false;
+                    return true;
                 }
 
                 @Override
@@ -105,10 +107,7 @@ public class NetworkAutoCrafter extends NetworkObject {
         final NetworkRoot root = definition.getNode().getRoot();
 
         if (!this.withholding) {
-            final ItemStack stored = blockMenu.getItemInSlot(OUTPUT_SLOT);
-            if (stored != null && stored.getType() != Material.AIR) {
-                root.addItemStack0(blockMenu.getLocation(), stored);
-            }
+            flushOutputIntoNetwork(blockMenu, root);
         }
 
         final ItemStack blueprint = blockMenu.getItemInSlot(BLUEPRINT_SLOT);
@@ -151,6 +150,22 @@ public class NetworkAutoCrafter extends NetworkObject {
             if (tryCraft(blockMenu, instance, root)) {
                 root.removeRootPower(this.chargePerCraft);
             }
+        }
+    }
+
+    private void flushOutputIntoNetwork(@Nonnull BlockMenu blockMenu, @Nonnull NetworkRoot root) {
+        final ItemStack stored = blockMenu.getItemInSlot(OUTPUT_SLOT);
+        if (stored == null || stored.getType() == Material.AIR) {
+            return;
+        }
+
+        final int previousAmount = stored.getAmount();
+        root.addItemStack0(blockMenu.getLocation(), stored);
+        if (stored.getAmount() <= 0) {
+            blockMenu.replaceExistingItem(OUTPUT_SLOT, null);
+        }
+        if (stored.getAmount() != previousAmount) {
+            blockMenu.markDirty();
         }
     }
 
@@ -229,7 +244,7 @@ public class NetworkAutoCrafter extends NetworkObject {
         if (root.isDisplayParticles()) {
             location.getWorld().spawnParticle(Particle.WAX_OFF, location, 0, 0, 4, 0);
         }
-        blockMenu.pushItem(crafted, OUTPUT_SLOT);
+        NetworkTransportUtils.pushIntoMenuOrReturn(root, blockMenu.getLocation(), blockMenu, crafted, OUTPUT_SLOT);
         blockMenu.markDirty();
         return true;
     }

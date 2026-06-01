@@ -6,6 +6,7 @@ import io.github.sefiraat.networks.network.NodeType;
 import io.github.sefiraat.networks.network.stackcaches.ItemRequest;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import io.github.sefiraat.networks.utils.ItemCreator;
+import io.github.sefiraat.networks.utils.NetworkTransportUtils;
 import io.github.sefiraat.networks.utils.Theme;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemSetting;
@@ -67,7 +68,7 @@ public class NetworkExport extends NetworkObject {
 
                 @Override
                 public boolean isSynchronized() {
-                    return false;
+                    return true;
                 }
 
                 @Override
@@ -75,7 +76,9 @@ public class NetworkExport extends NetworkObject {
                     if (tick <= 1) {
                         final BlockMenu blockMenu = BlockStorage.getInventory(block);
                         addToRegistry(block);
-                        tryFetchItem(blockMenu);
+                        if (blockMenu != null) {
+                            tryFetchItem(blockMenu);
+                        }
                     }
                 }
 
@@ -88,8 +91,10 @@ public class NetworkExport extends NetworkObject {
                 @Override
                 public void onPlayerBreak(BlockBreakEvent e, ItemStack item, List<ItemStack> drops) {
                     BlockMenu blockMenu = BlockStorage.getInventory(e.getBlock());
-                    blockMenu.dropItems(blockMenu.getLocation(), TEST_ITEM_SLOT);
-                    blockMenu.dropItems(blockMenu.getLocation(), OUTPUT_ITEM_SLOT);
+                    if (blockMenu != null) {
+                        blockMenu.dropItems(blockMenu.getLocation(), TEST_ITEM_SLOT);
+                        blockMenu.dropItems(blockMenu.getLocation(), OUTPUT_ITEM_SLOT);
+                    }
                 }
             }
         );
@@ -98,7 +103,7 @@ public class NetworkExport extends NetworkObject {
     private void tryFetchItem(@Nonnull BlockMenu blockMenu) {
         final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(blockMenu.getLocation());
 
-        if (definition.getNode() == null) {
+        if (definition == null || definition.getNode() == null) {
             return;
         }
 
@@ -114,7 +119,7 @@ public class NetworkExport extends NetworkObject {
         ItemRequest itemRequest = new ItemRequest(clone, clone.getMaxStackSize());
         ItemStack retrieved = definition.getNode().getRoot().getItemStack0(blockMenu.getLocation(), itemRequest);
         if (retrieved != null) {
-            blockMenu.pushItem(retrieved, OUTPUT_ITEM_SLOT);
+            NetworkTransportUtils.pushIntoMenuOrReturn(definition.getNode().getRoot(), blockMenu.getLocation(), blockMenu, retrieved, OUTPUT_ITEM_SLOT);
             blockMenu.markDirty();
         }
     }

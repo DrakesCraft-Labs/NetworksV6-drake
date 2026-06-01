@@ -49,7 +49,7 @@ public class NetworkImport extends NetworkObject {
 
                 @Override
                 public boolean isSynchronized() {
-                    return false;
+                    return true;
                 }
 
                 @Override
@@ -57,7 +57,9 @@ public class NetworkImport extends NetworkObject {
                     if (tick <= 1) {
                         final BlockMenu blockMenu = BlockStorage.getInventory(block);
                         addToRegistry(block);
-                        tryAddItem(blockMenu);
+                        if (blockMenu != null) {
+                            tryAddItem(blockMenu);
+                        }
                     }
                 }
 
@@ -72,7 +74,7 @@ public class NetworkImport extends NetworkObject {
     private void tryAddItem(@Nonnull BlockMenu blockMenu) {
         final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(blockMenu.getLocation());
 
-        if (definition.getNode() == null) {
+        if (definition == null || definition.getNode() == null) {
             return;
         }
 

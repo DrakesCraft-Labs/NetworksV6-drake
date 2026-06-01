@@ -1,6 +1,5 @@
 package io.github.sefiraat.networks.network;
 
-import com.balugaq.netex.utils.BlockMenuUtil;
 import com.cryptomorin.xseries.particles.XParticle;
 import com.github.drakescraft_labs.infinityexpansion.items.storage.StorageCache;
 import com.github.drakescraft_labs.infinityexpansion.items.storage.StorageUnit;
@@ -19,6 +18,7 @@ import io.github.sefiraat.networks.slimefun.network.NetworkPowerNode;
 import io.github.sefiraat.networks.slimefun.network.NetworkQuantumStorage;
 import io.github.sefiraat.networks.utils.NetworkIntegrity;
 import io.github.sefiraat.networks.utils.NetworkStackAggregator;
+import io.github.sefiraat.networks.utils.NetworkTransportUtils;
 import io.github.sefiraat.networks.utils.StackUtils;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import lombok.Getter;
@@ -227,7 +227,12 @@ public class NetworkRoot extends NetworkNode {
             return null;
         }
 
-        final int storedInt = Integer.parseInt(storedString);
+        final int storedInt;
+        try {
+            storedInt = Integer.parseInt(storedString);
+        } catch (NumberFormatException e) {
+            return null;
+        }
 
         if (!includeEmpty && (itemStack == null || itemStack.getType() == Material.AIR)) {
             return null;
@@ -1255,7 +1260,7 @@ public class NetworkRoot extends NetworkNode {
             }
 
             blockMenu.markDirty();
-            blockMenu.pushItem(incoming, GREEDY_BLOCK_AVAILABLE_SLOTS[0]);
+            NetworkTransportUtils.pushIntoMenu(blockMenu, incoming, GREEDY_BLOCK_AVAILABLE_SLOTS[0]);
             if (incoming.getAmount() == 0) {
                 uncontrolAccessInput(accessor);
                 tryRecord(accessor, beforeItemStack, 0);
@@ -1290,7 +1295,7 @@ public class NetworkRoot extends NetworkNode {
 
         for (BlockMenu blockMenu : getCellMenus()) {
             blockMenu.markDirty();
-            blockMenu.pushItem(incoming, CELL_AVAILABLE_SLOTS);
+            NetworkTransportUtils.pushIntoMenu(blockMenu, incoming, CELL_AVAILABLE_SLOTS);
             if (incoming.getAmount() == 0) {
                 // Netex - Reduce start
                 uncontrolAccessInput(accessor);
@@ -1429,7 +1434,7 @@ public class NetworkRoot extends NetworkNode {
             }
 
             blockMenu.markDirty();
-            BlockMenuUtil.pushItem(blockMenu, incoming, GREEDY_BLOCK_AVAILABLE_SLOTS[0]);
+            NetworkTransportUtils.pushIntoMenu(blockMenu, incoming, GREEDY_BLOCK_AVAILABLE_SLOTS[0]);
             // Given we have found a match, it doesn't matter if the item moved or not, we will not bring it in
             return;
         }
@@ -1448,7 +1453,7 @@ public class NetworkRoot extends NetworkNode {
 
         for (BlockMenu blockMenu : getCellMenus()) {
             blockMenu.markDirty();
-            BlockMenuUtil.pushItem(blockMenu, incoming, CELL_AVAILABLE_SLOTS);
+            NetworkTransportUtils.pushIntoMenu(blockMenu, incoming, CELL_AVAILABLE_SLOTS);
             if (incoming.getAmount() == 0) {
                 return;
             }

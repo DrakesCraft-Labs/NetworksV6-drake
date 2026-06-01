@@ -62,7 +62,7 @@ public class NetworkPurger extends NetworkObject {
 
                 @Override
                 public boolean isSynchronized() {
-                    return false;
+                    return true;
                 }
 
                 @Override
@@ -70,7 +70,9 @@ public class NetworkPurger extends NetworkObject {
                     if (tick <= 1) {
                         final BlockMenu blockMenu = BlockStorage.getInventory(block);
                         addToRegistry(block);
-                        tryKillItem(blockMenu);
+                        if (blockMenu != null) {
+                            tryKillItem(blockMenu);
+                        }
                     }
                 }
 
@@ -83,7 +85,9 @@ public class NetworkPurger extends NetworkObject {
                 @Override
                 public void onPlayerBreak(BlockBreakEvent e, ItemStack item, List<ItemStack> drops) {
                     BlockMenu blockMenu = BlockStorage.getInventory(e.getBlock());
-                    blockMenu.dropItems(blockMenu.getLocation(), TEST_ITEM_SLOT);
+                    if (blockMenu != null) {
+                        blockMenu.dropItems(blockMenu.getLocation(), TEST_ITEM_SLOT);
+                    }
                 }
             }
         );

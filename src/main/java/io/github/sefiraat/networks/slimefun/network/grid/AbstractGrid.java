@@ -102,7 +102,7 @@ public abstract class AbstractGrid extends NetworkObject {
 
                 @Override
                 public boolean isSynchronized() {
-                    return false;
+                    return true;
                 }
 
                 @Override
@@ -110,8 +110,10 @@ public abstract class AbstractGrid extends NetworkObject {
                     if (tick <= 1) {
                         final BlockMenu blockMenu = BlockStorage.getInventory(block);
                         addToRegistry(block);
-                        tryAddItem(blockMenu);
-                        updateDisplay(blockMenu);
+                        if (blockMenu != null) {
+                            tryAddItem(blockMenu);
+                            updateDisplay(blockMenu);
+                        }
                     }
                 }
 
@@ -131,7 +133,7 @@ public abstract class AbstractGrid extends NetworkObject {
         }
 
         final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(blockMenu.getLocation());
-        if (definition.getNode() == null) {
+        if (definition == null || definition.getNode() == null) {
             return;
         }
 
@@ -162,9 +164,11 @@ public abstract class AbstractGrid extends NetworkObject {
         // Update Screen
         final NetworkRoot root = definition.getNode().getRoot();
         root.refreshRootItems();
-        final GridCache gridCache = getCacheMap().get(blockMenu.getLocation().clone());
-        final List<Map.Entry<ItemStack, Integer>> entries = getEntries(root, gridCache); // size是0，点F7，步入getEnt
-        // 你在这里打断点，看看entries大小，
+        final GridCache gridCache = getCacheMap().computeIfAbsent(
+            blockMenu.getLocation().clone(),
+            location -> new GridCache(0, 0, GridCache.SortOrder.ALPHABETICAL)
+        );
+        final List<Map.Entry<ItemStack, Integer>> entries = getEntries(root, gridCache);
         final int pages = (int) Math.ceil(entries.size() / (double) getDisplaySlots().length) - 1;
 
         gridCache.setMaxPages(pages);
@@ -222,7 +226,7 @@ public abstract class AbstractGrid extends NetworkObject {
 
     @Nonnull
     protected List<Map.Entry<ItemStack, Integer>> getEntries(@Nonnull NetworkRoot networkRoot, @Nonnull GridCache cache) {
-        return networkRoot.getAllNetworkItems().entrySet().stream() // getAllNetworkItems 是0，再点F7，步入
+        return networkRoot.getAllNetworkItems().entrySet().stream()
             .filter(entry -> {
                 if (cache.getFilter() == null) {
                     return true;
@@ -402,6 +406,9 @@ public abstract class AbstractGrid extends NetworkObject {
     public void receiveItem(
             Player player, ItemStack itemStack, ClickAction action, BlockMenu blockMenu) {
         NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(blockMenu.getLocation());
+        if (definition == null || definition.getNode() == null) {
+            return;
+        }
         receiveItem(definition.getNode().getRoot(), player, itemStack, action, blockMenu);
     }
 

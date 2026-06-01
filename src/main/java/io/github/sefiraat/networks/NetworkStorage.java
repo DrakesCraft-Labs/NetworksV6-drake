@@ -6,13 +6,13 @@ import io.github.sefiraat.networks.network.NodeDefinition;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Location;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @UtilityClass
 public class NetworkStorage {
 
-    private static final Map<Location, NodeDefinition> ALL_NETWORK_OBJECTS = new HashMap<>();
+    private static final Map<Location, NodeDefinition> ALL_NETWORK_OBJECTS = new ConcurrentHashMap<>();
 
     public static void removeNode(Location location) {
         final NodeDefinition nodeDefinition = ALL_NETWORK_OBJECTS.get(location);
