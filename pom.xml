@@ -36,7 +36,7 @@
         <xseries.version>13.8.0</xseries.version>
         <junit.version>5.11.4</junit.version>
         <mockbukkit.version>3.133.2</mockbukkit.version>
-        <surefire.version>3.5.2</surefire.version>
+        <surefire.version>3.5.6</surefire.version>
     </properties>
 
     <build>
