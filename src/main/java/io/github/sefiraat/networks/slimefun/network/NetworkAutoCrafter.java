@@ -37,6 +37,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -118,7 +119,7 @@ public class NetworkAutoCrafter extends NetworkObject {
 
         final long networkCharge = root.getRootPower();
 
-        if (networkCharge > this.chargePerCraft) {
+        if (hasSufficientPower(networkCharge, this.chargePerCraft)) {
             final SlimefunItem item = SlimefunItem.getByItem(blueprint);
 
             if (!(item instanceof CraftingBlueprint)) {
@@ -141,9 +142,7 @@ public class NetworkAutoCrafter extends NetworkObject {
 
             final ItemStack output = blockMenu.getItemInSlot(OUTPUT_SLOT);
 
-            if (output != null
-                && output.getType() != Material.AIR
-                && (output.getAmount() + instance.getItemStack().getAmount() >= output.getMaxStackSize() || !StackUtils.itemsMatch(instance, output, true))) {
+            if (!canFitOutput(output, instance.getItemStack())) {
                 return;
             }
 
@@ -195,9 +194,13 @@ public class NetworkAutoCrafter extends NetworkObject {
         for (int i = 0; i < 9; i++) {
             final ItemStack requested = instance.getRecipeItems()[i];
             if (requested != null) {
-                final ItemStack fetched = root.getItemStack0(blockMenu.getLocation(), new ItemRequest(instance.getRecipeItems()[i], 1));
-                if (fetched == null || fetched.getType() == org.bukkit.Material.AIR) {
-                    // El ingrediente desapareció entre el contains() y el fetch — devolver lo ya tomado
+                final ItemStack fetched = root.getItemStack0(
+                    blockMenu.getLocation(),
+                    new ItemRequest(instance.getRecipeItems()[i], 1)
+                );
+                if (fetched == null || fetched.getType() == Material.AIR || fetched.getAmount() != 1) {
+                    // El ingrediente cambió entre contains() y fetch(); devolver cualquier extracción parcial.
+                    inputs[i] = fetched;
                     returnItems(root, inputs, blockMenu);
                     return false;
                 }
@@ -242,17 +245,38 @@ public class NetworkAutoCrafter extends NetworkObject {
         if (root.isDisplayParticles()) {
             location.getWorld().spawnParticle(Particle.WAX_OFF, location, 0, 0, 4, 0);
         }
-        NetworkTransportUtils.pushIntoMenuOrReturn(root, blockMenu.getLocation(), blockMenu, crafted, OUTPUT_SLOT);
-        blockMenu.markDirty();
-        return true;
+        final boolean moved = NetworkTransportUtils.pushIntoMenuOrReturn(
+            root,
+            blockMenu.getLocation(),
+            blockMenu,
+            crafted,
+            OUTPUT_SLOT
+        );
+        if (moved) {
+            blockMenu.markDirty();
+        }
+        return moved;
     }
 
     private void returnItems(@Nonnull NetworkRoot root, @Nonnull ItemStack[] inputs, BlockMenu menu) {
         for (ItemStack input : inputs) {
             if (input != null) {
+                root.uncontrolAccessInput(menu.getLocation());
                 root.addItemStack0(menu.getLocation(), input);
             }
         }
+    }
+
+    static boolean hasSufficientPower(long availablePower, int requiredPower) {
+        return availablePower >= requiredPower;
+    }
+
+    static boolean canFitOutput(@Nullable ItemStack currentOutput, @Nonnull ItemStack craftedOutput) {
+        if (currentOutput == null || currentOutput.getType() == Material.AIR) {
+            return true;
+        }
+        return StackUtils.itemsMatch(craftedOutput, currentOutput)
+            && currentOutput.getAmount() + craftedOutput.getAmount() <= currentOutput.getMaxStackSize();
     }
 
     public void releaseCache(@Nonnull BlockMenu blockMenu) {

@@ -60,6 +60,8 @@ public class NetworkWirelessTransmitter extends NetworkObject {
     private static final int TICKS_PER = 2;
 
     private final Map<Location, Location> linkedLocations = new ConcurrentHashMap<>();
+    private final Map<Location, Integer> tickMap = new ConcurrentHashMap<>();
+    private final Map<Location, Boolean> firstTick = new ConcurrentHashMap<>();
 
     public NetworkWirelessTransmitter(ItemGroup itemGroup,
                                       SlimefunItemStack item,
@@ -71,9 +73,6 @@ public class NetworkWirelessTransmitter extends NetworkObject {
 
         addItemHandler(
             new BlockTicker() {
-                private final Map<Location, Integer> tickMap = new ConcurrentHashMap<>();
-                private final Map<Location, Boolean> firstTick = new ConcurrentHashMap<>();
-
                 @Override
                 public boolean isSynchronized() {
                     return true;
@@ -153,10 +152,17 @@ public class NetworkWirelessTransmitter extends NetworkObject {
             return;
         }
 
+        if (!linkedLocation.getWorld().isChunkLoaded(
+            linkedLocation.getBlockX() >> 4,
+            linkedLocation.getBlockZ() >> 4
+        )) {
+            return;
+        }
+
         final SlimefunItem slimefunItem = BlockStorage.check(linkedLocation);
 
         if (!(slimefunItem instanceof NetworkWirelessReceiver)) {
-            linkedLocations.remove(location);
+            clearLinkedLocation(location);
             return;
         }
 
@@ -246,7 +252,10 @@ public class NetworkWirelessTransmitter extends NetworkObject {
     @Override
     protected void onBreak(@Nonnull BlockBreakEvent event) {
         super.onBreak(event);
-        linkedLocations.remove(event.getBlock().getLocation());
+        final Location location = event.getBlock().getLocation();
+        linkedLocations.remove(location);
+        tickMap.remove(location);
+        firstTick.remove(location);
     }
 
     public void addLinkedLocation(@Nonnull Block block, @Nonnull Location linkedLocation) {
@@ -254,6 +263,13 @@ public class NetworkWirelessTransmitter extends NetworkObject {
         BlockStorage.addBlockInfo(block, LINKED_LOCATION_KEY_X, String.valueOf(linkedLocation.getBlockX()));
         BlockStorage.addBlockInfo(block, LINKED_LOCATION_KEY_Y, String.valueOf(linkedLocation.getBlockY()));
         BlockStorage.addBlockInfo(block, LINKED_LOCATION_KEY_Z, String.valueOf(linkedLocation.getBlockZ()));
+    }
+
+    private void clearLinkedLocation(@Nonnull Location location) {
+        linkedLocations.remove(location);
+        BlockStorage.addBlockInfo(location, LINKED_LOCATION_KEY_X, null);
+        BlockStorage.addBlockInfo(location, LINKED_LOCATION_KEY_Y, null);
+        BlockStorage.addBlockInfo(location, LINKED_LOCATION_KEY_Z, null);
     }
 
 }

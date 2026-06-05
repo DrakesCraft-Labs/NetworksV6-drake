@@ -758,7 +758,7 @@ public class NetworkRoot extends NetworkNode {
                 final int toRemove = (int) Math.min(power - removed, charge);
                 powerNode.removeCharge(node, toRemove);
                 // Restar solo lo que realmente se extrajo de este nodo, no el total pedido (#rootPower-underflow).
-                this.rootPower -= toRemove;
+                this.rootPower = Math.max(0, this.rootPower - toRemove);
                 removed = removed + toRemove;
             }
             if (removed >= power) {

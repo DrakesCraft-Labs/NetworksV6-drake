@@ -44,6 +44,9 @@ public final class NetworkTransportUtils {
         final int consumed = before - stack.getAmount();
 
         if (consumed > 0) {
+            if (stack.getAmount() <= 0) {
+                sourceMenu.replaceExistingItem(slot, null);
+            }
             sourceMenu.markDirty();
             root.uncontrolAccessInput(accessor);
         }
