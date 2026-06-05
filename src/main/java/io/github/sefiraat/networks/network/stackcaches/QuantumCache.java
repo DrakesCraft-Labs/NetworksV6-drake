@@ -57,7 +57,7 @@ public class QuantumCache extends ItemStackCache {
     }
 
     public void reduceAmount(int amount) {
-        this.amount = this.amount - amount;
+        this.amount = Math.max(0, this.amount - amount);
     }
 
     public int getLimit() {
@@ -78,13 +78,14 @@ public class QuantumCache extends ItemStackCache {
 
     @Nullable
     public ItemStack withdrawItem(int amount) {
-        if (this.getItemStack() == null) {
+        if (this.getItemStack() == null || this.amount <= 0) {
             return null;
         }
         final ItemStack clone = this.getItemStack().clone();
-        clone.setAmount(Math.min(this.amount, amount));
-        reduceAmount(clone.getAmount());
-        return clone;
+        final int toGive = Math.max(0, Math.min(this.amount, amount));
+        clone.setAmount(toGive);
+        reduceAmount(toGive);
+        return toGive > 0 ? clone : null;
     }
 
     @Nullable

@@ -145,11 +145,24 @@ public class NetworkVanillaPusher extends NetworkDirectional {
     }
 
     private void handleFurnace(@Nonnull ItemStack stack, @Nonnull FurnaceInventory furnace) {
-        if (stack.getType().isFuel() && (furnace.getFuel() == null || furnace.getFuel().getType() == Material.AIR)) {
-            furnace.setFuel(stack.clone());
-            stack.setAmount(0);
-        } else if (!stack.getType().isFuel() && (furnace.getSmelting() == null || furnace.getSmelting().getType() == Material.AIR)) {
-            furnace.setSmelting(stack.clone());
+        if (stack.getType().isFuel()) {
+            final ItemStack fuel = furnace.getFuel();
+            if (fuel == null || fuel.getType() == Material.AIR) {
+                final ItemStack toSet = stack.clone();
+                toSet.setAmount(Math.min(stack.getAmount(), stack.getType().getMaxStackSize()));
+                furnace.setFuel(toSet);
+                stack.setAmount(0);
+            } else if (fuel.getType() == stack.getType() && fuel.getAmount() < fuel.getMaxStackSize()) {
+                final int space = fuel.getMaxStackSize() - fuel.getAmount();
+                final int toAdd = Math.min(space, stack.getAmount());
+                fuel.setAmount(fuel.getAmount() + toAdd);
+                furnace.setFuel(fuel);
+                stack.setAmount(stack.getAmount() - toAdd);
+            }
+        } else if (furnace.getSmelting() == null || furnace.getSmelting().getType() == Material.AIR) {
+            final ItemStack toSet = stack.clone();
+            toSet.setAmount(Math.min(stack.getAmount(), stack.getType().getMaxStackSize()));
+            furnace.setSmelting(toSet);
             stack.setAmount(0);
         }
     }
