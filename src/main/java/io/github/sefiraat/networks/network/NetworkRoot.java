@@ -753,7 +753,7 @@ public class NetworkRoot extends NetworkNode {
                 }
                 final int toRemove = (int) Math.min(power - removed, charge);
                 powerNode.removeCharge(node, toRemove);
-                this.rootPower -= power;
+                this.rootPower = Math.max(0, this.rootPower - toRemove);
                 removed = removed + toRemove;
             }
             if (removed >= power) {
