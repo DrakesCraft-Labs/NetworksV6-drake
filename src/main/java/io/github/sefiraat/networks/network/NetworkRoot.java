@@ -612,6 +612,7 @@ public class NetworkRoot extends NetworkNode {
                 final ItemStack itemStack = blockMenu.getItemInSlot(slot);
                 if (itemStack == null
                         || itemStack.getType() == Material.AIR
+                        || itemStack.getAmount() <= 0
                         || !StackUtils.itemsMatch(request.getItemStack(), itemStack)) {
                     continue;
                 }
@@ -631,6 +632,7 @@ public class NetworkRoot extends NetworkNode {
                 final ItemStack itemStack = blockMenu.getItemInSlot(slot);
                 if (itemStack == null
                         || itemStack.getType() == Material.AIR
+                        || itemStack.getAmount() <= 0
                         || !StackUtils.itemsMatch(request.getItemStack(), itemStack)) {
                     continue;
                 }
@@ -1060,7 +1062,11 @@ public class NetworkRoot extends NetworkNode {
                 final ItemStack itemStack = blockMenu.getItemInSlot(slot);
                 if (itemStack == null
                         || itemStack.getType() == Material.AIR
+                        || itemStack.getAmount() <= 0
                         || !StackUtils.itemsMatch(request.getItemStack(), itemStack)) {
+                    if (itemStack != null && itemStack.getAmount() <= 0) {
+                        blockMenu.replaceExistingItem(slot, null);
+                    }
                     continue;
                 }
 
@@ -1079,7 +1085,12 @@ public class NetworkRoot extends NetworkNode {
                     // Netex - Reduce end
                     // We can't take more than this stack. Level to request amount, remove items and then return
                     stackToReturn.setAmount(request.getAmount());
-                    itemStack.setAmount(itemStack.getAmount() - request.getAmount());
+                    final int remaining = itemStack.getAmount() - request.getAmount();
+                    if (remaining <= 0) {
+                        blockMenu.replaceExistingItem(slot, null);
+                    } else {
+                        itemStack.setAmount(remaining);
+                    }
                     blockMenu.markDirty();
                     // Netex - Record start
                     tryRecord(accessor, request);
@@ -1089,7 +1100,7 @@ public class NetworkRoot extends NetworkNode {
                     // We can take more than what is here, consume before trying to take more
                     stackToReturn.setAmount(stackToReturn.getAmount() + itemStack.getAmount());
                     request.receiveAmount(itemStack.getAmount());
-                    itemStack.setAmount(0);
+                    blockMenu.replaceExistingItem(slot, null);
                     blockMenu.markDirty();
                 }
             }
@@ -1102,7 +1113,11 @@ public class NetworkRoot extends NetworkNode {
                 final ItemStack itemStack = blockMenu.getItemInSlot(slot);
                 if (itemStack == null
                         || itemStack.getType() == Material.AIR
+                        || itemStack.getAmount() <= 0
                         || !StackUtils.itemsMatch(request.getItemStack(), itemStack)) {
+                    if (itemStack != null && itemStack.getAmount() <= 0) {
+                        blockMenu.replaceExistingItem(slot, null);
+                    }
                     continue;
                 }
 
@@ -1117,7 +1132,12 @@ public class NetworkRoot extends NetworkNode {
                     uncontrolAccessOutput(accessor);
                     // Netex - Reduce end
                     stackToReturn.setAmount(stackToReturn.getAmount() + request.getAmount());
-                    itemStack.setAmount(itemStack.getAmount() - request.getAmount());
+                    final int remaining = itemStack.getAmount() - request.getAmount();
+                    if (remaining <= 0) {
+                        blockMenu.replaceExistingItem(slot, null);
+                    } else {
+                        itemStack.setAmount(remaining);
+                    }
                     blockMenu.markDirty();
                     // Netex - Record start
                     tryRecord(accessor, request);
@@ -1126,7 +1146,7 @@ public class NetworkRoot extends NetworkNode {
                 } else {
                     stackToReturn.setAmount(stackToReturn.getAmount() + itemStack.getAmount());
                     request.receiveAmount(itemStack.getAmount());
-                    itemStack.setAmount(0); //not null
+                    blockMenu.replaceExistingItem(slot, null);
                     blockMenu.markDirty();
                 }
             }
@@ -1138,7 +1158,11 @@ public class NetworkRoot extends NetworkNode {
                 final ItemStack itemStack = blockMenu.getItemInSlot(slot);
                 if (itemStack == null
                         || itemStack.getType() == Material.AIR
+                        || itemStack.getAmount() <= 0
                         || !StackUtils.itemsMatch(request.getItemStack(), itemStack)) {
+                    if (itemStack != null && itemStack.getAmount() <= 0) {
+                        blockMenu.replaceExistingItem(slot, null);
+                    }
                     continue;
                 }
 
@@ -1157,7 +1181,12 @@ public class NetworkRoot extends NetworkNode {
                     // Netex - Reduce end
                     // We can't take more than this stack. Level to request amount, remove items and then return
                     stackToReturn.setAmount(stackToReturn.getAmount() + request.getAmount());
-                    itemStack.setAmount(itemStack.getAmount() - request.getAmount());
+                    final int remaining = itemStack.getAmount() - request.getAmount();
+                    if (remaining <= 0) {
+                        blockMenu.replaceExistingItem(slot, null);
+                    } else {
+                        itemStack.setAmount(remaining);
+                    }
                     // Netex - Record start
                     tryRecord(accessor, request);
                     // Netex - Record end
@@ -1166,7 +1195,7 @@ public class NetworkRoot extends NetworkNode {
                     // We can take more than what is here, consume before trying to take more
                     stackToReturn.setAmount(stackToReturn.getAmount() + itemStack.getAmount());
                     request.receiveAmount(itemStack.getAmount());
-                    itemStack.setAmount(0);
+                    blockMenu.replaceExistingItem(slot, null);
                 }
             }
         }

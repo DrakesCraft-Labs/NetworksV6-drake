@@ -147,6 +147,11 @@ public final class NetworkTransportUtils {
         if (leftover != null && leftover.getAmount() > 0) {
             root.uncontrolAccessInput(accessor);
             root.addItemStack0(accessor, leftover);
+            // If the network is full and still can't absorb the leftover, drop it in-world
+            if (leftover.getAmount() > 0) {
+                accessor.getWorld().dropItem(accessor.clone().add(0.5, 0.5, 0.5), leftover.clone());
+                leftover.setAmount(0);
+            }
         }
 
         return moved > 0;

@@ -107,17 +107,35 @@ public class NetworkExport extends NetworkObject {
             return;
         }
 
-        ItemStack testItem = blockMenu.getItemInSlot(TEST_ITEM_SLOT);
-        ItemStack itemInOutput = blockMenu.getItemInSlot(OUTPUT_ITEM_SLOT);
-
-        if (testItem == null || (itemInOutput != null && itemInOutput.getType() != Material.AIR)) {
+        final ItemStack testItem = blockMenu.getItemInSlot(TEST_ITEM_SLOT);
+        if (testItem == null || testItem.getType() == Material.AIR) {
             return;
         }
 
-        ItemStack clone = testItem.clone();
+        final ItemStack itemInOutput = blockMenu.getItemInSlot(OUTPUT_ITEM_SLOT);
 
-        ItemRequest itemRequest = new ItemRequest(clone, clone.getMaxStackSize());
-        ItemStack retrieved = definition.getNode().getRoot().getItemStack0(blockMenu.getLocation(), itemRequest);
+        // Skip if output is completely full (full stack or incompatible item)
+        if (itemInOutput != null && itemInOutput.getType() != Material.AIR) {
+            if (itemInOutput.getAmount() >= itemInOutput.getMaxStackSize()) {
+                return;
+            }
+            // Has a partial stack — only continue if it's the same item type
+            if (!io.github.sefiraat.networks.utils.StackUtils.itemsMatch(testItem, itemInOutput)) {
+                return;
+            }
+        }
+
+        final int spaceInOutput = itemInOutput == null || itemInOutput.getType() == Material.AIR
+            ? testItem.getMaxStackSize()
+            : testItem.getMaxStackSize() - itemInOutput.getAmount();
+
+        if (spaceInOutput <= 0) {
+            return;
+        }
+
+        final ItemStack clone = testItem.clone();
+        final ItemRequest itemRequest = new ItemRequest(clone, spaceInOutput);
+        final ItemStack retrieved = definition.getNode().getRoot().getItemStack0(blockMenu.getLocation(), itemRequest);
         if (retrieved != null) {
             NetworkTransportUtils.pushIntoMenuOrReturn(definition.getNode().getRoot(), blockMenu.getLocation(), blockMenu, retrieved, OUTPUT_ITEM_SLOT);
             blockMenu.markDirty();

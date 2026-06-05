@@ -198,8 +198,7 @@ public class NetworkAutoCrafter extends NetworkObject {
                     blockMenu.getLocation(),
                     new ItemRequest(instance.getRecipeItems()[i], 1)
                 );
-                if (fetched == null || fetched.getAmount() != 1) {
-                    inputs[i] = fetched;
+                if (fetched == null || fetched.getAmount() < 1) {
                     returnItems(root, inputs, blockMenu);
                     return false;
                 }
@@ -266,9 +265,16 @@ public class NetworkAutoCrafter extends NetworkObject {
 
     private void returnItems(@Nonnull NetworkRoot root, @Nonnull ItemStack[] inputs, BlockMenu menu) {
         for (ItemStack input : inputs) {
-            if (input != null) {
-                root.uncontrolAccessInput(menu.getLocation());
-                root.addItemStack0(menu.getLocation(), input);
+            if (input == null || input.getAmount() <= 0) {
+                continue;
+            }
+            root.uncontrolAccessInput(menu.getLocation());
+            root.addItemStack0(menu.getLocation(), input);
+            if (input.getAmount() > 0) {
+                // Network full — drop in-world so items are not silently lost
+                final org.bukkit.Location dropLoc = menu.getLocation().clone().add(0.5, 1.0, 0.5);
+                dropLoc.getWorld().dropItem(dropLoc, input.clone());
+                input.setAmount(0);
             }
         }
     }
