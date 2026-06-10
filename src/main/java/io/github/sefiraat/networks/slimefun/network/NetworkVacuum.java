@@ -98,6 +98,7 @@ public class NetworkVacuum extends NetworkObject {
                 if (item.getPickupDelay() <= 0 && !SlimefunUtils.hasNoPickupFlag(item)) {
                     final ItemStack itemStack = item.getItemStack();
                     blockMenu.replaceExistingItem(inputSlot, itemStack);
+                    blockMenu.markDirty();
                     ParticleUtils.displayParticleRandomly(item, 1, 5, new Particle.DustOptions(Color.BLUE, 1));
                     item.remove();
                 }

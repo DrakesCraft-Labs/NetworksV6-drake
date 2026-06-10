@@ -71,9 +71,10 @@
                     <createDependencyReducedPom>false</createDependencyReducedPom>
                     <artifactSet>
                         <includes>
-                            <include>com.github.drakescraft_labs:dough-core</include>
                             <include>com.github.drakescraft_labs:sefilib-drake</include>
                             <include>com.github.cryptomorin:XSeries</include>
+                            <include>org.bstats:bstats-bukkit</include>
+                            <include>org.bstats:bstats-base</include>
                         </includes>
                     </artifactSet>
                     <relocations>
@@ -189,10 +190,11 @@
             <artifactId>XSeries</artifactId>
             <version>${xseries.version}</version>
         </dependency>
+        <!-- Force 3.0.2 which uses Metrics(JavaPlugin, int) to match compiled bytecode -->
         <dependency>
             <groupId>org.bstats</groupId>
             <artifactId>bstats-bukkit</artifactId>
-            <version>${bstats.version}</version>
+            <version>3.0.2</version>
         </dependency>
         <dependency>
             <groupId>com.bgsoftware</groupId>
