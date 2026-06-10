@@ -84,34 +84,44 @@ public class NetworkNode {
     }
 
     public void addAllChildren() {
-        // Loop through all possible locations
-        for (BlockFace face : VALID_FACES) {
-            final Location testLocation = this.nodePosition.clone().add(face.getDirection());
-            final NodeDefinition testDefinition = NetworkStorage.getAllNetworkObjects().get(testLocation);
+        java.util.Queue<NetworkNode> queue = new java.util.LinkedList<>();
+        queue.add(this);
 
-            if (testDefinition == null) {
-                continue;
-            }
-
-            final NodeType testType = testDefinition.getType();
-
-            // Kill additional controllers if it isn't the root
-            if (testType == NodeType.CONTROLLER && !testLocation.equals(getRoot().nodePosition)) {
-                killAdditionalController(testLocation);
+        while (!queue.isEmpty()) {
+            NetworkNode currentNode = queue.poll();
+            if (currentNode.getRoot().getNodeCount() >= root.getMaxNodes()) {
+                currentNode.getRoot().setOverburdened(true);
                 return;
             }
 
-            // Check if it's in the network already and, if not, create a child node and propagate further.
-            if (testType != NodeType.CONTROLLER && !this.networkContains(testLocation)) {
-                if (this.getRoot().getNodeCount() >= root.getMaxNodes()) {
-                    this.getRoot().setOverburdened(true);
-                    return;
+            for (BlockFace face : VALID_FACES) {
+                final Location testLocation = currentNode.nodePosition.clone().add(face.getDirection());
+                final NodeDefinition testDefinition = NetworkStorage.getAllNetworkObjects().get(testLocation);
+
+                if (testDefinition == null) {
+                    continue;
                 }
-                final NetworkNode networkNode = new NetworkNode(testLocation, testType);
-                addChild(networkNode);
-                networkNode.addAllChildren();
-                testDefinition.setNode(networkNode);
-                NetworkStorage.getAllNetworkObjects().put(testLocation, testDefinition);
+
+                final NodeType testType = testDefinition.getType();
+
+                // Kill additional controllers if it isn't the root
+                if (testType == NodeType.CONTROLLER && !testLocation.equals(currentNode.getRoot().nodePosition)) {
+                    currentNode.killAdditionalController(testLocation);
+                    continue;
+                }
+
+                // Check if it's in the network already and, if not, create a child node and propagate further.
+                if (testType != NodeType.CONTROLLER && !currentNode.networkContains(testLocation)) {
+                    if (currentNode.getRoot().getNodeCount() >= root.getMaxNodes()) {
+                        currentNode.getRoot().setOverburdened(true);
+                        return;
+                    }
+                    final NetworkNode networkNode = new NetworkNode(testLocation, testType);
+                    currentNode.addChild(networkNode);
+                    testDefinition.setNode(networkNode);
+                    NetworkStorage.getAllNetworkObjects().put(testLocation, testDefinition);
+                    queue.add(networkNode);
+                }
             }
         }
 
