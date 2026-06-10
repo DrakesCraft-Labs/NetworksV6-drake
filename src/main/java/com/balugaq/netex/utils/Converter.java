@@ -42,12 +42,12 @@ public class Converter {
     }
 
     /**
-     * Converts a {@link dev.drake.dough.items.CustomItemStack} to a Bukkit ItemStack.
+     * Converts a {@link com.github.drakescraft_labs.slimefun4.libraries.dough.items.CustomItemStack} to a Bukkit ItemStack.
      *
-     * @param cis the {@link dev.drake.dough.items.CustomItemStack} to convert
+     * @param cis the {@link com.github.drakescraft_labs.slimefun4.libraries.dough.items.CustomItemStack} to convert
      * @return the converted Bukkit ItemStack
      */
-    public static @NotNull ItemStack getItem(@NotNull dev.drake.dough.items.CustomItemStack cis) {
+    public static @NotNull ItemStack getItem(@NotNull com.github.drakescraft_labs.slimefun4.libraries.dough.items.CustomItemStack cis) {
         return asBukkit(cis);
     }
 
@@ -254,14 +254,14 @@ public class Converter {
     }
 
     /**
-     * Converts a {@link dev.drake.dough.items.CustomItemStack} to a Bukkit ItemStack.
+     * Converts a {@link com.github.drakescraft_labs.slimefun4.libraries.dough.items.CustomItemStack} to a Bukkit ItemStack.
      *
-     * @param item the {@link dev.drake.dough.items.CustomItemStack} to convert
+     * @param item the {@link com.github.drakescraft_labs.slimefun4.libraries.dough.items.CustomItemStack} to convert
      * @return the converted Bukkit ItemStack
      */
     @SuppressWarnings({"RedundantClassCall", "ConstantValue"})
     @NotNull
-    public static ItemStack asBukkit(@Nullable dev.drake.dough.items.CustomItemStack item) {
+    public static ItemStack asBukkit(@Nullable com.github.drakescraft_labs.slimefun4.libraries.dough.items.CustomItemStack item) {
         if (item == null) {
             return AIR.clone();
         }

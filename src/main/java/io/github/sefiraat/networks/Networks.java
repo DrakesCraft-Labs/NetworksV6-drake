@@ -13,12 +13,15 @@ import io.github.sefiraat.networks.managers.SupportedPluginManager;
 import io.github.sefiraat.networks.network.SupportedRecipes;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import io.github.sefiraat.networks.slimefun.network.NetworkController;
+import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
+import io.github.sefiraat.networks.utils.NetworkUtils;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.AdvancedPie;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -63,6 +66,26 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
 
         SupportedRecipes.setup();
         setupMetrics();
+
+        // Fix dupe bug which breaks the network controller data without player interaction
+        Bukkit.getScheduler().runTaskTimer(
+                this,
+                () -> {
+                    Set<Location> wrongs = new HashSet<>();
+                    Set<Location> controllers = new HashSet<>(
+                            NetworkController.getNetworks().keySet());
+                    for (Location controller : controllers) {
+                        if (!(BlockStorage.check(controller) instanceof NetworkController)) {
+                            wrongs.add(controller);
+                        }
+                    }
+
+                    for (Location wrong : wrongs) {
+                        NetworkUtils.clearNetwork(wrong);
+                    }
+                },
+                5, Slimefun.getTickerTask().getTickRate()
+        );
     }
 
     @Override

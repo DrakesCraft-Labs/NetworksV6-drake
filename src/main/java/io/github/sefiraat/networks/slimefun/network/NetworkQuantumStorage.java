@@ -12,7 +12,7 @@ import com.github.drakescraft_labs.slimefun4.core.attributes.DistinctiveItem;
 import com.github.drakescraft_labs.slimefun4.core.handlers.BlockBreakHandler;
 import com.github.drakescraft_labs.slimefun4.core.handlers.BlockPlaceHandler;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
-import dev.drake.dough.data.persistent.PersistentDataAPI;
+import com.github.drakescraft_labs.slimefun4.libraries.dough.data.persistent.PersistentDataAPI;
 import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.Interaction;
 import com.github.drakescraft_labs.slimefun4.utils.ChestMenuUtils;
 import me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config;
@@ -155,7 +155,11 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
             cache = addCache(blockMenu);
         }
 
-        if (blockMenu.hasViewer()) {
+        final ItemStack display = blockMenu.getItemInSlot(ITEM_SLOT);
+        if (display == null || display.getType() == Material.AIR) {
+            updateDisplayItem(blockMenu, cache);
+            blockMenu.markDirty();
+        } else if (blockMenu.hasViewer()) {
             updateDisplayItem(blockMenu, cache);
         }
 
@@ -197,7 +201,7 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
         }
         cache.setVoidExcess(!cache.isVoidExcess());
         updateDisplayItem(blockMenu, cache);
-        syncBlock(blockMenu.getLocation(), cache);
+        syncBlock(blockMenu, cache);
         CACHES.put(blockMenu.getLocation(), cache);
     }
 
@@ -217,7 +221,7 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
         itemStack.setAmount(1);
         cache.setItemStack(itemStack);
         updateDisplayItem(blockMenu, cache);
-        syncBlock(blockMenu.getLocation(), cache);
+        syncBlock(blockMenu, cache);
         CACHES.put(blockMenu.getLocation(), cache);
     }
 
@@ -273,6 +277,7 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
                     cache = addCache(menu);
                 }
                 updateDisplayItem(menu, cache);
+                menu.markDirty();
             }
         };
     }
@@ -305,6 +310,7 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
             final QuantumCache cache = new QuantumCache(clone, amount, this.maxAmount, voidExcess);
 
             updateDisplayItem(menu, cache);
+            menu.markDirty();
             return cache;
         }
     }
@@ -348,6 +354,12 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
 
         syncBlock(event.getBlock().getLocation(), cache);
         CACHES.put(event.getBlock().getLocation(), cache);
+
+        final BlockMenu blockMenu = BlockStorage.getInventory(event.getBlock().getLocation());
+        if (blockMenu != null) {
+            updateDisplayItem(blockMenu, cache);
+            blockMenu.markDirty();
+        }
     }
 
     public int getMaxAmount() {

@@ -1,6 +1,6 @@
 package com.balugaq.netex.utils;
 
-import dev.drake.dough.collections.Pair;
+import com.github.drakescraft_labs.slimefun4.libraries.dough.collections.Pair;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
