@@ -34,7 +34,8 @@ public class NetworkController extends NetworkObject {
     private static final Set<Location> CRAYONS = ConcurrentHashMap.newKeySet();
 
     private final ItemSetting<Integer> maxNodes;
-    protected final Map<Location, Boolean> firstTickMap = new ConcurrentHashMap<>();
+    // static para que wipeNetwork() pueda limpiar entradas de controladores destruidos y evitar leak.
+    protected static final Map<Location, Boolean> firstTickMap = new ConcurrentHashMap<>();
 
     public NetworkController(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(itemGroup, item, recipeType, recipe, NodeType.CONTROLLER);
@@ -152,5 +153,7 @@ public class NetworkController extends NetworkObject {
                 NetworkStorage.removeNode(node.getNodePosition());
             }
         }
+        // Limpiar firstTickMap para evitar leak de memoria con controladores destruidos (#leak-firstTick).
+        firstTickMap.remove(location);
     }
 }

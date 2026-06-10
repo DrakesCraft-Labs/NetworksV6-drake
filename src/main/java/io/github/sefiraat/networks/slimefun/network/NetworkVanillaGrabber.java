@@ -133,7 +133,14 @@ public class NetworkVanillaGrabber extends NetworkDirectional {
                 if (stack == null || stack.getType() == Material.AIR) {
                     continue;
                 }
-                final PotionMeta potionMeta = (PotionMeta) stack.getItemMeta();
+                // Guard: solo procesar items con PotionMeta; ingredientes de addons pueden no tenerla (#NPE-brewer).
+                if (!(stack.getItemMeta() instanceof PotionMeta potionMeta)) {
+                    // Ítem sin PotionMeta en slot de poción (ingrediente de addon) — extraer directamente.
+                    if (tryPullFromInventory(blockMenu, root, accessor, brewerInventory, i) > 0) {
+                        return;
+                    }
+                    continue;
+                }
                 if (Slimefun.getMinecraftVersion().isAtLeast(MinecraftVersion.MINECRAFT_1_20_5)) {
                     if (potionMeta.getBasePotionType() != PotionType.WATER
                             && tryPullFromInventory(blockMenu, root, accessor, brewerInventory, i) > 0) {

@@ -221,6 +221,10 @@ public class NetworkRoot extends NetworkNode {
             @NotNull BlockMenu blockMenu, @NotNull StorageUnit storageUnit, boolean includeEmpty) {
         final ItemStack itemStack = blockMenu.getItemInSlot(16);
         final Config data = BlockStorage.getLocationInfo(blockMenu.getLocation());
+        // Guard: getLocationInfo puede retornar null si el chunk acaba de cargar o no tiene datos (#NPE-blockdata).
+        if (data == null) {
+            return null;
+        }
         final String storedString = data.getString("stored");
 
         if (storedString == null) {
@@ -753,7 +757,8 @@ public class NetworkRoot extends NetworkNode {
                 }
                 final int toRemove = (int) Math.min(power - removed, charge);
                 powerNode.removeCharge(node, toRemove);
-                this.rootPower -= power;
+                // Restar solo lo que realmente se extrajo de este nodo, no el total pedido (#rootPower-underflow).
+                this.rootPower -= toRemove;
                 removed = removed + toRemove;
             }
             if (removed >= power) {

@@ -33,6 +33,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 public class NetworkWirelessTransmitter extends NetworkObject {
 
@@ -124,6 +125,12 @@ public class NetworkWirelessTransmitter extends NetworkObject {
                 Integer.parseInt(zString)
             );
         } catch (NumberFormatException e) {
+            java.util.logging.Logger.getLogger("Networks").log(
+                Level.SEVERE,
+                "[NetworkWirelessTransmitter] Datos de ubicación enlazada corruptos en " + location
+                    + " | X='" + xString + "' Y='" + yString + "' Z='" + zString + "'",
+                e
+            );
             BlockStorage.addBlockInfo(location, LINKED_LOCATION_KEY_X, null);
             BlockStorage.addBlockInfo(location, LINKED_LOCATION_KEY_Y, null);
             BlockStorage.addBlockInfo(location, LINKED_LOCATION_KEY_Z, null);

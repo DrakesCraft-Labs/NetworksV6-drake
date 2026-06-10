@@ -395,9 +395,9 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
     }
 
     private static boolean isBlacklisted(@Nullable ItemStack itemStack) {
+        // getMaxDurability() < 0 nunca es verdad (es un short, mínimo 0) — condición eliminada.
         return itemStack == null
             || itemStack.getType() == Material.AIR
-            || itemStack.getType().getMaxDurability() < 0
             || Tag.SHULKER_BOXES.isTagged(itemStack.getType())
             || SlimefunItem.getByItem(itemStack) instanceof NetworkQuantumStorage;
     }

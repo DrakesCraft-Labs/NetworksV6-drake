@@ -40,6 +40,7 @@ public class BlockMenuUtil {
                 final int received = Math.min(leftAmount, item.getMaxStackSize());
                 blockMenu.replaceExistingItem(slot, StackUtils.getAsQuantity(item, received));
                 leftAmount -= received;
+                blockMenu.markDirty();
                 item.setAmount(Math.max(0, leftAmount));
             } else {
                 final int existingAmount = existing.getAmount();

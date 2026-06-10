@@ -121,7 +121,14 @@ public final class NetworkTransportUtils {
             return null;
         }
 
+        final int amountBefore = stack.getAmount();
         final ItemStack leftover = targetMenu.pushItem(stack.clone(), slots);
+        final int amountAfter = leftover == null ? 0 : leftover.getAmount();
+
+        if (amountAfter < amountBefore) {
+            targetMenu.markDirty();
+        }
+
         if (leftover == null || leftover.getType() == Material.AIR || leftover.getAmount() <= 0) {
             stack.setAmount(0);
             return null;

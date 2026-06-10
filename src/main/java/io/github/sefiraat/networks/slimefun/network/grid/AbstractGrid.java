@@ -327,12 +327,15 @@ public abstract class AbstractGrid extends NetworkObject {
     }
 
     private void setCursor(Player player, ItemStack cursor, ItemStack requestingStack) {
-        if (requestingStack != null) {
-            if (cursor.getType() != Material.AIR) {
-                requestingStack.setAmount(cursor.getAmount() + 1);
-            }
-            player.setItemOnCursor(requestingStack);
+        if (requestingStack == null || requestingStack.getType() == Material.AIR || requestingStack.getAmount() <= 0) {
+            return;
         }
+        if (cursor.getType() != Material.AIR) {
+            // Sumar el stack del cursor al solicitado pero sin exceder maxStackSize (#dupe-cursor-overflow).
+            final int combined = cursor.getAmount() + requestingStack.getAmount();
+            requestingStack.setAmount(Math.min(combined, requestingStack.getMaxStackSize()));
+        }
+        player.setItemOnCursor(requestingStack);
     }
 
     private boolean canAddMore(@Nonnull ClickAction action, @Nonnull ItemStack cursor, @Nonnull GridItemRequest request) {
