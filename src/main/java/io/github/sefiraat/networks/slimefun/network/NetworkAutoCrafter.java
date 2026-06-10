@@ -196,6 +196,11 @@ public class NetworkAutoCrafter extends NetworkObject {
             final ItemStack requested = instance.getRecipeItems()[i];
             if (requested != null) {
                 final ItemStack fetched = root.getItemStack0(blockMenu.getLocation(), new ItemRequest(instance.getRecipeItems()[i], 1));
+                if (fetched == null || fetched.getType() == org.bukkit.Material.AIR) {
+                    // El ingrediente desapareció entre el contains() y el fetch — devolver lo ya tomado
+                    returnItems(root, inputs, blockMenu);
+                    return false;
+                }
                 inputs[i] = fetched;
             } else {
                 inputs[i] = null;
@@ -228,7 +233,8 @@ public class NetworkAutoCrafter extends NetworkObject {
                 }
                 if (recipeMatches) {
                     setCache(blockMenu, instance);
-                    crafted = instance.getRecipe().getResult();
+                    // CRÍTICO: clonar para no mutar el singleton de Bukkit Recipe
+                    crafted = instance.getRecipe().getResult().clone();
                 }
             }
         }

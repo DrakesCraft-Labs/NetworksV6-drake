@@ -3,6 +3,7 @@ package io.github.sefiraat.networks.listeners;
 import com.github.drakescraft_labs.slimefun4.libraries.dough.blocks.BlockPosition;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
+import it.unimi.dsi.fastutil.longs.LongSets;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
@@ -38,7 +39,8 @@ public class BlockStateRefreshListener implements Listener {
 
     // contains  = use snapshot
     // !contains = not use snapshot
-    static LongSet set = new LongOpenHashSet(4096);
+    // LongOpenHashSet no es thread-safe; wrappear con synchronizedLongSet para accesos desde async chunk-loader de Paper.
+    static LongSet set = LongSets.synchronize(new LongOpenHashSet(4096));
 
     public static BlockState getState(Block block) {
         long v = bp(block.getX(), block.getY(), block.getZ());
