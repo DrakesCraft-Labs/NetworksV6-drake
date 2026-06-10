@@ -117,11 +117,11 @@ public abstract class NetworkObject extends SlimefunItem implements AdminDebugga
                 blockMenu.dropItems(location, i);
             }
         }
-        // NetworkStorage.removeNode(location);
-        //
-        // if (this.nodeType == NodeType.CONTROLLER) {
-        // NetworkController.wipeNetwork(location);
-        // }
+        NetworkStorage.removeNode(location);
+
+        if (this.nodeType == NodeType.CONTROLLER) {
+            NetworkController.wipeNetwork(location);
+        }
         // Slimefun.getDatabaseManager().getBlockDataController().removeBlock(location);
         BlockStorage.clearBlockInfo(location);
     }
