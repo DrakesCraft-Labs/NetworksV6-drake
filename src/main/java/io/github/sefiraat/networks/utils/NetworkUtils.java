@@ -107,9 +107,11 @@ public class NetworkUtils {
     }
 
     public static void clearNetwork(Location location) {
-        NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(location);
+        NetworkController.getNetworks().remove(location);
 
+        NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(location);
         if (definition == null || definition.getNode() == null) {
+            NetworkStorage.removeNode(location);
             return;
         }
 
