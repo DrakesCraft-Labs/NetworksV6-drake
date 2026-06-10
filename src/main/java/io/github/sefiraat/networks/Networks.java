@@ -75,8 +75,14 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
                     Set<Location> controllers = new HashSet<>(
                             NetworkController.getNetworks().keySet());
                     for (Location controller : controllers) {
-                        if (!(BlockStorage.check(controller) instanceof NetworkController)) {
-                            wrongs.add(controller);
+                        if (controller != null && controller.getWorld() != null) {
+                            int chunkX = controller.getBlockX() >> 4;
+                            int chunkZ = controller.getBlockZ() >> 4;
+                            if (controller.getWorld().isChunkLoaded(chunkX, chunkZ)) {
+                                if (!(BlockStorage.check(controller) instanceof NetworkController)) {
+                                    wrongs.add(controller);
+                                }
+                            }
                         }
                     }
 
@@ -94,7 +100,12 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
             return;
         }
 
-        Bukkit.getScheduler().cancelTasks(this);
+        try {
+            Bukkit.getScheduler().cancelTasks(this);
+        } catch (Throwable t) {
+            getLogger().severe("Failed to cancel scheduler tasks: " + t.getMessage());
+        }
+        
         saveData();
         instance = null;
     }
@@ -102,31 +113,54 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
     private void saveData() {
         getLogger().info("Saving Networks data before shutdown...");
 
-        markNetworkInventoriesDirty();
+        try {
+            markNetworkInventoriesDirty();
+        } catch (Throwable t) {
+            getLogger().severe("Failed to mark all network inventories dirty: " + t.getMessage());
+            t.printStackTrace();
+        }
 
         for (org.bukkit.World world : Bukkit.getWorlds()) {
-            final BlockStorage storage = BlockStorage.getStorage(world);
-            if (storage != null) {
-                storage.save();
+            try {
+                final BlockStorage storage = BlockStorage.getStorage(world);
+                if (storage != null) {
+                    storage.save();
+                }
+            } catch (Throwable t) {
+                getLogger().severe("Failed to save BlockStorage for world " + world.getName() + ": " + t.getMessage());
+                t.printStackTrace();
             }
         }
 
-        BlockStorage.saveChunks();
+        try {
+            BlockStorage.saveChunks();
+        } catch (Throwable t) {
+            getLogger().severe("Failed to save BlockStorage chunks: " + t.getMessage());
+            t.printStackTrace();
+        }
     }
 
     private void markNetworkInventoriesDirty() {
-        for (Location location : new HashSet<>(NetworkStorage.getAllNetworkObjects().keySet())) {
-            markNetworkInventoryDirty(location);
+        try {
+            for (Location location : new HashSet<>(NetworkStorage.getAllNetworkObjects().keySet())) {
+                markNetworkInventoryDirty(location);
+            }
+        } catch (Throwable t) {
+            getLogger().severe("Failed to dirty-mark stored network objects: " + t.getMessage());
         }
 
         for (org.bukkit.World world : Bukkit.getWorlds()) {
-            final BlockStorage storage = BlockStorage.getStorage(world);
-            if (storage == null) {
-                continue;
-            }
+            try {
+                final BlockStorage storage = BlockStorage.getStorage(world);
+                if (storage == null) {
+                    continue;
+                }
 
-            for (Location location : storage.getRawStorage().keySet()) {
-                markNetworkInventoryDirty(location);
+                for (Location location : new HashSet<>(storage.getRawStorage().keySet())) {
+                    markNetworkInventoryDirty(location);
+                }
+            } catch (Throwable t) {
+                getLogger().severe("Failed to dirty-mark world raw storage for " + world.getName() + ": " + t.getMessage());
             }
         }
     }
@@ -136,14 +170,19 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
             return;
         }
 
-        final SlimefunItem item = BlockStorage.check(location);
-        if (item == null || !item.getId().startsWith("NTW_") || !BlockMenuPreset.isInventory(item.getId())) {
-            return;
-        }
+        try {
+            final SlimefunItem item = BlockStorage.check(location);
+            if (item == null || !item.getId().startsWith("NTW_") || !BlockMenuPreset.isInventory(item.getId())) {
+                return;
+            }
 
-        final BlockMenu menu = BlockStorage.getInventory(location);
-        if (menu != null) {
-            menu.markDirty();
+            final BlockMenu menu = BlockStorage.getInventory(location);
+            if (menu != null) {
+                menu.markDirty();
+            }
+        } catch (Throwable t) {
+            getLogger().severe("Error marking network inventory dirty at location " + location + ": " + t.getMessage());
+            t.printStackTrace();
         }
     }
 
