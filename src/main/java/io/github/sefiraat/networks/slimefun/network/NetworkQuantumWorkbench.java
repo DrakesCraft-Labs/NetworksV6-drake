@@ -173,7 +173,17 @@ public class NetworkQuantumWorkbench extends SlimefunItem {
 
     private boolean testRecipe(ItemStack[] input, ItemStack[] recipe) {
         for (int test = 0; test < recipe.length; test++) {
-            if (!SlimefunUtils.isItemSimilar(input[test], recipe[test], true, false, false)) {
+            final ItemStack inputItem = input[test];
+            final ItemStack recipeItem = recipe[test];
+            final boolean inputEmpty = inputItem == null || inputItem.getType() == Material.AIR;
+            final boolean recipeEmpty = recipeItem == null || recipeItem.getType() == Material.AIR;
+            if (inputEmpty && recipeEmpty) {
+                continue;
+            }
+            if (inputEmpty || recipeEmpty) {
+                return false;
+            }
+            if (!SlimefunUtils.isItemSimilar(inputItem, recipeItem, true, false, false)) {
                 return false;
             }
         }

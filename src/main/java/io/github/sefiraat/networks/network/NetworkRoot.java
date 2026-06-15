@@ -257,7 +257,7 @@ public class NetworkRoot extends NetworkNode {
         }
 
         return new InfinityBarrel(
-                blockMenu.getLocation(), clone, storedInt + (itemStack == null ? 0 : itemStack.getAmount()), cache);
+                blockMenu.getLocation(), clone, storedInt, cache);
     }
 
     @Nullable
@@ -560,11 +560,11 @@ public class NetworkRoot extends NetworkNode {
         return menus;
     }
 
-    public boolean contains(@NotNull ItemStack itemStack) {
+    public synchronized boolean contains(@NotNull ItemStack itemStack) {
         return contains(new ItemRequest(itemStack, 1));
     }
 
-    public boolean contains(@NotNull ItemRequest request) {
+    public synchronized boolean contains(@NotNull ItemRequest request) {
 
         long found = 0;
 
@@ -770,7 +770,7 @@ public class NetworkRoot extends NetworkNode {
     }
 
     @NotNull
-    public List<ItemStack> getItemStacks0(@NotNull Location location, @NotNull List<ItemRequest> itemRequests) {
+    public synchronized List<ItemStack> getItemStacks0(@NotNull Location location, @NotNull List<ItemRequest> itemRequests) {
         List<ItemStack> retrievedItems = new ArrayList<>();
         for (ItemRequest request : itemRequests) {
             ItemStack retrieved = getItemStack0(location, request);
@@ -779,6 +779,39 @@ public class NetworkRoot extends NetworkNode {
             }
         }
         return retrievedItems;
+    }
+
+    @Nullable
+    public synchronized ItemStack[] getItemStacks0(@NotNull Location location, @NotNull ItemRequest[] requests) {
+        final ItemStack[] extracted = new ItemStack[requests.length];
+
+        for (int i = 0; i < requests.length; i++) {
+            final ItemRequest request = requests[i];
+            if (request == null) {
+                continue;
+            }
+
+            final int requestedAmount = request.getAmount();
+            final ItemRequest transactionRequest = new ItemRequest(request.getItemStack(), requestedAmount);
+            final ItemStack fetched = getItemStack0(location, transactionRequest);
+            if (fetched == null || fetched.getAmount() != requestedAmount) {
+                if (fetched != null) {
+                    addItemStack0(location, fetched);
+                }
+                rollbackExtracted(location, extracted);
+                return null;
+            }
+            extracted[i] = fetched;
+        }
+        return extracted;
+    }
+
+    private void rollbackExtracted(@NotNull Location location, ItemStack[] extracted) {
+        for (ItemStack itemStack : extracted) {
+            if (itemStack != null) {
+                addItemStack0(location, itemStack);
+            }
+        }
     }
 
     @NotNull
@@ -937,7 +970,7 @@ public class NetworkRoot extends NetworkNode {
     public void tryRecord(@NotNull Location accessor, @NotNull ItemRequest request) {
     }
 
-    public ItemStack getItemStack0(@NotNull Location accessor, @NotNull ItemRequest request) {
+    public synchronized ItemStack getItemStack0(@NotNull Location accessor, @NotNull ItemRequest request) {
         ItemStack stackToReturn = null; // 按F8
 
         if (request.getAmount() <= 0) {// 按F8
@@ -1227,7 +1260,7 @@ public class NetworkRoot extends NetworkNode {
     public void tryRecord(@NotNull Location accessor, @Nullable ItemStack before, int after) {
     }
 
-    public void addItemStack0(@NotNull Location accessor, @NotNull ItemStack incoming) {
+    public synchronized void addItemStack0(@NotNull Location accessor, @NotNull ItemStack incoming) {
         if (!allowAccessInput(accessor)) {
             return;
         }
