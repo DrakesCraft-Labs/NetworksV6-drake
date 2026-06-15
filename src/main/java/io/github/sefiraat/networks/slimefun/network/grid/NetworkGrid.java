@@ -113,8 +113,9 @@ public class NetworkGrid extends AbstractGrid {
                 });
 
                 for (int displaySlot : getDisplaySlots()) {
-                    menu.replaceExistingItem(displaySlot, null);
-                    menu.addMenuClickHandler(displaySlot, (p, slot, item, action) -> false);
+                    menu.replaceExistingItem(displaySlot, getBlankSlotStack());
+                    menu.addMenuClickHandler(displaySlot,
+                            (player, slot, item, action) -> handleDisplayClick(player, item, action, menu));
                 }
 
                 menu.addPlayerInventoryClickHandler((p, s, i, a) -> {
@@ -169,5 +170,10 @@ public class NetworkGrid extends AbstractGrid {
     @Override
     protected int getFilterSlot() {
         return FILTER;
+    }
+
+    @Override
+    protected void clearCachedState(@Nonnull Location location) {
+        CACHE_MAP.remove(location);
     }
 }

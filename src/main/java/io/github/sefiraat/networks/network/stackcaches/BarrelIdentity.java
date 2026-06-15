@@ -10,7 +10,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public abstract class BarrelIdentity extends ItemStackCache implements BarrelCore {
 
     private final Location location;
-    private final int amount;
+    private volatile int amount;
     private final BarrelType type;
 
     @ParametersAreNonnullByDefault
@@ -27,6 +27,10 @@ public abstract class BarrelIdentity extends ItemStackCache implements BarrelCor
 
     public int getAmount() {
         return this.amount;
+    }
+
+    protected void setAmount(int amount) {
+        this.amount = amount;
     }
 
     public BarrelType getType() {

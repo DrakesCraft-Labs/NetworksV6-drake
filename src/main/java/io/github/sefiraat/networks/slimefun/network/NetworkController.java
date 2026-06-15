@@ -32,9 +32,10 @@ public class NetworkController extends NetworkObject {
     private static final String CRAYON = "crayon";
     private static final Map<Location, NetworkRoot> NETWORKS = new ConcurrentHashMap<>();
     private static final Set<Location> CRAYONS = ConcurrentHashMap.newKeySet();
+    private static final Set<Location> DIRTY_NETWORKS = ConcurrentHashMap.newKeySet();
 
     private final ItemSetting<Integer> maxNodes;
-    protected final Map<Location, Boolean> firstTickMap = new ConcurrentHashMap<>();
+    protected final Set<Location> initializedControllers = ConcurrentHashMap.newKeySet();
 
     public NetworkController(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(itemGroup, item, recipeType, recipe, NodeType.CONTROLLER);
@@ -52,26 +53,18 @@ public class NetworkController extends NetworkObject {
                 @Override
                 public void tick(Block block, SlimefunItem item, Config data) {
 
-                    if (!firstTickMap.containsKey(block.getLocation())) {
+                    final Location location = block.getLocation();
+                    if (initializedControllers.add(location)) {
                         onFirstTick(block, data);
-                        firstTickMap.put(block.getLocation(), true);
                     }
 
                     addToRegistry(block);
-                    NetworkRoot networkRoot = new NetworkRoot(block.getLocation(), NodeType.CONTROLLER, maxNodes.getValue());
-                    networkRoot.addAllChildren();
-
-                    NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(block.getLocation());
-                    if (definition != null) {
-                        definition.setNode(networkRoot);
+                    NetworkRoot networkRoot = NETWORKS.get(location);
+                    if (networkRoot == null || DIRTY_NETWORKS.remove(location)) {
+                        networkRoot = rebuildNetwork(location, networkRoot);
                     }
 
-                    boolean crayon = CRAYONS.contains(block.getLocation());
-                    if (crayon) {
-                        networkRoot.setDisplayParticles(true);
-                    }
-
-                    NETWORKS.put(block.getLocation(), networkRoot);
+                    networkRoot.setDisplayParticles(CRAYONS.contains(location));
                 }
             }
         );
@@ -123,6 +116,11 @@ public class NetworkController extends NetworkObject {
         }
     }
 
+    @Override
+    protected void clearCachedState(@Nonnull Location location) {
+        initializedControllers.remove(location);
+    }
+
     public static Map<Location, NetworkRoot> getNetworks() {
         return NETWORKS;
     }
@@ -145,12 +143,63 @@ public class NetworkController extends NetworkObject {
         return CRAYONS.contains(location);
     }
 
-    public static void wipeNetwork(@Nonnull Location location) {
-        NetworkRoot networkRoot = NETWORKS.remove(location);
-        if (networkRoot != null) {
-            for (NetworkNode node : networkRoot.getChildrenNodes()) {
-                NetworkStorage.removeNode(node.getNodePosition());
+    public static void markDirty(@Nonnull Location changedLocation) {
+        final NodeDefinition changedDefinition = NetworkStorage.getAllNetworkObjects().get(changedLocation);
+        markDefinitionRootDirty(changedDefinition);
+
+        if (NETWORKS.containsKey(changedLocation)) {
+            DIRTY_NETWORKS.add(changedLocation);
+        }
+
+        for (BlockFace face : CHECK_FACES) {
+            final Location adjacent = changedLocation.clone().add(face.getDirection());
+            markDefinitionRootDirty(NetworkStorage.getAllNetworkObjects().get(adjacent));
+        }
+    }
+
+    private static void markDefinitionRootDirty(NodeDefinition definition) {
+        if (definition == null || definition.getNode() == null) {
+            return;
+        }
+
+        final Location controller = definition.getNode().getRoot().getController();
+        if (controller != null) {
+            DIRTY_NETWORKS.add(controller);
+        }
+    }
+
+    @Nonnull
+    private NetworkRoot rebuildNetwork(@Nonnull Location location, NetworkRoot previousRoot) {
+        clearAssignments(previousRoot);
+
+        final NetworkRoot networkRoot = new NetworkRoot(location, NodeType.CONTROLLER, maxNodes.getValue());
+        networkRoot.addAllChildren();
+
+        final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(location);
+        if (definition != null) {
+            definition.setNode(networkRoot);
+        }
+        NETWORKS.put(location, networkRoot);
+        return networkRoot;
+    }
+
+    private static void clearAssignments(NetworkRoot networkRoot) {
+        if (networkRoot == null) {
+            return;
+        }
+
+        for (Location nodeLocation : networkRoot.getNodeLocations()) {
+            final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(nodeLocation);
+            if (definition != null && definition.getNode() != null
+                    && definition.getNode().getRoot() == networkRoot) {
+                definition.setNode(null);
             }
         }
+    }
+
+    public static void wipeNetwork(@Nonnull Location location) {
+        clearAssignments(NETWORKS.remove(location));
+        DIRTY_NETWORKS.remove(location);
+        CRAYONS.remove(location);
     }
 }

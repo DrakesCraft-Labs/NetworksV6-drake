@@ -80,38 +80,51 @@ public class NetworkPusher extends NetworkDirectional {
 
             final ItemStack clone = testItem.clone();
             clone.setAmount(1);
-            final ItemRequest itemRequest = new ItemRequest(clone, clone.getMaxStackSize());
 
             int[] slots = NetworkTransportUtils.getTransportSlots(targetMenu, ItemTransportFlow.INSERT, clone);
+            final int insertionCapacity = getInsertionCapacity(targetMenu, slots, clone);
+            if (insertionCapacity <= 0) {
+                continue;
+            }
 
-            for (int slot : slots) {
-                final ItemStack itemStack = targetMenu.getItemInSlot(slot);
+            final ItemRequest itemRequest = new ItemRequest(
+                    clone,
+                    Math.min(insertionCapacity, clone.getMaxStackSize()));
+            final ItemStack retrieved = definition.getNode().getRoot().getItemStack0(blockMenu.getLocation(), itemRequest);
+            if (retrieved != null) {
+                final int retrievedAmount = retrieved.getAmount();
+                final ItemStack leftover = targetMenu.pushItem(retrieved, slots);
+                final int insertedAmount = leftover == null ? retrievedAmount : retrievedAmount - leftover.getAmount();
 
-                if (itemStack != null && itemStack.getType() != Material.AIR) {
-                    final int space = itemStack.getMaxStackSize() - itemStack.getAmount();
-                    if (space > 0 && StackUtils.itemsMatch(itemRequest, itemStack, true)) {
-                        itemRequest.setAmount(space);
-                    } else {
-                        continue;
-                    }
+                if (leftover != null && leftover.getAmount() > 0) {
+                    definition.getNode().getRoot().addItemStack0(blockMenu.getLocation(), leftover);
                 }
 
-                ItemStack retrieved = definition.getNode().getRoot().getItemStack0(blockMenu.getLocation(), itemRequest);
-                if (retrieved != null) {
-                    final boolean moved = NetworkTransportUtils.pushIntoMenuOrReturn(
-                        definition.getNode().getRoot(),
-                        blockMenu.getLocation(),
-                        targetMenu,
-                        retrieved,
-                        slots
-                    );
-                    if (moved && definition.getNode().getRoot().isDisplayParticles()) {
-                        showParticle(blockMenu.getLocation(), direction);
-                    }
+                if (insertedAmount > 0 && definition.getNode().getRoot().isDisplayParticles()) {
+                    showParticle(blockMenu.getLocation(), direction);
                 }
-                break;
             }
         }
+    }
+
+    private int getInsertionCapacity(@Nonnull BlockMenu targetMenu, @Nonnull int[] slots,
+            @Nonnull ItemStack itemToInsert) {
+        int capacity = 0;
+        final ItemRequest matchRequest = new ItemRequest(itemToInsert, 1);
+
+        for (int slot : slots) {
+            final ItemStack current = targetMenu.getItemInSlot(slot);
+            if (current == null || current.getType() == Material.AIR) {
+                capacity += itemToInsert.getMaxStackSize();
+            } else if (StackUtils.itemsMatch(matchRequest, current, true)) {
+                capacity += Math.max(0, current.getMaxStackSize() - current.getAmount());
+            }
+
+            if (capacity >= itemToInsert.getMaxStackSize()) {
+                return itemToInsert.getMaxStackSize();
+            }
+        }
+        return capacity;
     }
 
     @Nonnull

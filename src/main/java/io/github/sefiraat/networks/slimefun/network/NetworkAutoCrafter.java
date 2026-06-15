@@ -168,45 +168,28 @@ public class NetworkAutoCrafter extends NetworkObject {
         }
     }
 
+    @Override
+    protected void clearCachedState(@Nonnull Location location) {
+        INSTANCE_MAP.remove(location);
+    }
+
     private boolean tryCraft(@Nonnull BlockMenu blockMenu, @Nonnull BlueprintInstance instance, @Nonnull NetworkRoot root) {
         // Get the recipe input
         final ItemStack[] inputs = new ItemStack[9];
 
-        /* Make sure the network has the required items
-         * Needs to be revisited as matching is happening stacks 2x when I should
-         * only need the one
-         */
-        HashMap<ItemStack, Integer> requiredItems = new HashMap<>();
+        final ItemRequest[] requests = new ItemRequest[9];
         for (int i = 0; i < 9; i++) {
             final ItemStack requested = instance.getRecipeItems()[i];
             if (requested != null) {
-                requiredItems.merge(requested, 1, Integer::sum);
+                requests[i] = new ItemRequest(requested, 1);
             }
         }
 
-        for (Map.Entry<ItemStack, Integer> entry : requiredItems.entrySet()) {
-            if (!root.contains(new ItemRequest(entry.getKey(), entry.getValue()))) {
-                return false;
-            }
+        final ItemStack[] extracted = root.getItemStacks0(blockMenu.getLocation(), requests);
+        if (extracted == null) {
+            return false;
         }
-
-        // Then fetch the actual items
-        for (int i = 0; i < 9; i++) {
-            final ItemStack requested = instance.getRecipeItems()[i];
-            if (requested != null) {
-                final ItemStack fetched = root.getItemStack0(
-                    blockMenu.getLocation(),
-                    new ItemRequest(instance.getRecipeItems()[i], 1)
-                );
-                if (fetched == null || fetched.getAmount() < 1) {
-                    returnItems(root, inputs, blockMenu);
-                    return false;
-                }
-                inputs[i] = fetched;
-            } else {
-                inputs[i] = null;
-            }
-        }
+        System.arraycopy(extracted, 0, inputs, 0, inputs.length);
 
         ItemStack crafted = null;
 
@@ -222,7 +205,7 @@ public class NetworkAutoCrafter extends NetworkObject {
         if (crafted == null) {
             instance.generateVanillaRecipe(blockMenu.getLocation().getWorld());
             if (instance.getRecipe() == null) {
-                returnItems(root, inputs, blockMenu);
+                returnItems(root, inputs, blockMenu.getLocation());
                 return false;
             } else {
                 boolean recipeMatches = true;
@@ -241,7 +224,7 @@ public class NetworkAutoCrafter extends NetworkObject {
 
         // If no item crafted OR result doesn't fit, escape
         if (crafted == null || crafted.getType() == Material.AIR) {
-            returnItems(root, inputs, blockMenu);
+            returnItems(root, inputs, blockMenu.getLocation());
             return false;
         }
 
@@ -250,31 +233,29 @@ public class NetworkAutoCrafter extends NetworkObject {
         if (root.isDisplayParticles()) {
             location.getWorld().spawnParticle(Particle.WAX_OFF, location, 0, 0, 4, 0);
         }
-        final boolean moved = NetworkTransportUtils.pushIntoMenuOrReturn(
-            root,
-            blockMenu.getLocation(),
-            blockMenu,
-            crafted,
-            OUTPUT_SLOT
-        );
-        if (moved) {
-            blockMenu.markDirty();
+        final int craftedAmount = crafted.getAmount();
+        final ItemStack leftover = blockMenu.pushItem(crafted, OUTPUT_SLOT);
+        if (leftover != null && leftover.getAmount() > 0) {
+            if (leftover.getAmount() == craftedAmount) {
+                returnItems(root, inputs, blockMenu.getLocation());
+                return false;
+            }
+            blockMenu.getLocation().getWorld().dropItemNaturally(blockMenu.getLocation(), leftover.clone());
         }
-        return moved;
+        return true;
     }
 
-    private void returnItems(@Nonnull NetworkRoot root, @Nonnull ItemStack[] inputs, BlockMenu menu) {
+    private void returnItems(@Nonnull NetworkRoot root, @Nonnull ItemStack[] inputs, @Nonnull Location origin) {
         for (ItemStack input : inputs) {
-            if (input == null || input.getAmount() <= 0) {
-                continue;
-            }
-            root.uncontrolAccessInput(menu.getLocation());
-            root.addItemStack0(menu.getLocation(), input);
-            if (input.getAmount() > 0) {
-                // Network full — drop in-world so items are not silently lost
-                final org.bukkit.Location dropLoc = menu.getLocation().clone().add(0.5, 1.0, 0.5);
-                dropLoc.getWorld().dropItem(dropLoc, input.clone());
-                input.setAmount(0);
+            if (input != null && input.getAmount() > 0) {
+                root.uncontrolAccessInput(origin);
+                root.addItemStack0(origin, input);
+                if (input.getAmount() > 0) {
+                    // Network full — drop in-world so items are not silently lost
+                    final org.bukkit.Location dropLoc = origin.clone().add(0.5, 1.0, 0.5);
+                    dropLoc.getWorld().dropItem(dropLoc, input.clone());
+                    input.setAmount(0);
+                }
             }
         }
     }

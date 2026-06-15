@@ -138,8 +138,13 @@ public class NetworkCraftingGrid extends AbstractGrid {
                 });
 
                 for (int displaySlot : getDisplaySlots()) {
-                    menu.replaceExistingItem(displaySlot, null);
-                    menu.addMenuClickHandler(displaySlot, (p, slot, item, action) -> false);
+                    menu.replaceExistingItem(displaySlot, getBlankSlotStack());
+                    menu.addMenuClickHandler(displaySlot,
+                            (player, slot, item, action) -> handleDisplayClick(player, item, action, menu));
+                }
+
+                for (int recipeSlot : CRAFT_ITEMS) {
+                    menu.addMenuClickHandler(recipeSlot, (player, slot, item, action) -> !action.isShiftClicked());
                 }
 
                 menu.replaceExistingItem(CRAFT_BUTTON_SLOT, CRAFT_BUTTON_STACK);
@@ -203,6 +208,11 @@ public class NetworkCraftingGrid extends AbstractGrid {
         return FILTER;
     }
 
+    @Override
+    protected void clearCachedState(@Nonnull Location location) {
+        CACHE_MAP.remove(location);
+    }
+
     private void tryCraft(@Nonnull BlockMenu menu, @Nonnull Player player) {
         // Get node and, if it doesn't exist - escape
         final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(menu.getLocation());
@@ -239,30 +249,50 @@ public class NetworkCraftingGrid extends AbstractGrid {
             return;
         }
 
-        // Push item
-        NetworkTransportUtils.pushIntoMenuOrReturn(definition.getNode().getRoot(), menu.getLocation(), menu, crafted, CRAFT_OUTPUT_SLOT);
-        menu.markDirty();
-
-        // Let's clear down all the items
+        final java.util.List<Integer> refillSlots = new java.util.ArrayList<>();
+        final java.util.List<io.github.sefiraat.networks.network.stackcaches.ItemRequest> refillRequests = new java.util.ArrayList<>();
         for (int recipeSlot : CRAFT_ITEMS) {
             final ItemStack itemInSlot = menu.getItemInSlot(recipeSlot);
-            if (itemInSlot != null) {
-                // Grab a clone for potential retrieval
-                final ItemStack itemInSlotClone = itemInSlot.clone();
-                itemInSlotClone.setAmount(1);
+            if (itemInSlot != null && itemInSlot.getType() != Material.AIR && itemInSlot.getAmount() == 1) {
+                final ItemStack template = itemInSlot.clone();
+                template.setAmount(1);
+                refillSlots.add(recipeSlot);
+                refillRequests.add(new io.github.sefiraat.networks.network.stackcaches.ItemRequest(template, 1));
+            }
+        }
+
+        final ItemStack[] refills = definition.getNode().getRoot()
+                .getItemStacks0(menu.getLocation(), refillRequests.toArray(new io.github.sefiraat.networks.network.stackcaches.ItemRequest[0]));
+        if (refills == null) {
+            return;
+        }
+
+        final int craftedAmount = crafted.getAmount();
+        final ItemStack outputLeftover = menu.pushItem(crafted, CRAFT_OUTPUT_SLOT);
+        if (outputLeftover != null && outputLeftover.getAmount() > 0) {
+            if (outputLeftover.getAmount() == craftedAmount) {
+                returnRefills(definition, refills, menu.getLocation());
+                return;
+            }
+            menu.getLocation().getWorld().dropItemNaturally(menu.getLocation(), outputLeftover.clone());
+        }
+
+        for (int recipeSlot : CRAFT_ITEMS) {
+            final ItemStack itemInSlot = menu.getItemInSlot(recipeSlot);
+            if (itemInSlot != null && itemInSlot.getType() != Material.AIR) {
                 ItemUtils.consumeItem(menu.getItemInSlot(recipeSlot), 1, true);
-                // We have consumed a slot item and now the slot it empty - try to refill
-                if (menu.getItemInSlot(recipeSlot) != null && menu.getItemInSlot(recipeSlot).getAmount() <= 0) {
-                    menu.replaceExistingItem(recipeSlot, null);
-                }
-                if (menu.getItemInSlot(recipeSlot) == null) {
-                    // Process item request
-                    final GridItemRequest request = new GridItemRequest(itemInSlotClone, 1, player);
-                    final ItemStack requestingStack = definition.getNode().getRoot().getItemStack0(menu.getLocation(), request);
-                    if (requestingStack != null) {
-                        menu.replaceExistingItem(recipeSlot, requestingStack);
-                    }
-                }
+            }
+        }
+
+        for (int refillIndex = 0; refillIndex < refillSlots.size(); refillIndex++) {
+            menu.replaceExistingItem(refillSlots.get(refillIndex), refills[refillIndex]);
+        }
+    }
+
+    private void returnRefills(@Nonnull NodeDefinition definition, @Nonnull ItemStack[] refills, @Nonnull Location origin) {
+        for (ItemStack refill : refills) {
+            if (refill != null) {
+                definition.getNode().getRoot().addItemStack0(origin, refill);
             }
         }
     }
