@@ -354,6 +354,11 @@ public class NetworkRoot extends NetworkNode {
             }
         }
         invalidateBarrelCaches();
+        // Limpiar historial de transporte para evitar memory leak (#229)
+        observingAccessHistory.remove(location);
+        persistentAccessHistory.remove(location);
+        transportMissInputHistory.remove(location);
+        transportMissOutputHistory.remove(location);
     }
 
     /**

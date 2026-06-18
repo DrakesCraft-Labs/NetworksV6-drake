@@ -186,7 +186,7 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
             blockMenu.markDirty();
         }
 
-        CACHES.put(blockMenu.getLocation().clone(), cache);
+        CACHES.put(blockMenu.getLocation(), cache);
         blockMenu.markDirty();
     }
 

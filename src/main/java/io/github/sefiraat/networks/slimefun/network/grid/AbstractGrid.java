@@ -76,7 +76,7 @@ public abstract class AbstractGrid extends NetworkObject {
                 return ChatColor.stripColor(slimefunItem.getItemName());
             } else {
                 ItemMeta itemMeta = itemStackIntegerEntry.getKey().getItemMeta();
-                return itemMeta.hasDisplayName()
+                return itemMeta != null && itemMeta.hasDisplayName()
                     ? ChatColor.stripColor(itemMeta.getDisplayName())
                     : itemStackIntegerEntry.getKey().getType().name();
             }
@@ -195,6 +195,10 @@ public abstract class AbstractGrid extends NetworkObject {
                 final Map.Entry<ItemStack, Integer> entry = validEntries.get(i);
                 final ItemStack displayStack = entry.getKey().clone();
                 final ItemMeta itemMeta = displayStack.getItemMeta();
+                if (itemMeta == null) {
+                    blockMenu.replaceExistingItem(getDisplaySlots()[i], displayStack);
+                    continue;
+                }
                 List<String> lore = itemMeta.getLore();
 
                 if (lore == null) {
@@ -332,7 +336,10 @@ public abstract class AbstractGrid extends NetworkObject {
     private void setCursor(Player player, ItemStack cursor, ItemStack requestingStack) {
         if (requestingStack != null) {
             if (cursor.getType() != Material.AIR) {
-                requestingStack.setAmount(cursor.getAmount() + requestingStack.getAmount());
+                requestingStack.setAmount(Math.min(
+                    cursor.getAmount() + requestingStack.getAmount(),
+                    requestingStack.getMaxStackSize()
+                ));
             }
             player.setItemOnCursor(requestingStack);
         }
