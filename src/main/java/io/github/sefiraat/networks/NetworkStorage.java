@@ -15,6 +15,10 @@ public class NetworkStorage {
     private static final Map<Location, NodeDefinition> ALL_NETWORK_OBJECTS = new ConcurrentHashMap<>();
 
     public static void removeNode(Location location) {
+        removeNodeInternal(location, true);
+    }
+
+    private static void removeNodeInternal(Location location, boolean isOrigin) {
         final NodeDefinition nodeDefinition = ALL_NETWORK_OBJECTS.get(location);
 
         if (nodeDefinition == null) {
@@ -29,11 +33,15 @@ public class NetworkStorage {
                 root.unregisterNode(location, nodeDefinition.getType());
             }
             for (NetworkNode childNode : node.getChildrenNodes()) {
-                removeNode(childNode.getNodePosition());
+                removeNodeInternal(childNode.getNodePosition(), false);
             }
         }
 
-        ALL_NETWORK_OBJECTS.remove(location);
+        if (isOrigin) {
+            ALL_NETWORK_OBJECTS.remove(location);
+        } else {
+            nodeDefinition.setNode(null);
+        }
     }
 
     public static Map<Location, NodeDefinition> getAllNetworkObjects() {

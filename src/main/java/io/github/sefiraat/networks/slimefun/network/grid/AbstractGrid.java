@@ -265,6 +265,14 @@ public abstract class AbstractGrid extends NetworkObject {
 
     @ParametersAreNonnullByDefault
     protected void retrieveItem(Player player, NodeDefinition definition, @Nullable ItemStack itemStack, ClickAction action, BlockMenu blockMenu) {
+        // Dupe guard: verify the node is still active in the network registry
+        final NodeDefinition currentDef = NetworkStorage.getAllNetworkObjects().get(blockMenu.getLocation());
+        if (currentDef == null || currentDef.getNode() == null || currentDef.getNode().getRoot() == null || currentDef.getNode().getRoot().getController() == null) {
+            player.sendMessage(Theme.ERROR.getColor() + "This grid is no longer connected to an active network!");
+            player.closeInventory();
+            return;
+        }
+
         // Todo Item can be null here. No idea how - investigate later
         if (itemStack == null || itemStack.getType() == Material.AIR) {
             return;

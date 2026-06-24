@@ -65,4 +65,29 @@ public class SyncListener implements Listener {
             NetworkUtils.clearNetwork(location);
         }
     }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onChunkLoad(@Nonnull org.bukkit.event.world.ChunkLoadEvent event) {
+        final org.bukkit.Chunk chunk = event.getChunk();
+        final org.bukkit.World world = chunk.getWorld();
+        final com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage storage = com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.getStorage(world);
+        if (storage == null) {
+            return;
+        }
+
+        final int chunkX = chunk.getX();
+        final int chunkZ = chunk.getZ();
+
+        for (Location location : storage.getRawStorage().keySet()) {
+            if (location != null && location.getBlockX() >> 4 == chunkX && location.getBlockZ() >> 4 == chunkZ) {
+                final com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem item = com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.check(location);
+                if (item instanceof io.github.sefiraat.networks.slimefun.network.NetworkObject networkObject) {
+                    if (!NetworkStorage.getAllNetworkObjects().containsKey(location)) {
+                        final NodeDefinition nodeDefinition = new NodeDefinition(networkObject.getNodeType());
+                        NetworkStorage.getAllNetworkObjects().put(location, nodeDefinition);
+                    }
+                }
+            }
+        }
+    }
 }
