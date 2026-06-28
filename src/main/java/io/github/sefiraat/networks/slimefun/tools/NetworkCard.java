@@ -15,6 +15,7 @@ import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
@@ -81,8 +82,9 @@ public class NetworkCard extends SlimefunItem {
 
     private boolean isBlacklisted(@Nonnull ItemStack itemStack) {
         return itemStack.getType() == Material.AIR
-            || itemStack.getType().getMaxDurability() < 0
-            || Tag.SHULKER_BOXES.isTagged(itemStack.getType());
+            || itemStack.getItemMeta() instanceof BundleMeta
+            || Tag.SHULKER_BOXES.isTagged(itemStack.getType())
+            || SlimefunItem.getByItem(itemStack) instanceof io.github.sefiraat.networks.slimefun.network.NetworkQuantumStorage;
     }
 
     public int getSize() {

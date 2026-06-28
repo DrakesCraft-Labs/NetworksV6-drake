@@ -29,6 +29,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BundleMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
@@ -425,6 +426,7 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
         // getMaxDurability() < 0 nunca es verdad (es un short, mínimo 0) — condición eliminada.
         return itemStack == null
             || itemStack.getType() == Material.AIR
+            || itemStack.getItemMeta() instanceof BundleMeta
             || Tag.SHULKER_BOXES.isTagged(itemStack.getType())
             || SlimefunItem.getByItem(itemStack) instanceof NetworkQuantumStorage;
     }
