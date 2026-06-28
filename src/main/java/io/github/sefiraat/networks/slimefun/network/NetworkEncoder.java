@@ -165,12 +165,29 @@ public class NetworkEncoder extends NetworkObject {
         }
 
         final ItemStack blueprintClone = StackUtils.getAsQuantity(blueprint, 1);
+        CraftingBlueprint.setBlueprint(blueprintClone, inputs, crafted);
 
+        // Re-chequeo estrecho de OUTPUT justo antes de escribir: cierra el doble-click
+        // reentrante en el mismo tick (el primer push ya dejó el slot ocupado).
+        final ItemStack outputNow = blockMenu.getItemInSlot(OUTPUT_SLOT);
+        if (outputNow != null && outputNow.getType() != Material.AIR) {
+            player.sendMessage(Theme.WARNING + "The output slot must be empty.");
+            return;
+        }
+
+        // Entregar PRIMERO. Solo se consume la fuente si la salida se entregó completa.
+        final ItemStack leftover = NetworkTransportUtils.pushIntoMenu(blockMenu, blueprintClone, OUTPUT_SLOT);
+        if (leftover != null && leftover.getType() != Material.AIR && leftover.getAmount() > 0) {
+            // No cupo: nada consumido, el blueprint no se pierde.
+            player.sendMessage(Theme.WARNING + "The output slot must be empty.");
+            return;
+        }
+
+        // Entrega confirmada: ahora sí consumimos el blueprint en blanco e inputs.
         blueprint.setAmount(blueprint.getAmount() - 1);
         if (blueprint.getAmount() <= 0) {
             blockMenu.replaceExistingItem(BLANK_BLUEPRINT_SLOT, null);
         }
-        CraftingBlueprint.setBlueprint(blueprintClone, inputs, crafted);
 
         for (int recipeSlot : RECIPE_SLOTS) {
             ItemStack slotItem = blockMenu.getItemInSlot(recipeSlot);
@@ -182,7 +199,6 @@ public class NetworkEncoder extends NetworkObject {
             }
         }
 
-        NetworkTransportUtils.pushIntoMenu(blockMenu, blueprintClone, OUTPUT_SLOT);
         blockMenu.markDirty();
         root.removeRootPower(CHARGE_COST);
     }

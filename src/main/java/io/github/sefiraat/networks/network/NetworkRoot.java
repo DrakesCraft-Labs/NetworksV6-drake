@@ -1075,7 +1075,7 @@ public class NetworkRoot extends NetworkNode {
                 // If the return stack is null, we need to set it up
                 if (stackToReturn == null) {
                     stackToReturn = itemStack.clone();
-                    stackToReturn.setAmount(1);
+                    stackToReturn.setAmount(0);
                 }
 
                 if (request.getAmount() <= itemStack.getAmount()) {
@@ -1083,7 +1083,7 @@ public class NetworkRoot extends NetworkNode {
                     uncontrolAccessOutput(accessor);
                     // Netex - Reduce end
                     // We can't take more than this stack. Level to request amount, remove items and then return
-                    stackToReturn.setAmount(request.getAmount());
+                    stackToReturn.setAmount(stackToReturn.getAmount() + request.getAmount());
                     itemStack.setAmount(itemStack.getAmount() - request.getAmount());
                     blockMenu.markDirty();
                     // Netex - Record start

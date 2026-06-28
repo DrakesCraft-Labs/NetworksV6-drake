@@ -10,9 +10,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Bloquea clics de inventario abusivos en grids (#230, dupe tipo COLLECT_TO_CURSOR / middle).
@@ -21,13 +24,7 @@ public class GridDupeGuardListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onInventoryClick(@Nonnull InventoryClickEvent event) {
-        final InventoryHolder holder = event.getInventory().getHolder();
-        if (!(holder instanceof BlockMenu blockMenu)) {
-            return;
-        }
-
-        final SlimefunItem slimefunItem = BlockStorage.check(blockMenu.getLocation());
-        if (!(slimefunItem instanceof AbstractGrid)) {
+        if (gridOf(event.getInventory().getHolder()) == null) {
             return;
         }
 
@@ -48,5 +45,39 @@ public class GridDupeGuardListener implements Listener {
                 || action == InventoryAction.CLONE_STACK) {
             event.setCancelled(true);
         }
+    }
+
+    // Un drag NO pasa por el MenuClickHandler de Slimefun: si reparte/recoge sobre los display-slots
+    // (clones de visualización con lore) evade retrieveItem() y puede dupear. Se cancela cualquier drag
+    // que toque el inventario superior del grid EXCEPTO si afecta única y exclusivamente al input slot
+    // (slot real donde el jugador deposita items para importarlos a la red = transporte legítimo).
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onInventoryDrag(@Nonnull InventoryDragEvent event) {
+        final Inventory topInventory = event.getView().getTopInventory();
+        final AbstractGrid grid = gridOf(topInventory.getHolder());
+        if (grid == null) {
+            return;
+        }
+
+        final int topSize = topInventory.getSize();
+        final int inputSlot = grid.getInputSlot();
+        for (int rawSlot : event.getRawSlots()) {
+            // rawSlot < topSize => el drag toca el inventario superior (el grid).
+            // Se permite solo si todos los slots tocados del top son el input slot.
+            if (rawSlot < topSize && rawSlot != inputSlot) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+    }
+
+    // Devuelve la instancia AbstractGrid si el holder es un BlockMenu de un grid; null en otro caso.
+    @Nullable
+    private AbstractGrid gridOf(@Nullable InventoryHolder holder) {
+        if (!(holder instanceof BlockMenu blockMenu)) {
+            return null;
+        }
+        final SlimefunItem slimefunItem = BlockStorage.check(blockMenu.getLocation());
+        return slimefunItem instanceof AbstractGrid grid ? grid : null;
     }
 }

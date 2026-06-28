@@ -143,6 +143,14 @@ public abstract class AbstractGrid extends NetworkObject {
                 blockMenu,
                 getInputSlot());
         if (consumed > 0) {
+            // pullIntoNetwork mutó el ItemStack del slot in-place (addItemStack0 hace
+            // incoming.setAmount(...) sobre la referencia viva del slot). Si quedó vacío,
+            // sincronizar el BlockMenu para no dejar un item-fantasma que vanilla pueda
+            // recoger con click (dupe del grid/remote). Mismo patrón que tryReturnItems.
+            final ItemStack remaining = blockMenu.getItemInSlot(getInputSlot());
+            if (remaining == null || remaining.getType() == Material.AIR || remaining.getAmount() <= 0) {
+                blockMenu.replaceExistingItem(getInputSlot(), null);
+            }
             blockMenu.markDirty();
         }
     }
@@ -368,7 +376,7 @@ public abstract class AbstractGrid extends NetworkObject {
 
     protected abstract int[] getDisplaySlots();
 
-    protected abstract int getInputSlot();
+    public abstract int getInputSlot();
 
     protected abstract int getChangeSort();
 

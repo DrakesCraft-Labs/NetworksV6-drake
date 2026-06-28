@@ -185,6 +185,14 @@ public class NetworkAutoCrafter extends NetworkObject {
             }
         }
 
+        // CAUSA RAÍZ DUPE/LAG: una receta sin ningún ingrediente real (recipeItems todo-null,
+        // p.ej. el blueprint del RTG de SlimeChem que se registra con new ItemStack[0]) deja
+        // requiredItems vacío, se salta el contains/fetch y crafteaba "de la nada" en bucle.
+        // Exigir >=1 input real antes de continuar.
+        if (requiredItems.isEmpty()) {
+            return false;
+        }
+
         for (Map.Entry<ItemStack, Integer> entry : requiredItems.entrySet()) {
             if (!root.contains(new ItemRequest(entry.getKey(), entry.getValue()))) {
                 return false;
@@ -223,19 +231,10 @@ public class NetworkAutoCrafter extends NetworkObject {
             if (instance.getRecipe() == null) {
                 returnItems(root, inputs, blockMenu);
                 return false;
-            } else {
-                boolean recipeMatches = true;
-                for (int j = 0; j < 9; j++) {
-                    if (!StackUtils.itemsMatch(instance.getRecipeItems()[j], inputs[j])) {
-                        recipeMatches = false;
-                        break;
-                    }
-                }
-                if (recipeMatches) {
-                    setCache(blockMenu, instance);
-                    // CRÍTICO: clonar para no mutar el singleton de Bukkit Recipe
-                    crafted = instance.getRecipe().getResult().clone();
-                }
+            } else if (Arrays.equals(instance.getRecipeItems(), inputs)) {
+                setCache(blockMenu, instance);
+                // CRÍTICO: clonar para no mutar el singleton de Bukkit Recipe
+                crafted = instance.getRecipe().getResult().clone();
             }
         }
 
