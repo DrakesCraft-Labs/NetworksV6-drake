@@ -155,6 +155,12 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
             cache = addCache(blockMenu);
         }
 
+        // addCache devuelve null cuando el BlockMenu aún no cargó su .sfi pero BS_AMOUNT>0.
+        // Saltamos este tick para no sobreescribir el contenido persistido con un estado vacío.
+        if (cache == null) {
+            return;
+        }
+
         final ItemStack display = blockMenu.getItemInSlot(ITEM_SLOT);
         if (display == null || display.getType() == Material.AIR) {
             updateDisplayItem(blockMenu, cache);
@@ -276,12 +282,18 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
                 if (cache == null) {
                     cache = addCache(menu);
                 }
+                // Inventario a medio cargar con contenido persistido: no tocamos el display
+                // todavía; un tick posterior reconstruirá el cache real desde el .sfi + BS_AMOUNT.
+                if (cache == null) {
+                    return;
+                }
                 updateDisplayItem(menu, cache);
                 menu.markDirty();
             }
         };
     }
 
+    @Nullable
     private QuantumCache addCache(@Nonnull BlockMenu blockMenu) {
         final Location location = blockMenu.getLocation();
         final String amountString = BlockStorage.getLocationInfo(location, BS_AMOUNT);
@@ -292,12 +304,27 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
 
         QuantumCache cache = createCache(itemStack, blockMenu, amount, voidExcess);
 
+        // Estado transitorio (inventario a medio cargar con amount>0): NO cacheamos null
+        // para no fijar un estado vacío sobre el contenido real persistido.
+        if (cache == null) {
+            return null;
+        }
+
         CACHES.put(location, cache);
         return cache;
     }
 
+    @Nullable
     private QuantumCache createCache(@Nullable ItemStack itemStack, @Nonnull BlockMenu menu, int amount, boolean voidExcess) {
         if (itemStack == null || itemStack.getType() == Material.AIR || isDisplayItem(itemStack)) {
+            // ITEM_SLOT llega vacío o con el placeholder NO_ITEM. Si BS_AMOUNT > 0, el storage
+            // TENÍA contenido y el BlockMenu aún no restauró su .sfi (getInventory()->loadInventory
+            // usa el constructor de 2 args que no lee el Config). NO reseteamos ni persistimos un
+            // cache en 0: devolvemos null para saltar este ciclo y dejar que un tick posterior
+            // (con el .sfi ya cargado) reconstruya el cache real. Evita la pérdida silenciosa.
+            if (amount > 0) {
+                return null;
+            }
             menu.addItem(ITEM_SLOT, NO_ITEM);
             menu.markDirty();
             return new QuantumCache(null, 0, this.maxAmount, true, false);

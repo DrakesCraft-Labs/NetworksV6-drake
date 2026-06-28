@@ -178,11 +178,18 @@ public class NetworkAutoCrafter extends NetworkObject {
         final ItemStack[] inputs = new ItemStack[9];
 
         final ItemRequest[] requests = new ItemRequest[9];
+        boolean hasInput = false;
         for (int i = 0; i < 9; i++) {
             final ItemStack requested = instance.getRecipeItems()[i];
             if (requested != null) {
                 requests[i] = new ItemRequest(requested, 1);
+                hasInput = true;
             }
+        }
+
+        // Un blueprint vacío no debe producir resultados de la nada.
+        if (!hasInput) {
+            return false;
         }
 
         final ItemStack[] extracted = root.getItemStacks0(blockMenu.getLocation(), requests);
@@ -199,19 +206,10 @@ public class NetworkAutoCrafter extends NetworkObject {
             if (instance.getRecipe() == null) {
                 returnItems(root, inputs, blockMenu.getLocation());
                 return false;
-            } else {
-                boolean recipeMatches = true;
-                for (int j = 0; j < 9; j++) {
-                    if (!StackUtils.itemsMatch(instance.getRecipeItems()[j], inputs[j])) {
-                        recipeMatches = false;
-                        break;
-                    }
-                }
-                if (recipeMatches) {
-                    setCache(blockMenu, instance);
-                    // CRÍTICO: clonar para no mutar el singleton de Bukkit Recipe
-                    crafted = instance.getRecipe().getResult().clone();
-                }
+            } else if (Arrays.equals(instance.getRecipeItems(), inputs)) {
+                setCache(blockMenu, instance);
+                // CRÍTICO: clonar para no mutar el singleton de Bukkit Recipe
+                crafted = instance.getRecipe().getResult().clone();
             }
         }
 
