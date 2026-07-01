@@ -123,7 +123,12 @@ public class NetworkGrid extends AbstractGrid {
                         return true;
                     }
 
-                    // Shift+Left-click
+                    if (i == null || i.getType() == org.bukkit.Material.AIR) {
+                        return false;
+                    }
+
+                    // Remover del inventario ANTES de añadir al network (anti-dupe #shift-click)
+                    p.getInventory().setItem(s, null);
                     receiveItem(p, i, a, menu);
                     return false;
                 });

@@ -66,6 +66,17 @@ public class SyncListener implements Listener {
         }
     }
 
+    private static java.lang.reflect.Field storageField = null;
+
+    static {
+        try {
+            storageField = com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.class.getDeclaredField("storage");
+            storageField.setAccessible(true);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @EventHandler(priority = EventPriority.MONITOR)
     public void onChunkLoad(@Nonnull org.bukkit.event.world.ChunkLoadEvent event) {
         final org.bukkit.Chunk chunk = event.getChunk();
@@ -78,16 +89,26 @@ public class SyncListener implements Listener {
         final int chunkX = chunk.getX();
         final int chunkZ = chunk.getZ();
 
-        for (Location location : storage.getRawStorage().keySet()) {
-            if (location != null && location.getBlockX() >> 4 == chunkX && location.getBlockZ() >> 4 == chunkZ) {
-                final com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem item = com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.check(location);
-                if (item instanceof io.github.sefiraat.networks.slimefun.network.NetworkObject networkObject) {
-                    if (!NetworkStorage.getAllNetworkObjects().containsKey(location)) {
-                        final NodeDefinition nodeDefinition = new NodeDefinition(networkObject.getNodeType());
-                        NetworkStorage.getAllNetworkObjects().put(location, nodeDefinition);
+        try {
+            if (storageField != null) {
+                @SuppressWarnings("unchecked")
+                final java.util.Map<Location, ?> internalStorage = (java.util.Map<Location, ?>) storageField.get(storage);
+                if (internalStorage != null) {
+                    for (Location location : internalStorage.keySet()) {
+                        if (location != null && location.getBlockX() >> 4 == chunkX && location.getBlockZ() >> 4 == chunkZ) {
+                            final com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem item = com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.check(location);
+                            if (item instanceof io.github.sefiraat.networks.slimefun.network.NetworkObject networkObject) {
+                                if (!NetworkStorage.getAllNetworkObjects().containsKey(location)) {
+                                    final NodeDefinition nodeDefinition = new NodeDefinition(networkObject.getNodeType());
+                                    NetworkStorage.getAllNetworkObjects().put(location, nodeDefinition);
+                                }
+                            }
+                        }
                     }
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
