@@ -8,6 +8,7 @@ import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenuPrese
 import io.github.sefiraat.networks.commands.NetworksMain;
 import io.github.sefiraat.networks.integrations.HudCallbacks;
 import io.github.sefiraat.networks.integrations.NetheoPlants;
+import io.github.sefiraat.networks.listeners.SyncListener;
 import io.github.sefiraat.networks.managers.ListenerManager;
 import io.github.sefiraat.networks.managers.SupportedPluginManager;
 import io.github.sefiraat.networks.network.SupportedRecipes;
@@ -62,6 +63,11 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
 
         SupportedRecipes.setup();
 
+        // Slimefun finishes restoring block storage after addon enablement. Reindex twice
+        // so controllers can rebuild networks in chunks that never fire ChunkLoadEvent.
+        scheduleLoadedChunkReindex(200L);
+        scheduleLoadedChunkReindex(600L);
+
         // Fix dupe bug which breaks the network controller data without player interaction
         Bukkit.getScheduler().runTaskTimer(
                 this,
@@ -87,6 +93,18 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
                 },
                 5, Slimefun.getTickerTask().getTickRate()
         );
+    }
+
+    private void scheduleLoadedChunkReindex(long delayTicks) {
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            try {
+                int indexed = SyncListener.indexLoadedChunks();
+                getLogger().info("Startup network reindex added " + indexed + " node(s).");
+            } catch (Exception exception) {
+                getLogger().severe("Startup network reindex failed: " + exception.getMessage());
+                exception.printStackTrace();
+            }
+        }, delayTicks);
     }
 
     @Override
