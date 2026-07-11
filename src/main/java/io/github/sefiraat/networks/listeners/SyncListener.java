@@ -79,15 +79,20 @@ public class SyncListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onChunkLoad(@Nonnull org.bukkit.event.world.ChunkLoadEvent event) {
-        final org.bukkit.Chunk chunk = event.getChunk();
+        indexChunk(event.getChunk());
+    }
+
+    /** Reindexes network nodes in a chunk that Slimefun loaded before Networks was ready. */
+    public static int indexChunk(@Nonnull org.bukkit.Chunk chunk) {
         final org.bukkit.World world = chunk.getWorld();
         final com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage storage = com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.getStorage(world);
         if (storage == null) {
-            return;
+            return 0;
         }
 
         final int chunkX = chunk.getX();
         final int chunkZ = chunk.getZ();
+        int indexed = 0;
 
         try {
             if (storageField != null) {
@@ -101,6 +106,7 @@ public class SyncListener implements Listener {
                                 if (!NetworkStorage.getAllNetworkObjects().containsKey(location)) {
                                     final NodeDefinition nodeDefinition = new NodeDefinition(networkObject.getNodeType());
                                     NetworkStorage.getAllNetworkObjects().put(location, nodeDefinition);
+                                    indexed++;
                                 }
                             }
                         }
@@ -110,5 +116,17 @@ public class SyncListener implements Listener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return indexed;
+    }
+
+    /** Reindexes chunks that were already loaded before Bukkit could emit ChunkLoadEvent. */
+    public static int indexLoadedChunks() {
+        int indexed = 0;
+        for (org.bukkit.World world : org.bukkit.Bukkit.getWorlds()) {
+            for (org.bukkit.Chunk chunk : world.getLoadedChunks()) {
+                indexed += indexChunk(chunk);
+            }
+        }
+        return indexed;
     }
 }
