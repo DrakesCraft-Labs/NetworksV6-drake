@@ -12,6 +12,7 @@ import io.github.sefiraat.networks.slimefun.tools.CraftingBlueprint;
 import io.github.sefiraat.networks.utils.ItemCreator;
 import io.github.sefiraat.networks.utils.Keys;
 import io.github.sefiraat.networks.utils.NetworkTransportUtils;
+import io.github.sefiraat.networks.utils.NetworkStackAggregator;
 import io.github.sefiraat.networks.utils.StackUtils;
 import io.github.sefiraat.networks.utils.Theme;
 import io.github.sefiraat.networks.utils.datatypes.DataTypeMethods;
@@ -38,7 +39,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -177,11 +177,11 @@ public class NetworkAutoCrafter extends NetworkObject {
          * Needs to be revisited as matching is happening stacks 2x when I should
          * only need the one
          */
-        HashMap<ItemStack, Integer> requiredItems = new HashMap<>();
+        NetworkStackAggregator requiredItems = new NetworkStackAggregator();
         for (int i = 0; i < 9; i++) {
             final ItemStack requested = instance.getRecipeItems()[i];
             if (requested != null) {
-                requiredItems.merge(requested, 1, Integer::sum);
+                requiredItems.add(requested, requested.getAmount());
             }
         }
 
@@ -189,11 +189,11 @@ public class NetworkAutoCrafter extends NetworkObject {
         // p.ej. el blueprint del RTG de SlimeChem que se registra con new ItemStack[0]) deja
         // requiredItems vacío, se salta el contains/fetch y crafteaba "de la nada" en bucle.
         // Exigir >=1 input real antes de continuar.
-        if (requiredItems.isEmpty()) {
+        if (requiredItems.asMap().isEmpty()) {
             return false;
         }
 
-        for (Map.Entry<ItemStack, Integer> entry : requiredItems.entrySet()) {
+        for (Map.Entry<ItemStack, Integer> entry : requiredItems.asMap().entrySet()) {
             if (!root.contains(new ItemRequest(entry.getKey(), entry.getValue()))) {
                 return false;
             }
@@ -203,8 +203,17 @@ public class NetworkAutoCrafter extends NetworkObject {
         for (int i = 0; i < 9; i++) {
             final ItemStack requested = instance.getRecipeItems()[i];
             if (requested != null) {
-                final ItemStack fetched = root.getItemStack0(blockMenu.getLocation(), new ItemRequest(instance.getRecipeItems()[i], 1));
-                if (fetched == null || fetched.getType() == org.bukkit.Material.AIR) {
+                final int requiredAmount = requested.getAmount();
+                final ItemStack fetched = root.getItemStack0(
+                    blockMenu.getLocation(),
+                    new ItemRequest(requested, requiredAmount)
+                );
+                if (fetched == null
+                    || fetched.getType() == org.bukkit.Material.AIR
+                    || fetched.getAmount() != requiredAmount) {
+                    if (fetched != null && !fetched.getType().isAir()) {
+                        inputs[i] = fetched;
+                    }
                     // El ingrediente desapareció entre el contains() y el fetch — devolver lo ya tomado
                     returnItems(root, inputs, blockMenu);
                     return false;
@@ -258,6 +267,12 @@ public class NetworkAutoCrafter extends NetworkObject {
         for (ItemStack input : inputs) {
             if (input != null) {
                 root.addItemStack0(menu.getLocation(), input);
+                if (input.getAmount() > 0) {
+                    menu.getLocation().getWorld().dropItemNaturally(
+                        menu.getLocation().clone().add(0.5, 1.0, 0.5),
+                        input.clone()
+                    );
+                }
             }
         }
     }
