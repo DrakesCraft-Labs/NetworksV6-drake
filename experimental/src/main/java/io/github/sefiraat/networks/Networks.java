@@ -7,7 +7,6 @@ import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenuPreset;
-import dev.drake.dough.updater.BlobBuildUpdater;
 import io.github.sefiraat.networks.commands.NetworksMain;
 import io.github.sefiraat.networks.integrations.HudCallbacks;
 import io.github.sefiraat.networks.integrations.NetheoPlants;
@@ -18,8 +17,6 @@ import io.github.sefiraat.networks.slimefun.NetworksSlimefunItemStacks;
 import io.github.sefiraat.networks.slimefun.network.NetworkController;
 import io.github.sefiraat.networks.utils.NetworkUtils;
 import lombok.Getter;
-import org.bstats.bukkit.Metrics;
-import org.bstats.charts.AdvancedPie;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -30,9 +27,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.MessageFormat;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class Networks extends JavaPlugin implements SlimefunAddon {
@@ -79,7 +74,6 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
     getLogger().info("########################################");
 
     saveDefaultConfig();
-    tryUpdate();
 
     this.supportedPluginManager = new SupportedPluginManager();
 
@@ -187,12 +181,6 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
         }
     }
 
-    public void tryUpdate() {
-        if (getConfig().getBoolean("auto-update") && getPluginMeta().getVersion().startsWith("Dev")) {
-            new BlobBuildUpdater(this, getFile(), "Networks", "Dev").start();
-        }
-    }
-
     public void setupSlimefun() {
         NetworkSlimefunItems.setup();
         // TODO: Re-enable NetheoPlants integration once ported
@@ -210,18 +198,6 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
                 getLogger().severe("SlimeHUD must be updated to meet Networks' requirements.");
             }
         }
-    }
-
-    public void setupMetrics() {
-        final Metrics metrics = new Metrics(this, 13644);
-
-        AdvancedPie networksChart = new AdvancedPie("networks", () -> {
-            Map<String, Integer> networksMap = new HashMap<>();
-            networksMap.put("Number of networks", NetworkController.getNetworks().size());
-            return networksMap;
-        });
-
-        metrics.addCustomChart(networksChart);
     }
 
     @Nonnull

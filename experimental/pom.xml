@@ -84,11 +84,6 @@
           <shadedPattern>io.github.sefiraat.networks.xseries</shadedPattern>
         </relocation>
       </relocations>
-      <artifactSet>
-        <excludes>
-          <exclude>org.bstats:bstats-bukkit</exclude>
-        </excludes>
-      </artifactSet>
       <filters>
         <filter>
           <artifact>*:*</artifact>
@@ -201,13 +196,6 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- Tools etc. -->
-  <dependency>
-    <groupId>org.bstats</groupId>
-    <artifactId>bstats-bukkit</artifactId>
-    <version>3.1.0</version>
-    <scope>provided</scope>
-  </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
