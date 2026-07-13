@@ -18,9 +18,17 @@
   <img src="https://img.shields.io/badge/Slimefun-Drake%2011-581c87?style=flat-square" alt="Slimefun Drake 11"/>
 </p>
 
-**Networks** es un addon de Slimefun que aporta una red de almacenamiento y movimiento de ítems potente y sencilla, pensada para convivir con **Cargo** y el resto de tu automatización.
+**Networks** es un addon de Slimefun que aporta almacenamiento, movimiento de
+ítems, energía y autocrafting en una sola red, pensado para convivir con
+**Cargo** y el resto de la automatización.
 
-Este repositorio es el **port estable de DrakesCraft-Labs**: parte del árbol **Networks-Experimental (Netex)** y de los parches de producción del monorepo Drake, adaptado a **Paper / Purpur 1.21.11**, **Java 21** y el stack **Slimefun 4 Drake**.
+Este repositorio es el **port estable de DrakesCraft-Labs**: integra el árbol
+**Networks-Experimental (Netex)** con parches de producción y se ejecuta sobre
+**Paper / Purpur 1.21.11**, **Java 21** y **Slimefun Drake 11**.
+
+> `paper-api 1.21.1-R0.1-SNAPSHOT` es la API Maven de compilación. El objetivo
+> de ejecución del addon es el runtime Paper/Purpur **1.21.11** junto al core
+> Slimefun Drake 11; no es una segunda línea de compatibilidad.
 
 ### 📡 Topología y Conectividad de la Red
 
@@ -65,29 +73,22 @@ graph TD
 |--------|--------|
 | **Releases (recomendado)** | [Releases de NetworksV6-drake](https://github.com/DrakesCraft-Labs/NetworksV6-drake/releases) — JAR `NetworksV6-Drake-v*.jar` |
 | **CI (último build main)** | Artefacto `NetworksV6-Drake-SNAPSHOT` en [Actions → Drake CI](https://github.com/DrakesCraft-Labs/NetworksV6-drake/actions/workflows/drake-ci.yml) |
-| **Build local** | `target/NetworksV6-Drake-v11-SNAPSHOT.jar` tras instalar las dependencias Drake locales y ejecutar `mvn test package` |
+| **Build local** | `target/NetworksV6-Drake-v11-SNAPSHOT.jar` tras `mvn -B -ntp clean verify` |
 
 ### Build local para colaboradores Drake
 
-Este repo usa artefactos internos del stack Drake que aun no estan publicados en un repositorio Maven publico:
+El POM consulta el repositorio Maven público de DrakesCraft Labs para el core,
+Dough y SefiLib Drake:
 
-- `com.github.drakescraft_labs:slimefun-core`
-- `com.github.drakescraft_labs:dough-core`
-- `com.github.drakescraft_labs:sefilib-drake`
-- `com.github.drakescraft_labs:InfinityExpansion-drake`
-
-Antes de empaquetar Networks en una maquina limpia, instala esos modulos desde `DrakesCraft-Labs/drakes-slimefun-labs`:
-
-```powershell
-git clone https://github.com/DrakesCraft-Labs/drakes-slimefun-labs.git
-Set-Location -LiteralPath ".\drakes-slimefun-labs"
-mvn -pl :slimefun-core,:dough-core,:sefilib-drake,:InfinityExpansion-drake -am -DskipTests install
-
-Set-Location -LiteralPath "..\NetworksV6-drake"
-mvn -DskipTests package
+```bash
+git clone https://github.com/DrakesCraft-Labs/NetworksV6-drake.git
+cd NetworksV6-drake
+mvn -B -ntp clean verify
 ```
 
-Si Maven falla resolviendo `com.github.drakescraft_labs:*`, no es un error de codigo de Networks: falta instalar primero el stack Drake local.
+Para trabajar con snapshots aún no publicados, instala los módulos equivalentes
+desde `drakes-slimefun-labs`. No los sustituyas por Slimefun upstream: Networks
+usa namespaces y contratos propios del stack Drake.
 
 ### Publicar una release
 
@@ -169,9 +170,16 @@ Exponen inventarios de bloques conectados (p. ej. tarjetas de Network Shell o ba
 
 ---
 
-## Qué cambia NetworksV6-Drake (modificaciones Drake)
+## Aportes de DrakesCraft a Networks y Slimefun Drake
 
-Resumen de lo que **este fork añade o altera** respecto al upstream y a builds intermedias. Detalle técnico de dupes: [`docs/INVENTORY_AND_DUPES.md`](docs/INVENTORY_AND_DUPES.md). Auditoría web/upstream (issues #229–#240, Fluffy #163): [`docs/UPSTREAM_INCIDENTS_AUDIT.md`](docs/UPSTREAM_INCIDENTS_AUDIT.md).
+Este fork no se limita a cambiar versiones. Es la capa que permite que Networks
+consuma el core Slimefun Drake y sus dependencias relocalizadas en Java 21. Los
+aportes de DrakesCraft al ecosistema incluyen build reproducible, Maven público,
+CI, retiro de autoactualizadores y parches de compatibilidad/persistencia
+validados en operación.
+
+Detalle técnico de dupes: [`docs/INVENTORY_AND_DUPES.md`](docs/INVENTORY_AND_DUPES.md).
+Auditoría de upstream: [`docs/UPSTREAM_INCIDENTS_AUDIT.md`](docs/UPSTREAM_INCIDENTS_AUDIT.md).
 
 ### Stack y empaquetado
 
@@ -179,20 +187,22 @@ Resumen de lo que **este fork añade o altera** respecto al upstream y a builds 
 |------|--------|
 | Repositorio | Standalone; ya no vive en `drakes-slimefun-labs` |
 | Rama activa | **`main`** (`1.21-latin` obsoleta) |
-| Minecraft objetivo | **1.21.11** (smoke en Paper/Purpur 1.21.x) |
-| API / build | Paper **1.21.1** API, **Java 21** |
+| Runtime objetivo | Paper / Purpur **1.21.11** |
+| API / build | Paper API **1.21.1**, **Java 21** |
 | Slimefun | `com.github.drakescraft_labs` **11.0-Drake** |
 | Dough | `dev.drake.dough` (no el paquete shaded legacy en addons) |
 | Persistencia NBT | `dev.drake.sefilib.persistence` |
 | Artefacto | `NetworksV6-Drake-v11-SNAPSHOT.jar` |
 | Autoupdate | **Desactivado** (sin `DrakesLabsReleaseUpdate` / BlobBuild) |
 
-### Base de código fusionada
+### Base de código y plataforma Drake
 
 - Núcleo **Sefiraat/Networks** (GPL-3.0).
 - Mejoras **Networks-Experimental (Netex)** — utilidades `com.balugaq.netex`, cachés de acceso, greedy blocks, etc.
 - Parches de producción **Chagui68** / monorepo Drake (shutdown, recetas, compatibilidad foundry).
-- Ajustes de imports y API al fork **Slimefun 4 Drake** y **dough-core** Drake.
+- Ajustes de imports y API al fork **Slimefun 4 Drake**, `dough-core` y SefiLib Drake.
+- Consumo del core Drake desde el repositorio Maven de DrakesCraft Labs.
+- Builds identificables, CI, staging y rollback en lugar de autoactualizaciones opacas.
 
 ### Estabilidad, inventarios y anti-dupe
 
@@ -258,25 +268,15 @@ Dependencias opcionales del upstream pueden seguir funcionando si están en tu s
 
 ---
 
-## Build local
-
-Las dependencias Drake deben estar en Maven local (desde el monorepo foundry):
+## Resultado de build
 
 ```bash
-cd ../drakes-slimefun-labs
-mvn -B -ntp -DskipTests install -pl sources/dough-core,sources/slimefun-core/Slimefun4-src,sources/batch-2-expansion/SefiLib,sources/repos-to-port/InfinityExpansion -am
+mvn -B -ntp clean verify
 ```
 
-En este repositorio:
-
-```bash
-git clone https://github.com/DrakesCraft-Labs/NetworksV6-drake.git
-cd NetworksV6-drake
-git checkout main
-mvn -B -ntp -DskipTests clean package
-```
-
-Salida: `target/NetworksV6-Drake-v11-SNAPSHOT.jar`
+Salida: `target/NetworksV6-Drake-v11-SNAPSHOT.jar`. La suite cubre
+almacenamiento cuántico, agregación, transporte y creación de ítems. Los smoke
+tests de inventario/dupe deben seguir ejecutándose antes de una release pública.
 
 ---
 
