@@ -97,4 +97,9 @@ public class NetworkStorage {
 
     public record RepairSummary(int discoveredNodes, int recoveredNodes, int rebuiltControllers, int invalidEntries) {
     }
+
+    /** Clears runtime node references after the final persistence pass. */
+    public static void clearRuntimeState() {
+        ALL_NETWORK_OBJECTS.clear();
+    }
 }

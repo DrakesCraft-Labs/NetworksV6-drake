@@ -215,4 +215,11 @@ public class NetworkController extends NetworkObject {
         DIRTY_NETWORKS.remove(location);
         CRAYONS.remove(location);
     }
+
+    /** Drops runtime-only controller state so reloads cannot reuse stale graphs. */
+    public static void clearRuntimeState() {
+        NETWORKS.clear();
+        CRAYONS.clear();
+        firstTickMap.clear();
+    }
 }
