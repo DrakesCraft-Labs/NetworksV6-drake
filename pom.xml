@@ -32,7 +32,6 @@
         <foundry.version>11-SNAPSHOT</foundry.version>
         <lombok.version>1.18.46</lombok.version>
         <jsr305.version>3.0.2</jsr305.version>
-        <bstats.version>3.2.1</bstats.version>
         <xseries.version>13.8.0</xseries.version>
         <junit.version>5.11.4</junit.version>
         <mockbukkit.version>3.133.2</mockbukkit.version>
@@ -73,18 +72,12 @@
                         <includes>
                             <include>com.github.drakescraft_labs:sefilib-drake</include>
                             <include>com.github.cryptomorin:XSeries</include>
-                            <include>org.bstats:bstats-bukkit</include>
-                            <include>org.bstats:bstats-base</include>
                         </includes>
                     </artifactSet>
                     <relocations>
                         <relocation>
                             <pattern>com.cryptomorin.xseries</pattern>
                             <shadedPattern>io.github.sefiraat.networks.libs.xseries</shadedPattern>
-                        </relocation>
-                        <relocation>
-                            <pattern>org.bstats</pattern>
-                            <shadedPattern>io.github.sefiraat.networks.libs.bstats</shadedPattern>
                         </relocation>
                     </relocations>
                     <filters>
@@ -189,12 +182,6 @@
             <groupId>com.github.cryptomorin</groupId>
             <artifactId>XSeries</artifactId>
             <version>${xseries.version}</version>
-        </dependency>
-        <!-- Force 3.0.2 which uses Metrics(JavaPlugin, int) to match compiled bytecode -->
-        <dependency>
-            <groupId>org.bstats</groupId>
-            <artifactId>bstats-bukkit</artifactId>
-            <version>3.2.1</version>
         </dependency>
         <dependency>
             <groupId>com.bgsoftware</groupId>

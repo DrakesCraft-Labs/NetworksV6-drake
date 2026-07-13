@@ -15,8 +15,6 @@ import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import io.github.sefiraat.networks.slimefun.network.NetworkController;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
 import io.github.sefiraat.networks.utils.NetworkUtils;
-import org.bstats.bukkit.Metrics;
-import org.bstats.charts.AdvancedPie;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.plugin.PluginManager;
@@ -26,9 +24,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.MessageFormat;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 
 public class Networks extends JavaPlugin implements SlimefunAddon {
 
@@ -65,7 +61,6 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
         this.getCommand("networks").setExecutor(new NetworksMain());
 
         SupportedRecipes.setup();
-        setupMetrics();
 
         // Fix dupe bug which breaks the network controller data without player interaction
         Bukkit.getScheduler().runTaskTimer(
@@ -204,18 +199,6 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
                 getLogger().severe("SlimeHUD must be updated to meet Networks' requirements.");
             }
         }
-    }
-
-    public void setupMetrics() {
-        final Metrics metrics = new Metrics(this, 13644);
-
-        AdvancedPie networksChart = new AdvancedPie("networks", () -> {
-            Map<String, Integer> networksMap = new HashMap<>();
-            networksMap.put("Number of networks", NetworkController.getNetworks().size());
-            return networksMap;
-        });
-
-        metrics.addCustomChart(networksChart);
     }
 
     @Nonnull
