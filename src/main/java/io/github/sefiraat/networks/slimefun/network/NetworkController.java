@@ -156,4 +156,11 @@ public class NetworkController extends NetworkObject {
         // Limpiar firstTickMap para evitar leak de memoria con controladores destruidos (#leak-firstTick).
         firstTickMap.remove(location);
     }
+
+    /** Drops runtime-only controller state so reloads cannot reuse stale graphs. */
+    public static void clearRuntimeState() {
+        NETWORKS.clear();
+        CRAYONS.clear();
+        firstTickMap.clear();
+    }
 }

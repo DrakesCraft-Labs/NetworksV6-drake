@@ -511,6 +511,11 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
         return CACHES;
     }
 
+    /** Clears cached storage state after BlockStorage has been persisted. */
+    public static void clearRuntimeCache() {
+        CACHES.clear();
+    }
+
     public static int[] getSizes() {
         return SIZES;
     }

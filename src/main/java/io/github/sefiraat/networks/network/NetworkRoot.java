@@ -56,6 +56,16 @@ public class NetworkRoot extends NetworkNode {
             new ConcurrentHashMap<>();
     public static final Map<Location, Long> controlledAccessInputHistory = new ConcurrentHashMap<>();
     public static final Map<Location, Long> controlledAccessOutputHistory = new ConcurrentHashMap<>();
+
+    /** Clears adaptive runtime history before a plugin reload or server restart. */
+    public static void clearRuntimeHistory() {
+        observingAccessHistory.clear();
+        persistentAccessHistory.clear();
+        transportMissInputHistory.clear();
+        transportMissOutputHistory.clear();
+        controlledAccessInputHistory.clear();
+        controlledAccessOutputHistory.clear();
+    }
     @Getter
     private final long CREATED_TIME = System.currentTimeMillis();
     @Getter

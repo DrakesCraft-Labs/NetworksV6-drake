@@ -14,6 +14,8 @@ import io.github.sefiraat.networks.managers.SupportedPluginManager;
 import io.github.sefiraat.networks.network.SupportedRecipes;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import io.github.sefiraat.networks.slimefun.network.NetworkController;
+import io.github.sefiraat.networks.slimefun.network.NetworkQuantumStorage;
+import io.github.sefiraat.networks.network.NetworkRoot;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
 import io.github.sefiraat.networks.utils.NetworkUtils;
 import org.bstats.bukkit.Metrics;
@@ -125,6 +127,10 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
         }
         
         saveData();
+        NetworkQuantumStorage.clearRuntimeCache();
+        NetworkController.clearRuntimeState();
+        NetworkRoot.clearRuntimeHistory();
+        NetworkStorage.clearRuntimeState();
         instance = null;
     }
 

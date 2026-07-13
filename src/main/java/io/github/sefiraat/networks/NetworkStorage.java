@@ -47,4 +47,9 @@ public class NetworkStorage {
     public static Map<Location, NodeDefinition> getAllNetworkObjects() {
         return ALL_NETWORK_OBJECTS;
     }
+
+    /** Clears runtime node references after the final persistence pass. */
+    public static void clearRuntimeState() {
+        ALL_NETWORK_OBJECTS.clear();
+    }
 }
