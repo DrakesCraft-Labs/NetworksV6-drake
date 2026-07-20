@@ -58,21 +58,7 @@ public class NetworkController extends NetworkObject {
                         firstTickMap.put(block.getLocation(), true);
                     }
 
-                    addToRegistry(block);
-                    NetworkRoot networkRoot = new NetworkRoot(block.getLocation(), NodeType.CONTROLLER, maxNodes.getValue());
-                    networkRoot.addAllChildren();
-
-                    NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(block.getLocation());
-                    if (definition != null) {
-                        definition.setNode(networkRoot);
-                    }
-
-                    boolean crayon = CRAYONS.contains(block.getLocation());
-                    if (crayon) {
-                        networkRoot.setDisplayParticles(true);
-                    }
-
-                    NETWORKS.put(block.getLocation(), networkRoot);
+                    rebuildNetwork(block);
                 }
             }
         );
@@ -122,6 +108,29 @@ public class NetworkController extends NetworkObject {
         if (Boolean.parseBoolean(crayon)) {
             CRAYONS.add(block.getLocation());
         }
+    }
+
+    /**
+     * Rebuilds the transient topology from persistent Slimefun block data.
+     * This intentionally never writes or recreates blocks, inventories or items.
+     */
+    public @Nonnull NetworkRoot rebuildNetwork(@Nonnull Block block) {
+        addToRegistry(block);
+
+        NetworkRoot networkRoot = new NetworkRoot(block.getLocation(), NodeType.CONTROLLER, maxNodes.getValue());
+        networkRoot.addAllChildren();
+
+        NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(block.getLocation());
+        if (definition != null) {
+            definition.setNode(networkRoot);
+        }
+
+        if (CRAYONS.contains(block.getLocation())) {
+            networkRoot.setDisplayParticles(true);
+        }
+
+        NETWORKS.put(block.getLocation(), networkRoot);
+        return networkRoot;
     }
 
     public static Map<Location, NetworkRoot> getNetworks() {

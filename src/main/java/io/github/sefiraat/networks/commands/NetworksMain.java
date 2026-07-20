@@ -2,6 +2,8 @@ package io.github.sefiraat.networks.commands;
 
 import io.github.sefiraat.networks.network.stackcaches.QuantumCache;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
+import io.github.sefiraat.networks.slimefun.network.NetworkController;
+import io.github.sefiraat.networks.slimefun.network.NetworkObject;
 import io.github.sefiraat.networks.slimefun.network.NetworkQuantumStorage;
 import io.github.sefiraat.networks.utils.Keys;
 import io.github.sefiraat.networks.utils.Theme;
@@ -13,6 +15,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -54,8 +57,40 @@ public class NetworksMain implements CommandExecutor {
                     }
                 }
             }
+
+            if (args[0].equalsIgnoreCase("repair")) {
+                repairNetwork(player);
+                return true;
+            }
         }
         return true;
+    }
+
+    /**
+     * Restores only the in-memory topology of the controller a staff member is targeting.
+     * A non-controller or a vanilla block is reported and left untouched.
+     */
+    private void repairNetwork(@Nonnull Player player) {
+        if (!player.isOp() && !player.hasPermission("networks.admin")) {
+            player.sendMessage(Theme.ERROR + "You do not have permission to repair a network.");
+            return;
+        }
+
+        Block block = player.getTargetBlockExact(8);
+        if (block == null) {
+            player.sendMessage(Theme.ERROR + "Look directly at a Network Controller within 8 blocks.");
+            return;
+        }
+
+        SlimefunItem item = com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.check(block);
+        if (item instanceof NetworkController controller) {
+            int nodes = controller.rebuildNetwork(block).getNodeCount();
+            player.sendMessage(Theme.SUCCESS + "Network topology rebuilt: " + nodes + " node(s).");
+        } else if (item instanceof NetworkObject) {
+            player.sendMessage(Theme.WARNING + "Look directly at this network's controller, not a child node.");
+        } else {
+            player.sendMessage(Theme.ERROR + "This block has no valid Networks identity. Nothing was changed.");
+        }
     }
 
     public void fillQuantum(Player player, int amount) {
