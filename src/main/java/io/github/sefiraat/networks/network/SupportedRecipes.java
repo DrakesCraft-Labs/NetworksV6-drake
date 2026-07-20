@@ -9,13 +9,15 @@ import lombok.experimental.UtilityClass;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @UtilityClass
 public final class SupportedRecipes {
 
-    private static final Map<ItemStack[], ItemStack> RECIPES = new HashMap<>();
+    // Preserve registry order so overlapping recipes always resolve consistently.
+    private static final Map<ItemStack[], ItemStack> RECIPES = new LinkedHashMap<>();
 
     public static void setup() {
         RECIPES.clear();
@@ -47,11 +49,29 @@ public final class SupportedRecipes {
         return RECIPES;
     }
 
+    /**
+     * Resolves an enhanced-crafting recipe using the same matching rules for encoders and crafters.
+     */
+    @Nonnull
+    public static Optional<ItemStack> findRecipe(@Nonnull ItemStack[] input) {
+        for (Map.Entry<ItemStack[], ItemStack> entry : RECIPES.entrySet()) {
+            if (testRecipe(input, entry.getKey())) {
+                return Optional.of(new ItemStack(entry.getValue()));
+            }
+        }
+
+        return Optional.empty();
+    }
+
     public static void addRecipe(@Nonnull ItemStack[] input, @Nonnull ItemStack output) {
         RECIPES.put(input, output);
     }
 
     public static boolean testRecipe(@Nonnull ItemStack[] input, @Nonnull ItemStack[] recipe) {
+        if (input.length != 9 || recipe.length != 9) {
+            return false;
+        }
+
         for (int test = 0; test < recipe.length; test++) {
             if (!StackUtils.itemsMatch(input[test], recipe[test])) {
                 return false;

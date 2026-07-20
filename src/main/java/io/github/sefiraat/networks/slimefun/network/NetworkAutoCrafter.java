@@ -39,7 +39,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -207,15 +206,7 @@ public class NetworkAutoCrafter extends NetworkObject {
             }
         }
 
-        ItemStack crafted = null;
-
-        // Go through each slimefun recipe, test and set the ItemStack if found
-        for (Map.Entry<ItemStack[], ItemStack> entry : SupportedRecipes.getRecipes().entrySet()) {
-            if (SupportedRecipes.testRecipe(inputs, entry.getKey())) {
-                crafted = entry.getValue().clone();
-                break;
-            }
-        }
+        ItemStack crafted = SupportedRecipes.findRecipe(inputs).orElse(null);
 
         // If no slimefun recipe found, try a vanilla one
         if (crafted == null) {

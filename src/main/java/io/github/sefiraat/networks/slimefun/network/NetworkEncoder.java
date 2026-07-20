@@ -28,7 +28,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
-import java.util.Map;
 
 public class NetworkEncoder extends NetworkObject {
 
@@ -143,15 +142,7 @@ public class NetworkEncoder extends NetworkObject {
             i++;
         }
 
-        ItemStack crafted = null;
-
-        // Go through each slimefun recipe, test and set the ItemStack if found
-        for (Map.Entry<ItemStack[], ItemStack> entry : SupportedRecipes.getRecipes().entrySet()) {
-            if (SupportedRecipes.testRecipe(inputs, entry.getKey())) {
-                crafted = new ItemStack(entry.getValue().clone());
-                break;
-            }
-        }
+        ItemStack crafted = SupportedRecipes.findRecipe(inputs).orElse(null);
 
         // If no slimefun recipe found, try a vanilla one
         if (crafted == null) {
