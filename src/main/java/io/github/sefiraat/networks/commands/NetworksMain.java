@@ -1,6 +1,7 @@
 package io.github.sefiraat.networks.commands;
 
 import io.github.sefiraat.networks.network.stackcaches.QuantumCache;
+import io.github.sefiraat.networks.NetworkStorage;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import io.github.sefiraat.networks.slimefun.network.NetworkController;
 import io.github.sefiraat.networks.slimefun.network.NetworkObject;
@@ -59,6 +60,10 @@ public class NetworksMain implements CommandExecutor {
             }
 
             if (args[0].equalsIgnoreCase("repair")) {
+                if (args.length > 1 && args[1].equalsIgnoreCase("chunk")) {
+                    repairChunk(player);
+                    return true;
+                }
                 repairNetwork(player);
                 return true;
             }
@@ -90,6 +95,23 @@ public class NetworksMain implements CommandExecutor {
             player.sendMessage(Theme.WARNING + "Look directly at this network's controller, not a child node.");
         } else {
             player.sendMessage(Theme.ERROR + "This block has no valid Networks identity. Nothing was changed.");
+        }
+    }
+
+    /** Repairs the current chunk's already persisted Networks blocks without rewriting Slimefun data. */
+    private void repairChunk(@Nonnull Player player) {
+        if (!player.isOp() && !player.hasPermission("networks.admin")) {
+            player.sendMessage(Theme.ERROR + "You do not have permission to repair a network.");
+            return;
+        }
+
+        NetworkStorage.RepairSummary summary = NetworkStorage.repairChunk(player.getLocation().getChunk());
+        player.sendMessage(Theme.SUCCESS + "Chunk repair completed: " + summary.discoveredNodes()
+                + " node(s), " + summary.recoveredNodes() + " restored, "
+                + summary.rebuiltControllers() + " controller(s) rebuilt.");
+        if (summary.invalidEntries() > 0) {
+            player.sendMessage(Theme.WARNING + "Detected " + summary.invalidEntries()
+                    + " invalid Slimefun record(s); they were not modified.");
         }
     }
 

@@ -3,7 +3,12 @@ package io.github.sefiraat.networks;
 import io.github.sefiraat.networks.network.NetworkNode;
 import io.github.sefiraat.networks.network.NetworkRoot;
 import io.github.sefiraat.networks.network.NodeDefinition;
+import io.github.sefiraat.networks.slimefun.network.NetworkController;
+import io.github.sefiraat.networks.slimefun.network.NetworkObject;
+import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
+import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import lombok.experimental.UtilityClass;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 
 import java.util.Map;
@@ -46,5 +51,50 @@ public class NetworkStorage {
 
     public static Map<Location, NodeDefinition> getAllNetworkObjects() {
         return ALL_NETWORK_OBJECTS;
+    }
+
+    /**
+     * Rehydrates Networks nodes already persisted by Slimefun in one loaded chunk.
+     * Persistent block data is never altered; this only restores transient graph state.
+     */
+    public static RepairSummary repairChunk(Chunk chunk) {
+        Map<Location, me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config> storage = BlockStorage.getRawStorage(chunk.getWorld());
+        if (storage == null) {
+            return new RepairSummary(0, 0, 0, 0);
+        }
+
+        int discovered = 0;
+        int recovered = 0;
+        int controllers = 0;
+        int invalid = 0;
+
+        for (Location location : storage.keySet()) {
+            if ((location.getBlockX() >> 4) != chunk.getX() || (location.getBlockZ() >> 4) != chunk.getZ()) {
+                continue;
+            }
+
+            SlimefunItem item = BlockStorage.check(location);
+            if (item == null) {
+                invalid++;
+                continue;
+            }
+            if (!(item instanceof NetworkObject networkObject)) {
+                continue;
+            }
+
+            discovered++;
+            if (ALL_NETWORK_OBJECTS.putIfAbsent(location, new NodeDefinition(networkObject.getNodeType())) == null) {
+                recovered++;
+            }
+            if (item instanceof NetworkController controller) {
+                controller.rebuildNetwork(location.getBlock());
+                controllers++;
+            }
+        }
+
+        return new RepairSummary(discovered, recovered, controllers, invalid);
+    }
+
+    public record RepairSummary(int discoveredNodes, int recoveredNodes, int rebuiltControllers, int invalidEntries) {
     }
 }
