@@ -1,6 +1,7 @@
 package io.github.sefiraat.networks.utils;
 
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 
@@ -14,7 +15,15 @@ public final class ItemStackNormalizer {
 
     @Nonnull
     public static ItemStack normalize(@Nonnull ItemStack itemStack) {
-        return new ItemStack(itemStack);
+        final ItemStack normalized = new ItemStack(itemStack.getType(), itemStack.getAmount());
+        final ItemMeta itemMeta = itemStack.getItemMeta();
+
+        // Reapply the full component-backed metadata to a guaranteed base Bukkit stack.
+        if (itemMeta != null) {
+            normalized.setItemMeta(itemMeta.clone());
+        }
+
+        return normalized;
     }
 
     @Nonnull
