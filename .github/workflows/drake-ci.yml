@@ -64,6 +64,7 @@ jobs:
       - name: Instalar dependencias Drake en .m2
         working-directory: drakes-slimefun-labs
         run: |
+          mvn -B -ntp -DskipTests -f sources/internal-metadata/patches/commons-lang-drake-patched/pom.xml install
           mvn -B -ntp -DskipTests -f sources/dough-core/pom.xml install
           mvn -B -ntp -DskipTests -f sources/slimefun-core/Slimefun4-src/pom.xml install
           mvn -B -ntp -DskipTests -f sources/batch-2-expansion/SefiLib/pom.xml install
