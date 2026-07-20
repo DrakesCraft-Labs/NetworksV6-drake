@@ -73,7 +73,6 @@ jobs:
         run: |
           mvn -B -ntp -DskipTests -f sources/internal-metadata/patches/commons-lang-drake-patched/pom.xml install
           mvn -B -ntp -DskipTests -f sources/dough-core/pom.xml install
-          mvn -B -ntp -DskipTests -f ../slimefun-core/build-parent/pom.xml install
           mvn -B -ntp -DskipTests -f ../slimefun-core/pom.xml install
           mvn -B -ntp -DskipTests -f sources/batch-2-expansion/SefiLib/pom.xml install
           mvn -B -ntp -DskipTests -f sources/repos-to-port/InfinityExpansion/pom.xml install
