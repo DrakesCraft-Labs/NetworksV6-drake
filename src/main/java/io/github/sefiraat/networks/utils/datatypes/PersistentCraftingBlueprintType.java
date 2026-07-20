@@ -47,9 +47,29 @@ public class PersistentCraftingBlueprintType implements PersistentDataType<Persi
             @Nonnull PersistentDataAdapterContext context) {
         final PersistentDataContainer container = context.newPersistentDataContainer();
 
-        container.set(RECIPE, PersistenceTypes.ITEM_STACK_ARRAY, complex.getRecipeItems());
-        container.set(OUTPUT, PersistenceTypes.ITEM_STACK, complex.getItemStack());
+        container.set(RECIPE, PersistenceTypes.ITEM_STACK_ARRAY, normalizeRecipe(complex.getRecipeItems()));
+        container.set(OUTPUT, PersistenceTypes.ITEM_STACK, normalizeItem(complex.getItemStack()));
         return container;
+    }
+
+    /**
+     * Converts Slimefun's ItemStack subclasses to regular Bukkit stacks before persistence.
+     * Purpur serializes through CraftItemStack and rejects subclass instances such as
+     * SlimefunItemStack.
+     */
+    static ItemStack normalizeItem(@Nonnull ItemStack itemStack) {
+        return new ItemStack(itemStack);
+    }
+
+    private static ItemStack[] normalizeRecipe(@Nonnull ItemStack[] recipeItems) {
+        final ItemStack[] normalized = new ItemStack[recipeItems.length];
+
+        for (int index = 0; index < recipeItems.length; index++) {
+            final ItemStack itemStack = recipeItems[index];
+            normalized[index] = itemStack == null ? null : normalizeItem(itemStack);
+        }
+
+        return normalized;
     }
 
     @Override
