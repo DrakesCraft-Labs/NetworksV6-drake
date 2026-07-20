@@ -92,11 +92,11 @@ jobs:
       - name: Verificar JAR de producción
         run: |
           test -f target/NetworksV6-Drake-v11-SNAPSHOT.jar
-          jar tf target/NetworksV6-Drake-v11-SNAPSHOT.jar | grep -q '^dev/drake/dough/collections/Pair.class$'
-          ! jar tf target/NetworksV6-Drake-v11-SNAPSHOT.jar | grep -q '^dev/drake/dough/protection/Interaction.class$'
+          ! jar tf target/NetworksV6-Drake-v11-SNAPSHOT.jar | grep -q '^dev/drake/dough/'
           jar tf target/NetworksV6-Drake-v11-SNAPSHOT.jar | grep -q '^dev/drake/sefilib/persistence/PersistenceTypes.class$'
           jar tf target/NetworksV6-Drake-v11-SNAPSHOT.jar | grep -q '^io/github/sefiraat/networks/libs/xseries/'
-          jar tf target/NetworksV6-Drake-v11-SNAPSHOT.jar | grep -q '^io/github/sefiraat/networks/libs/bstats/bukkit/Metrics.class$'
+          jar tf target/NetworksV6-Drake-v11-SNAPSHOT.jar | grep -q '^io/github/sefiraat/networks/utils/ItemStackNormalizer.class$'
+          jar tf target/NetworksV6-Drake-v11-SNAPSHOT.jar | grep -q '^io/github/sefiraat/networks/network/SupportedRecipes.class$'
           ls -lh target/NetworksV6-Drake-v11-SNAPSHOT.jar
 
       - name: Subir artefacto CI
