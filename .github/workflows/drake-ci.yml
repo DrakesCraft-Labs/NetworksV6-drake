@@ -71,6 +71,8 @@ jobs:
       - name: Instalar dependencias Drake en .m2
         working-directory: drakes-slimefun-labs
         run: |
+          # Slimefun y Dough heredan de este POM aunque ahora vivan en repos separados.
+          mvn -B -ntp -N -DskipTests install
           mvn -B -ntp -DskipTests -f sources/internal-metadata/patches/commons-lang-drake-patched/pom.xml install
           mvn -B -ntp -DskipTests -f sources/dough-core/pom.xml install
           mvn -B -ntp -DskipTests -f ../slimefun-core/pom.xml install
