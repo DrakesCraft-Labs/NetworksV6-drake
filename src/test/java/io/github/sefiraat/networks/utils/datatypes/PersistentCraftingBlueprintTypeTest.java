@@ -1,6 +1,7 @@
 package io.github.sefiraat.networks.utils.datatypes;
 
 import io.github.sefiraat.networks.BukkitTestSupport;
+import io.github.sefiraat.networks.utils.ItemStackNormalizer;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -21,7 +22,7 @@ class PersistentCraftingBlueprintTypeTest extends BukkitTestSupport {
         meta.setDisplayName("Test Ingot");
         slimefunStack.setItemMeta(meta);
 
-        final ItemStack normalized = PersistentCraftingBlueprintType.normalizeItem(slimefunStack);
+        final ItemStack normalized = ItemStackNormalizer.normalize(slimefunStack);
 
         assertEquals(ItemStack.class, normalized.getClass());
         assertNotSame(slimefunStack, normalized);
@@ -34,7 +35,7 @@ class PersistentCraftingBlueprintTypeTest extends BukkitTestSupport {
     void keepsRegularStacksIndependentBeforePersistence() {
         final ItemStack original = new ItemStack(Material.REDSTONE, 4);
 
-        final ItemStack normalized = PersistentCraftingBlueprintType.normalizeItem(original);
+        final ItemStack normalized = ItemStackNormalizer.normalize(original);
 
         assertNotSame(original, normalized);
         assertEquals(ItemStack.class, normalized.getClass());

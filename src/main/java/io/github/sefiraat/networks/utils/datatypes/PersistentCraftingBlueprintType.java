@@ -4,12 +4,11 @@ import dev.drake.sefilib.persistence.PersistenceTypes;
 import org.bukkit.persistence.PersistentDataType;
 import io.github.sefiraat.networks.network.stackcaches.BlueprintInstance;
 import io.github.sefiraat.networks.network.stackcaches.CardInstance;
+import io.github.sefiraat.networks.utils.ItemStackNormalizer;
 import io.github.sefiraat.networks.utils.Keys;
 import org.bukkit.NamespacedKey;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataAdapterContext;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nonnull;
 
@@ -47,29 +46,11 @@ public class PersistentCraftingBlueprintType implements PersistentDataType<Persi
             @Nonnull PersistentDataAdapterContext context) {
         final PersistentDataContainer container = context.newPersistentDataContainer();
 
-        container.set(RECIPE, PersistenceTypes.ITEM_STACK_ARRAY, normalizeRecipe(complex.getRecipeItems()));
-        container.set(OUTPUT, PersistenceTypes.ITEM_STACK, normalizeItem(complex.getItemStack()));
+        container.set(RECIPE, PersistenceTypes.ITEM_STACK_ARRAY,
+            ItemStackNormalizer.normalizeRecipe(complex.getRecipeItems()));
+        container.set(OUTPUT, PersistenceTypes.ITEM_STACK,
+            ItemStackNormalizer.normalize(complex.getItemStack()));
         return container;
-    }
-
-    /**
-     * Converts Slimefun's ItemStack subclasses to regular Bukkit stacks before persistence.
-     * Purpur serializes through CraftItemStack and rejects subclass instances such as
-     * SlimefunItemStack.
-     */
-    static ItemStack normalizeItem(@Nonnull ItemStack itemStack) {
-        return new ItemStack(itemStack);
-    }
-
-    private static ItemStack[] normalizeRecipe(@Nonnull ItemStack[] recipeItems) {
-        final ItemStack[] normalized = new ItemStack[recipeItems.length];
-
-        for (int index = 0; index < recipeItems.length; index++) {
-            final ItemStack itemStack = recipeItems[index];
-            normalized[index] = itemStack == null ? null : normalizeItem(itemStack);
-        }
-
-        return normalized;
     }
 
     @Override
