@@ -66,17 +66,6 @@ public class SyncListener implements Listener {
         }
     }
 
-    private static java.lang.reflect.Field storageField = null;
-
-    static {
-        try {
-            storageField = com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.class.getDeclaredField("storage");
-            storageField.setAccessible(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     @EventHandler(priority = EventPriority.MONITOR)
     public void onChunkLoad(@Nonnull org.bukkit.event.world.ChunkLoadEvent event) {
         indexChunk(event.getChunk());
@@ -84,38 +73,25 @@ public class SyncListener implements Listener {
 
     /** Reindexes network nodes in a chunk that Slimefun loaded before Networks was ready. */
     public static int indexChunk(@Nonnull org.bukkit.Chunk chunk) {
-        final org.bukkit.World world = chunk.getWorld();
-        final com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage storage = com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.getStorage(world);
-        if (storage == null) {
-            return 0;
-        }
-
-        final int chunkX = chunk.getX();
-        final int chunkZ = chunk.getZ();
         int indexed = 0;
 
-        try {
-            if (storageField != null) {
-                @SuppressWarnings("unchecked")
-                final java.util.Map<Location, ?> internalStorage = (java.util.Map<Location, ?>) storageField.get(storage);
-                if (internalStorage != null) {
-                    for (Location location : internalStorage.keySet()) {
-                        if (location != null && location.getBlockX() >> 4 == chunkX && location.getBlockZ() >> 4 == chunkZ) {
-                            final com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem item = com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.check(location);
-                            if (item instanceof io.github.sefiraat.networks.slimefun.network.NetworkObject networkObject) {
-                                if (!NetworkStorage.getAllNetworkObjects().containsKey(location)) {
-                                    final NodeDefinition nodeDefinition = new NodeDefinition(networkObject.getNodeType());
-                                    NetworkStorage.getAllNetworkObjects().put(location, nodeDefinition);
-                                    indexed++;
-                                }
-                            }
-                        }
-                    }
-                }
+        // Slimefun already maintains a chunk index for ticking blocks. Every
+        // NetworkObject has a BlockTicker, so this avoids scanning the world's
+        // complete BlockStorage map whenever a player crosses a chunk border.
+        for (Location location : com.github.drakescraft_labs.slimefun4.implementation.Slimefun
+            .getTickerTask()
+            .getLocations(chunk)) {
+            final com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem item =
+                com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.check(location);
+
+            if (item instanceof io.github.sefiraat.networks.slimefun.network.NetworkObject networkObject
+                && !NetworkStorage.getAllNetworkObjects().containsKey(location)) {
+                final NodeDefinition nodeDefinition = new NodeDefinition(networkObject.getNodeType());
+                NetworkStorage.getAllNetworkObjects().put(location, nodeDefinition);
+                indexed++;
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
+
         return indexed;
     }
 
