@@ -70,6 +70,10 @@ public class StackUtils {
         final ItemMeta itemMeta = itemStack.getItemMeta();
         final ItemMeta cachedMeta = cache.getItemMeta();
 
+        if (itemMeta == null || cachedMeta == null) {
+            return itemMeta == cachedMeta;
+        }
+
         // ItemMetas are different types and cannot match
         if (!itemMeta.getClass().equals(cachedMeta.getClass())) {
             return false;
