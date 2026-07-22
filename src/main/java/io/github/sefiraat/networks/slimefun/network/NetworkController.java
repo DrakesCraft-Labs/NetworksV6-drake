@@ -35,7 +35,8 @@ public class NetworkController extends NetworkObject {
     private static final Set<Location> DIRTY_NETWORKS = ConcurrentHashMap.newKeySet();
 
     private final ItemSetting<Integer> maxNodes;
-    protected final Set<Location> initializedControllers = ConcurrentHashMap.newKeySet();
+    // Shared controllers must be cleared on plugin shutdown to avoid stale locations after restart.
+    protected static final Set<Location> initializedControllers = ConcurrentHashMap.newKeySet();
 
     public NetworkController(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(itemGroup, item, recipeType, recipe, NodeType.CONTROLLER);
@@ -220,6 +221,7 @@ public class NetworkController extends NetworkObject {
     public static void clearRuntimeState() {
         NETWORKS.clear();
         CRAYONS.clear();
-        firstTickMap.clear();
+        DIRTY_NETWORKS.clear();
+        initializedControllers.clear();
     }
 }
