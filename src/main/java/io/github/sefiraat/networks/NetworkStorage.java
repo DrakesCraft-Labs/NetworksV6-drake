@@ -58,21 +58,16 @@ public class NetworkStorage {
      * Persistent block data is never altered; this only restores transient graph state.
      */
     public static RepairSummary repairChunk(Chunk chunk) {
-        Map<Location, me.mrCookieSlime.CSCoreLibPlugin.Configuration.Config> storage = BlockStorage.getRawStorage(chunk.getWorld());
-        if (storage == null) {
-            return new RepairSummary(0, 0, 0, 0);
-        }
-
         int discovered = 0;
         int recovered = 0;
         int controllers = 0;
         int invalid = 0;
 
-        for (Location location : storage.keySet()) {
-            if ((location.getBlockX() >> 4) != chunk.getX() || (location.getBlockZ() >> 4) != chunk.getZ()) {
-                continue;
-            }
-
+        // The ticker already indexes every ticking Slimefun block by chunk.
+        // Avoid walking the world's complete BlockStorage map on the main thread.
+        for (Location location : com.github.drakescraft_labs.slimefun4.implementation.Slimefun
+            .getTickerTask()
+            .getLocations(chunk)) {
             SlimefunItem item = BlockStorage.check(location);
             if (item == null) {
                 invalid++;

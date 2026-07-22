@@ -68,6 +68,11 @@ public class SyncListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onChunkLoad(@Nonnull org.bukkit.event.world.ChunkLoadEvent event) {
+        // A newly generated chunk cannot contain persisted Networks nodes.
+        if (event.isNewChunk()) {
+            return;
+        }
+
         indexChunk(event.getChunk());
     }
 
