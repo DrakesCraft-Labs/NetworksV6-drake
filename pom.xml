@@ -48,6 +48,9 @@
                 <version>3.15.0</version>
                 <configuration>
                     <proc>full</proc>
+                    <compilerArgs>
+                        <arg>--enable-preview</arg>
+                    </compilerArgs>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

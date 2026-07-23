@@ -33,6 +33,11 @@ public class NetworkController extends NetworkObject {
     private static final Map<Location, NetworkRoot> NETWORKS = new ConcurrentHashMap<>();
     private static final Set<Location> CRAYONS = ConcurrentHashMap.newKeySet();
     private static final Set<Location> DIRTY_NETWORKS = ConcurrentHashMap.newKeySet();
+    /** Tracks the server tick when a network was first marked dirty. Rebuild is deferred by DIRTY_DELAY_TICKS. */
+    private static final Map<Location, Long> DIRTY_TICK = new ConcurrentHashMap<>();
+    /** Number of server ticks to wait after markDirty() before rebuilding, so newly-placed
+     *  machines have time to register themselves in NetworkStorage on their first tick. */
+    private static final int DIRTY_DELAY_TICKS = 3;
 
     private final ItemSetting<Integer> maxNodes;
     // Shared controllers must be cleared on plugin shutdown to avoid stale locations after restart.
@@ -61,8 +66,19 @@ public class NetworkController extends NetworkObject {
 
                     addToRegistry(block);
                     NetworkRoot networkRoot = NETWORKS.get(location);
-                    if (networkRoot == null || DIRTY_NETWORKS.remove(location)) {
-                        networkRoot = rebuildNetwork(location, networkRoot);
+                    if (networkRoot == null) {
+                        networkRoot = rebuildNetwork(location, null);
+                    } else if (DIRTY_NETWORKS.contains(location)) {
+                        // Only rebuild after DIRTY_DELAY_TICKS have elapsed since dirty was set.
+                        // This gives newly-placed machines enough time to register themselves
+                        // in NetworkStorage on their first Slimefun tick.
+                        long dirtyAt = DIRTY_TICK.getOrDefault(location, 0L);
+                        long currentTick = block.getWorld().getGameTime();
+                        if (currentTick - dirtyAt >= DIRTY_DELAY_TICKS) {
+                            DIRTY_NETWORKS.remove(location);
+                            DIRTY_TICK.remove(location);
+                            networkRoot = rebuildNetwork(location, networkRoot);
+                        }
                     }
 
                     networkRoot.setDisplayParticles(CRAYONS.contains(location));
@@ -162,12 +178,24 @@ public class NetworkController extends NetworkObject {
         markDefinitionRootDirty(changedDefinition);
 
         if (NETWORKS.containsKey(changedLocation)) {
+            // Record the game-time tick when dirty was first set (don't overwrite if already pending).
+            DIRTY_TICK.putIfAbsent(changedLocation, changedLocation.getWorld() != null
+                    ? changedLocation.getWorld().getGameTime() : 0L);
             DIRTY_NETWORKS.add(changedLocation);
         }
 
         for (BlockFace face : CHECK_FACES) {
             final Location adjacent = changedLocation.clone().add(face.getDirection());
-            markDefinitionRootDirty(NetworkStorage.getAllNetworkObjects().get(adjacent));
+            final NodeDefinition adjacentDef = NetworkStorage.getAllNetworkObjects().get(adjacent);
+            markDefinitionRootDirty(adjacentDef);
+            // If an adjacent controller is dirty, record its dirty tick too.
+            if (adjacentDef != null && adjacentDef.getNode() != null) {
+                final Location ctrl = adjacentDef.getNode().getRoot().getController();
+                if (ctrl != null && NETWORKS.containsKey(ctrl)) {
+                    DIRTY_TICK.putIfAbsent(ctrl, ctrl.getWorld() != null
+                            ? ctrl.getWorld().getGameTime() : 0L);
+                }
+            }
         }
     }
 
@@ -214,6 +242,7 @@ public class NetworkController extends NetworkObject {
     public static void wipeNetwork(@Nonnull Location location) {
         clearAssignments(NETWORKS.remove(location));
         DIRTY_NETWORKS.remove(location);
+        DIRTY_TICK.remove(location);
         CRAYONS.remove(location);
     }
 
@@ -222,6 +251,7 @@ public class NetworkController extends NetworkObject {
         NETWORKS.clear();
         CRAYONS.clear();
         DIRTY_NETWORKS.clear();
+        DIRTY_TICK.clear();
         initializedControllers.clear();
     }
 }

@@ -45,7 +45,7 @@ public class NetworkRoot extends NetworkNode {
     public static final int persistentThreshold = 15;
     public static final int cacheMissThreshold = 15;
     public static final int reduceMs = 8000;
-    public static final int transportMissThreshold = 120;
+    public static final int transportMissThreshold = 15;
     public static final Map<Location, Map<Location, Integer /* Access times */>> observingAccessHistory =
             new ConcurrentHashMap<>();
     public static final Map<Location, Map<Location, Integer /* Cache miss times */>> persistentAccessHistory =
