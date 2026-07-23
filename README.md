@@ -33,7 +33,7 @@
 ### 2. 🚛 Logística de Ítems (Buses de Importación y Exportación)
 - **Bus de Importación (Import Bus)**: Extrae ítems de cofres o máquinas y los introduce automáticamente a la red digital.
 - **Bus de Exportación (Export Bus)**: Saca ítems específicos de la red digital y los deposita en cofres o máquinas de destino.
-- **Filtros Avanzados**: Soporte para filtrado por NBT, Lore, Nombres personalizados y coincidencia de Durabilidad.
+- **Filtros Avanzados**: Support for filtrado por NBT, Lore, Nombres personalizados y coincidencia de Durabilidad.
 
 ### 3. ⚙️ Autocrafteo & Automatización
 - **Unidad de Autocrafteo (Crafting Unit)**: Ejecuta recetas de crafteo de Slimefun4 y Minecraft de forma automatizada al solicitar ítems desde la terminal.
@@ -62,6 +62,6 @@ Ubica el archivo compilado `NetworksV6-Drake-v6.0.0.jar` en la carpeta `plugins/
 
 <div align="center">
 
-**DrakesCraft Labs** · Maintained by [**JackStar6677-1**](https://github.com/JackStar6677-1)
+**DrakesCraft Labs** · Mantenido por [**JackStar6677-1**](https://github.com/JackStar6677-1)
 
 </div>
