@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 300" width="920" height="300">
+  <defs>
+    <linearGradient id="netBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070B19" />
+      <stop offset="50%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#030712" />
+    </linearGradient>
+
+    <linearGradient id="cyanBlue" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="50%" stop-color="#818CF8" />
+      <stop offset="100%" stop-color="#C084FC" />
+    </linearGradient>
+
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <style>
+    @keyframes netPulse {
+      0%, 100% { opacity: 0.8; filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.6)); }
+      50% { opacity: 1; filter: drop-shadow(0 0 30px rgba(192, 132, 252, 0.9)); }
+    }
+    @keyframes nodeFlow {
+      0% { stroke-dashoffset: 200; }
+      100% { stroke-dashoffset: 0; }
+    }
+
+    .bg-card { fill: url(#netBg); }
+    .title-net { font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 42px; fill: url(#cyanBlue); animation: netPulse 4s infinite ease-in-out; }
+    .sub-net { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 14px; fill: #94A3B8; letter-spacing: 3px; }
+    .wire { stroke: url(#cyanBlue); stroke-width: 2; fill: none; stroke-dasharray: 12 6; animation: nodeFlow 12s linear infinite; opacity: 0.5; }
+    .badge { fill: #1E293B; stroke: #38BDF8; stroke-width: 1.5; rx: 6px; }
+    .btext { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; fill: #38BDF8; }
+  </style>
+
+  <rect class="bg-card" width="920" height="300" rx="14" stroke="#1E293B" stroke-width="2" />
+  <path class="wire" d="M 50,40 H 870 M 50,260 H 870 M 120,0 V 300 M 800,0 V 300 M 50,150 H 870" />
+
+  <g transform="translate(460, 95)">
+    <polygon points="0,-40 30,-20 30,20 0,40 -30,20 -30,-20" fill="#0F172A" stroke="url(#cyanBlue)" stroke-width="3" filter="url(#glow)" />
+    <circle cx="0" cy="0" r="10" fill="#38BDF8" />
+  </g>
+
+  <text x="460" y="185" text-anchor="middle" class="title-net">NETWORKS V6 DRAKE</text>
+  <text x="460" y="215" text-anchor="middle" class="sub-net">HIGH-SPEED ITEM &amp; CARGO LOGISTICS · RUST NATIVE ACCELERATED</text>
+
+  <g transform="translate(230, 245)">
+    <rect x="0" y="0" width="135" height="30" class="badge" />
+    <text x="12" y="20" class="btext">CARGO NET 2026</text>
+
+    <rect x="155" y="0" width="150" height="30" class="badge" stroke="#C084FC" />
+    <text x="167" y="20" class="btext" fill="#C084FC">RUST FFM HYBRID</text>
+
+    <rect x="325" y="0" width="135" height="30" class="badge" stroke="#34D399" />
+    <text x="337" y="20" class="btext" fill="#34D399">PAPER 1.21.11</text>
+  </g>
+</svg>
