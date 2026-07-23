@@ -27,7 +27,7 @@
 
 ### 1. 🌉 Red Digital & Puentes
 - **Puente de Red (Network Bridge)**: El núcleo del sistema. Conecta todos los nodos, cables y contenedores en una misma red.
-- **Terminal de Red (Network Terminal)**: Interfaz de usuario para buscar, guardar y extraer ítems de todos los cofres conectados en tiempo real.
+- **Terminal de Red (Network Terminal)**: Interfaz de user para buscar, guardar y extraer ítems de todos los cofres conectados en tiempo real.
 - **Terminal Inalámbrica (Wireless Terminal)**: Acceso remoto a la red de almacenamiento desde cualquier parte del mundo.
 
 ### 2. 🚛 Logística de Ítems (Buses de Importación y Exportación)
@@ -56,7 +56,7 @@
 mvn clean package
 ```
 
-Ubica el archivo compilado `NetworksV6-Drake-v6.0.0.jar` en la carpeta `plugins/` de tu servidor Minecraft Paper/Purpur 1.21.11.
+Ubica el archivo compilado `NetworksV6-Drake-v6.0.0.jar` en la folder `plugins/` de tu servidor Minecraft Paper/Purpur 1.21.11.
 
 ---
 
