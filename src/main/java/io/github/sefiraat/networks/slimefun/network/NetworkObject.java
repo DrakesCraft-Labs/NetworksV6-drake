@@ -166,7 +166,11 @@ public abstract class NetworkObject extends SlimefunItem implements AdminDebugga
     }
 
     protected void onPlace(@Nonnull BlockPlaceEvent event) {
-
+        // Register first, then invalidate adjacent roots so a newly added node is
+        // included without requiring players to replace the Network Controller.
+        final Location location = event.getBlockPlaced().getLocation();
+        addToRegistry(event.getBlockPlaced());
+        NetworkController.markDirty(location);
     }
 
     public boolean runSync() {
