@@ -28,10 +28,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.HashSet;
+import java.util.concurrent.TimeUnit;
 
 public class Networks extends JavaPlugin implements SlimefunAddon {
 
     private static Networks instance;
+    private static final long SHUTDOWN_DIRTY_MARK_BUDGET_NANOS = TimeUnit.SECONDS.toNanos(2);
 
     private final String username;
     private final String repo;
@@ -131,79 +133,63 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
     }
 
     private void saveData() {
-        getLogger().info("Saving Networks data before shutdown...");
+        getLogger().info("Marking Networks inventories dirty before shutdown (2s budget)...");
 
         try {
-            markNetworkInventoriesDirty();
+            int marked = markNetworkInventoriesDirty(System.nanoTime() + SHUTDOWN_DIRTY_MARK_BUDGET_NANOS);
+            getLogger().info("Marked " + marked + " Networks inventories dirty. Slimefun will persist shared block storage.");
         } catch (Throwable t) {
             getLogger().severe("Failed to mark all network inventories dirty: " + t.getMessage());
             t.printStackTrace();
         }
-
-        for (org.bukkit.World world : Bukkit.getWorlds()) {
-            try {
-                final BlockStorage storage = BlockStorage.getStorage(world);
-                if (storage != null) {
-                    storage.save();
-                }
-            } catch (Throwable t) {
-                getLogger().severe("Failed to save BlockStorage for world " + world.getName() + ": " + t.getMessage());
-                t.printStackTrace();
-            }
-        }
-
-        try {
-            BlockStorage.saveChunks();
-        } catch (Throwable t) {
-            getLogger().severe("Failed to save BlockStorage chunks: " + t.getMessage());
-            t.printStackTrace();
-        }
     }
 
-    private void markNetworkInventoriesDirty() {
+    /**
+     * Marks known network menus without scanning every Slimefun block in every world.
+     * Slimefun owns the subsequent global persistence pass during its own shutdown.
+     */
+    private int markNetworkInventoriesDirty(long deadlineNanos) {
+        int marked = 0;
         try {
             for (Location location : new HashSet<>(NetworkStorage.getAllNetworkObjects().keySet())) {
-                markNetworkInventoryDirty(location);
+                if (System.nanoTime() >= deadlineNanos) {
+                    getLogger().warning("Shutdown dirty-mark budget reached; remaining menus stay in Slimefun's normal save queue.");
+                    return marked;
+                }
+
+                if (markNetworkInventoryDirty(location)) {
+                    marked++;
+                }
             }
         } catch (Throwable t) {
             getLogger().severe("Failed to dirty-mark stored network objects: " + t.getMessage());
         }
 
-        for (org.bukkit.World world : Bukkit.getWorlds()) {
-            try {
-                final BlockStorage storage = BlockStorage.getStorage(world);
-                if (storage == null) {
-                    continue;
-                }
-
-                for (Location location : new HashSet<>(storage.getRawStorage().keySet())) {
-                    markNetworkInventoryDirty(location);
-                }
-            } catch (Throwable t) {
-                getLogger().severe("Failed to dirty-mark world raw storage for " + world.getName() + ": " + t.getMessage());
-            }
-        }
+        return marked;
     }
 
-    private void markNetworkInventoryDirty(Location location) {
+    private boolean markNetworkInventoryDirty(Location location) {
         if (location == null || location.getWorld() == null) {
-            return;
+            return false;
         }
 
         try {
             final SlimefunItem item = BlockStorage.check(location);
             if (item == null || !item.getId().startsWith("NTW_") || !BlockMenuPreset.isInventory(item.getId())) {
-                return;
+                return false;
             }
 
             final BlockMenu menu = BlockStorage.getInventory(location);
             if (menu != null) {
                 menu.markDirty();
+                return true;
             }
         } catch (Throwable t) {
             getLogger().severe("Error marking network inventory dirty at location " + location + ": " + t.getMessage());
             t.printStackTrace();
         }
+
+        return false;
     }
 
     public void setupSlimefun() {
