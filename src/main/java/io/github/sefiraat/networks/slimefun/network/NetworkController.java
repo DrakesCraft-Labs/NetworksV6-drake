@@ -205,7 +205,12 @@ public class NetworkController extends NetworkObject {
         }
 
         final Location controller = definition.getNode().getRoot().getController();
-        if (controller != null) {
+        if (controller != null && NETWORKS.containsKey(controller)) {
+            // Give Slimefun a few ticks to finish creating the adjacent menu and
+            // block data before the graph is traversed again. Without this tick,
+            // a just-placed node can be skipped until the controller is replaced.
+            DIRTY_TICK.putIfAbsent(controller, controller.getWorld() != null
+                    ? controller.getWorld().getGameTime() : 0L);
             DIRTY_NETWORKS.add(controller);
         }
     }
