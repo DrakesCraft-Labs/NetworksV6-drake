@@ -51,8 +51,9 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
         instance = this;
 
         getLogger().info("########################################");
-        getLogger().info("         Networks - By Sefiraat         ");
-        getLogger().info("     Port Drake Labs / NetworksV6       ");
+        getLogger().info("      Networks DrakesCraft Edition      ");
+        getLogger().info("      Original author: Sefiraat         ");
+        getLogger().info(" Repo: DrakesCraft-Labs/NetworksV6-drake");
         getLogger().info("########################################");
 
         saveDefaultConfig();
