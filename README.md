@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="https://raw.githubusercontent.com/DrakesCraft-Labs/NetworksV6-drake/main/networks_banner.svg" alt="NetworksV6-drake Banner" width="920" />
+  <img src="banner.svg" alt="NetworksV6-drake Banner" width="920" />
 
 # 📦 NetworksV6-Drake
 
