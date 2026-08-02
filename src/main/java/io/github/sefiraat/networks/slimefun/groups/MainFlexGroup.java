@@ -28,10 +28,10 @@ public class MainFlexGroup extends FlexItemGroup {
     private static final ItemStack DOCS_ITEM_STACK = Theme.themedItemStack(
         Material.BOOK,
         Theme.GUIDE,
-        "Documentation Wiki",
-        "Click to get the link to the",
-        "documentation Wiki for Networks",
-        "and other Sefiraat addons."
+        "Guia de Networks DrakesCraft",
+        "Clic para recibir el enlace a la",
+        "guia y notas de compatibilidad",
+        "del fork activo en DrakesCraft."
     );
 
     private static final int GUIDE_BACK = 1;
@@ -96,12 +96,13 @@ public class MainFlexGroup extends FlexItemGroup {
             return false;
         });
 
-        // Docs
+        // The guide follows the active fork, not an upstream site with stale recipes or mechanics.
         menu.replaceExistingItem(DOCS, DOCS_ITEM_STACK);
         menu.addMenuClickHandler(DOCS, (player1, i1, itemStack1, clickAction) -> {
-            final TextComponent link = new TextComponent("To access the documentation Wiki, please click here");
+            final TextComponent link = new TextComponent("Abre la guia de Networks DrakesCraft");
             link.setColor(ChatColor.YELLOW);
-            link.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://sefiraat.dev/"));
+            link.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL,
+                "https://github.com/DrakesCraft-Labs/NetworksV6-drake#readme"));
             player.spigot().sendMessage(link);
             return false;
         });

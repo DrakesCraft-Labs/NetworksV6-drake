@@ -58,6 +58,19 @@ mvn clean package
 
 Ubica el archivo compilado `NetworksV6-Drake-v6.0.0.jar` en la carpeta `plugins/` de tu servidor Minecraft Paper/Purpur 1.21.11.
 
+## 📚 Guía y soporte DrakesCraft
+
+Esta rama es la referencia operativa de Networks para DrakesCraft. La guía dentro
+de Slimefun enlaza a este repositorio, no a documentación externa que puede no
+coincidir con la lógica, recetas o protecciones anti-dupe activas.
+
+- Consulta primero la guía in-game para componentes y recetas.
+- Revisa [la guía de integridad](docs/INTEGRIDAD_DE_RED_DRAKESCRAFT.md) para
+  almacenamiento, dupes, topología y reinicios.
+- Reporta un error con la versión del JAR, mundo, coordenadas y pasos para
+  reproducirlo en [Issues](https://github.com/DrakesCraft-Labs/NetworksV6-drake/issues).
+- Conservamos los avisos de licencia y autoría original requeridos por los forks.
+
 ---
 
 <div align="center">
