@@ -22,6 +22,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -217,8 +218,16 @@ public class NetworkController extends NetworkObject {
 
     @Nonnull
     private NetworkRoot rebuildNetwork(@Nonnull Location location, NetworkRoot previousRoot) {
-        clearAssignments(previousRoot);
-
+        // La red nueva se construye ANTES de tocar la anterior.
+        //
+        // Al reves quedaba una ventana en la que todos los nodos tenian node == null: si el BFS
+        // de addAllChildren no alcanzaba alguno --porque su chunk estaba cargando o la maquina
+        // aun no habia corrido su primer tick de Slimefun-- ese nodo quedaba huerfano y la red
+        // dejaba de producir hasta romper y recolocar el controlador. Es lo que los jugadores
+        // describen como "poner algo y que se paralice la net".
+        //
+        // addAllChildren no depende del estado previo: recorre por adyacencia y sobrescribe la
+        // asignacion de cada nodo que alcanza, asi que reconstruir primero es seguro.
         final NetworkRoot networkRoot = new NetworkRoot(location, NodeType.CONTROLLER, maxNodes.getValue());
         networkRoot.addAllChildren();
 
@@ -227,7 +236,34 @@ public class NetworkController extends NetworkObject {
             definition.setNode(networkRoot);
         }
         NETWORKS.put(location, networkRoot);
+
+        releaseOrphans(previousRoot, networkRoot);
         return networkRoot;
+    }
+
+    /**
+     * Suelta solo los nodos de la red anterior que la nueva ya no contiene.
+     *
+     * Lo que sigue perteneciendo a la red conserva su asignacion sin pasar por un estado nulo
+     * intermedio, y lo que quedo fuera se libera para que no arrastre una red fantasma: esa era
+     * la puerta del dupe del visor con el controlador roto.
+     */
+    private static void releaseOrphans(NetworkRoot previousRoot, NetworkRoot currentRoot) {
+        if (previousRoot == null || previousRoot == currentRoot) {
+            return;
+        }
+
+        final Set<Location> retained = new HashSet<>(currentRoot.getNodeLocations());
+        for (Location nodeLocation : previousRoot.getNodeLocations()) {
+            if (retained.contains(nodeLocation)) {
+                continue;
+            }
+            final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(nodeLocation);
+            if (definition != null && definition.getNode() != null
+                    && definition.getNode().getRoot() == previousRoot) {
+                definition.setNode(null);
+            }
+        }
     }
 
     private static void clearAssignments(NetworkRoot networkRoot) {
