@@ -79,10 +79,23 @@ public abstract class NetworkDirectional extends NetworkObject {
         addItemSetting(this.tickRate);
 
         addItemHandler(
+            // Sin esto la direccion elegida sobrevivia al bloque que la eligio.
+            new com.github.drakescraft_labs.slimefun4.core.handlers.BlockBreakHandler(true, true) {
+                @Override
+                public void onPlayerBreak(@Nonnull org.bukkit.event.block.BlockBreakEvent event,
+                                          @Nonnull org.bukkit.inventory.ItemStack item,
+                                          @Nonnull java.util.List<org.bukkit.inventory.ItemStack> drops) {
+                    forgetSelectedFace(event.getBlock().getLocation());
+                }
+            },
             new BlockPlaceHandler(false) {
                 @Override
                 public void onPlayerPlace(@Nonnull BlockPlaceEvent event) {
                     NetworkStorage.removeNode(event.getBlock().getLocation());
+                    // El BlockStorage se reinicia a SELF, pero getSelectedFace lee primero el mapa
+                    // en memoria: sin esta limpieza un nodo nuevo hereda la direccion del que
+                    // hubo antes en la misma ubicacion y apunta a donde el jugador no eligio.
+                    forgetSelectedFace(event.getBlock().getLocation());
                     BlockStorage.addBlockInfo(event.getBlock(), OWNER_KEY, event.getPlayer().getUniqueId().toString());
                     BlockStorage.addBlockInfo(event.getBlock(), DIRECTION, BlockFace.SELF.name());
                     final BlockMenu blockMenu = BlockStorage.getInventory(event.getBlock());
@@ -378,6 +391,23 @@ public abstract class NetworkDirectional extends NetworkObject {
                 ChatColor.GRAY + "Set direction: " + blockFace.name()
             );
         }
+    }
+
+    /**
+     * Olvida la direccion cacheada de una ubicacion.
+     *
+     * SELECTED_DIRECTION_MAP es estatico y tenia cinco put y ningun remove: crecia con cada nodo
+     * direccional colocado en la historia del servidor y solo se vaciaba al reiniciar. Ademas
+     * getSelectedFace lo consulta antes que a BlockStorage, asi que una entrada vieja se imponia
+     * sobre la direccion real de un bloque nuevo.
+     */
+    public static void forgetSelectedFace(@Nonnull Location location) {
+        SELECTED_DIRECTION_MAP.remove(location);
+    }
+
+    /** Solo para pruebas: tamano actual del cache de direcciones. */
+    public static int selectedFaceCacheSize() {
+        return SELECTED_DIRECTION_MAP.size();
     }
 
     @Nullable
