@@ -2,9 +2,9 @@
 
   <img src="banner.svg" alt="NetworksV6-drake Banner" width="920" />
 
-# 📦 NetworksV6-Drake
+# NetworksV6-Drake
 
-**Sistema de Logística, Almacenamiento Masivo, Enrutamiento de Ítems en Tiempo Real y Autocrafteo para Slimefun4**
+**DrakesCraft's logistics, storage, routing and controlled automation addon for Slimefun.**
 
 <p>
   <a href="https://github.com/DrakesCraft-Labs/NetworksV6-drake"><img src="https://img.shields.io/badge/GitHub-NetworksV6--Drake-181717?style=for-the-badge&logo=github" alt="GitHub"/></a>
@@ -17,74 +17,103 @@
 
 ---
 
-## 🚀 ¿Qué es NetworksV6-Drake?
+## What It Does
 
-`NetworksV6-Drake` es el addon de logística y almacenamiento automatizado definitivo para Slimefun4 en DrakesCraft. Permite conectar cientos de cofres, contenedores y máquinas en una **red digital unificada**, ofreciendo almacenamiento masivo, transporte instantáneo de ítems y autocrafteo.
+`NetworksV6-Drake` connects chests, Slimefun machines and storage components into a
+single digital network. It is maintained by DrakesCraft Labs for Paper/Purpur
+**1.21.11** and the Drake Slimefun API.
 
----
+## Gameplay Systems
 
-## 🧰 Componentes y Máquinas del Addon
 
-### 1. 🌉 Red Digital & Puentes
-- **Puente de Red (Network Bridge)**: El núcleo del sistema. Conecta todos los nodos, cables y contenedores en una misma red.
-- **Terminal de Red (Network Terminal)**: Interfaz de usuario para buscar, guardar y extraer ítems de todos los cofres conectados en tiempo real.
-- **Terminal Inalámbrica (Wireless Terminal)**: Acceso remoto a la red de almacenamiento desde cualquier parte del mundo.
+| Area | Included components |
+| --- | --- |
+| Network topology | Controller, bridge, cells, power nodes, capacitors, power outlet and display |
+| Storage | Terminal/grid, quantum workbench, quantum storage tiers and stack-aware searches |
+| Transport | Import, export, grabber, pusher, vanilla grabber/pusher, vacuum and purger |
+| Automation | Recipe encoder, crafting blueprints, auto crafter and withholding auto crafter |
+| Remote work | Wireless transmitter/receiver, remote terminal, probe, configurators, crayon and rake |
+| World operations | Controlled `X`/`V` block actions, monitor and administrative debugger |
 
-### 2. 🚛 Logística de Ítems (Buses de Importación y Exportación)
-- **Bus de Importación (Import Bus)**: Extrae ítems de cofres o máquinas y los introduce automáticamente a la red digital.
-- **Bus de Exportación (Export Bus)**: Saca ítems específicos de la red digital y los deposita en cofres o máquinas de destino.
-- **Filtros Avanzados**: Soporte para filtrado por NBT, Lore, Nombres personalizados y coincidencia de Durabilidad.
+Items are intentionally registered through the in-game Slimefun guide. Recipes,
+power costs and research requirements remain server-owned balancing decisions.
 
-### 3. ⚙️ Autocrafteo & Automatización
-- **Unidad de Autocrafteo (Crafting Unit)**: Ejecuta recetas de crafteo de Slimefun4 y Minecraft de forma automatizada al solicitar ítems desde la terminal.
-- **Monitor de Red (Network Monitor)**: Muestra el estado del flujo de ítems, almacenamiento total y consumo de energía en tiempo real.
+## Drake Reliability Layer
 
----
+This is not a renamed upstream jar. The Drake line adds operational safeguards
+for a large, long-lived survival world:
 
-## ⚡ Aceleración Nativa en Rust (Modelo Híbrido Cero-Riesgo)
+- **Topology recovery:** startup reindexing restores valid network membership
+  after a protected shutdown without retaining ghost nodes.
+- **Stale-node cleanup:** replaced, broken or foreign blocks are removed from a
+  network before they can be read as storage.
+- **Grid anti-dupe guard:** ambiguous inventory actions such as middle-click,
+  collect-to-cursor and hotbar re-add are blocked in network interfaces.
+- **Atomic Quantum Storage:** insertions and withdrawals are serialized per
+  storage cell; state is synchronised and marked dirty after mutations.
+- **Controlled auto-crafting:** blueprint validation, output withholding and
+  network reconstruction are protected from stale cache state.
+- **Restart safety:** pending state is persisted during shutdown and runtime
+  caches are discarded only after data has been saved.
+- **Data-safe SQL preparation:** an optional, write-only SQLite mirror can audit
+  Quantum Storage. It never replaces Slimefun BlockStorage or restores items.
 
-`NetworksV6-Drake` incluye el puente Panama FFM **`RustNativeBridge`** que conecta la lógica de Java con el motor nativo `Slimefun-Rust` (`slimefun_ffi`):
-- 🚀 **Enrutamiento de CargoNet en Nanosegundos**: Cero micro-stutters o pausas de Garbage Collector durante el transporte masivo de ítems.
-- 🛡️ **Preservación Total sin Reset (SQLite 0-Reset)**: Interfaz 1:1 con la base de datos `stored-blocks.db` nativa de Slimefun4.
+Read [the integrity guide](docs/INTEGRIDAD_DE_RED_DRAKESCRAFT.md) for the
+concrete invariants and smoke tests that protect inventories.
 
----
+## Persistence
 
-## 🛠️ Compilación e Instalación
-
-```bash
-# Compilar paquete JAR con Maven
-mvn clean package
-```
-
-Ubica el archivo compilado `NetworksV6-Drake-v6.0.0.jar` en la carpeta `plugins/` de tu servidor Minecraft Paper/Purpur 1.21.11.
-
-## 📚 Guía y soporte DrakesCraft
-
-Esta rama es la referencia operativa de Networks para DrakesCraft. La guía dentro
-de Slimefun enlaza a este repositorio, no a documentación externa que puede no
-coincidir con la lógica, recetas o protecciones anti-dupe activas.
-
-- Consulta primero la guía in-game para componentes y recetas.
-- Revisa [la guía de integridad](docs/INTEGRIDAD_DE_RED_DRAKESCRAFT.md) para
-  almacenamiento, dupes, topología y reinicios.
-- Reporta un error con la versión del JAR, mundo, coordenadas y pasos para
-  reproducirlo en [Issues](https://github.com/DrakesCraft-Labs/NetworksV6-drake/issues).
-- Conservamos los avisos de licencia y autoría original requeridos por los forks.
-
-### Persistencia de Quantum Storage
-
-Los Quantum Storage conservan como fuente de verdad el `BlockStorage` de Slimefun.
-Para auditoría o una futura migración explícita, se puede activar un espejo SQLite
-sin leerlo ni restaurar inventarios desde él:
+Slimefun `BlockStorage` is authoritative. The default configuration is:
 
 ```yml
 persistence:
   quantum:
-    mode: mirror-sql
+    mode: slimefun
 ```
 
-El espejo sólo coalescea escrituras y nunca borra ni reemplaza datos existentes. No
-activa una migración de Slimefun ni convierte datos legacy a SQL.
+Set `mode: mirror-sql` only when a server operator explicitly wants a local
+audit mirror at `plugins/NetworksV6-Drake/quantum-storage-mirror.db`. It batches
+the latest state per location and remains one-way by design. It does **not** run
+`/sf migrate`, delete legacy data, or create a second source of truth.
+
+## Compatibility
+
+- Paper or Purpur 1.21.11
+- Java 21
+- Slimefun Drake `11.0-Drake-1.21.11-SNAPSHOT`
+- Existing DrakesCraft addons compiled against the Drake, legacy and upstream
+  bridge namespaces
+
+Do not install Gugu's `Networks` or `NetworksExpansion` jars beside this addon:
+they are whole Networks forks with the same plugin identity. Useful upstream
+features are ported as reviewed source changes instead.
+
+---
+
+## Build
+
+```bash
+# Build and run the test suite
+mvn clean test package
+```
+
+The resulting artifact is `target/NetworksV6-Drake-v11-SNAPSHOT.jar`. Deploy
+exactly one active Networks jar, verify its SHA-256, run `save-all flush`, then
+perform a full restart. Plugin reloads are not supported for network state.
+
+## Operations and Support
+
+This branch is the operational reference for DrakesCraft. The in-game guide
+should take precedence for recipes; this repository documents compatibility,
+storage and safety behavior.
+
+- [Integrity and anti-dupe guide](docs/INTEGRIDAD_DE_RED_DRAKESCRAFT.md)
+- [Gugu source portability policy](docs/PORTABILIDAD_GUGU.md)
+- [CI and release process](docs/CI_AND_RELEASE.md)
+
+When reporting an issue, include the jar version, world, coordinates, network
+components, expected result and exact reproduction steps. Never attach live
+backups, credentials or player data.
 
 ---
 
