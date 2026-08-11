@@ -71,11 +71,14 @@ public class NetworkRoot extends NetworkNode {
     @Getter
     private final Set<Location> nodeLocations = ConcurrentHashMap.newKeySet();
     private final int[] CELL_AVAILABLE_SLOTS = NetworkCell.SLOTS;
-    private final int[] GREEDY_BLOCK_AVAILABLE_SLOTS = new int[]{NetworkGreedyBlock.INPUT_SLOT};
     @Getter
     private final Set<Location> bridges = ConcurrentHashMap.newKeySet();
     @Getter
     private final Set<Location> monitors = ConcurrentHashMap.newKeySet();
+    @Getter
+    private final Set<Location> inputOnlyMonitors = ConcurrentHashMap.newKeySet();
+    @Getter
+    private final Set<Location> outputOnlyMonitors = ConcurrentHashMap.newKeySet();
     @Getter
     private final Set<Location> importers = ConcurrentHashMap.newKeySet();
     @Getter
@@ -312,13 +315,18 @@ public class NetworkRoot extends NetworkNode {
             case CONTROLLER -> this.controller = location;
             case BRIDGE -> bridges.add(location);
             case STORAGE_MONITOR -> monitors.add(location);
+            case INPUT_ONLY_MONITOR -> inputOnlyMonitors.add(location);
+            case OUTPUT_ONLY_MONITOR -> outputOnlyMonitors.add(location);
             case IMPORT -> importers.add(location);
+            case ADVANCED_IMPORT -> importers.add(location);
             case EXPORT -> exporters.add(location);
+            case ADVANCED_EXPORT -> exporters.add(location);
             case GRID -> grids.add(location);
             case CELL -> cells.add(location);
             case GRABBER -> grabbers.add(location);
             case PUSHER -> pushers.add(location);
             case PURGER -> purgers.add(location);
+            case ADVANCED_PURGER -> purgers.add(location);
             case CRAFTER -> crafters.add(location);
             case POWER_NODE -> powerNodes.add(location);
             case POWER_DISPLAY -> powerDisplays.add(location);
@@ -326,11 +334,12 @@ public class NetworkRoot extends NetworkNode {
             case GREEDY_BLOCK -> greedyBlocks.add(location);
             case CUTTER -> cutters.add(location);
             case PASTER -> pasters.add(location);
-            case VACUUM -> vacuums.add(location);
+            case VACUUM, ADVANCED_VACUUM -> vacuums.add(location);
             case WIRELESS_TRANSMITTER -> wirelessTransmitters.add(location);
             case WIRELESS_RECEIVER -> wirelessReceivers.add(location);
             case POWER_OUTLET -> powerOutlets.add(location);
         }
+        invalidateBarrelCaches();
     }
 
     /**
@@ -346,13 +355,18 @@ public class NetworkRoot extends NetworkNode {
             }
             case BRIDGE -> bridges.remove(location);
             case STORAGE_MONITOR -> monitors.remove(location);
+            case INPUT_ONLY_MONITOR -> inputOnlyMonitors.remove(location);
+            case OUTPUT_ONLY_MONITOR -> outputOnlyMonitors.remove(location);
             case IMPORT -> importers.remove(location);
+            case ADVANCED_IMPORT -> importers.remove(location);
             case EXPORT -> exporters.remove(location);
+            case ADVANCED_EXPORT -> exporters.remove(location);
             case GRID -> grids.remove(location);
             case CELL -> cells.remove(location);
             case GRABBER -> grabbers.remove(location);
             case PUSHER -> pushers.remove(location);
             case PURGER -> purgers.remove(location);
+            case ADVANCED_PURGER -> purgers.remove(location);
             case CRAFTER -> crafters.remove(location);
             case POWER_NODE -> powerNodes.remove(location);
             case POWER_DISPLAY -> powerDisplays.remove(location);
@@ -360,7 +374,7 @@ public class NetworkRoot extends NetworkNode {
             case GREEDY_BLOCK -> greedyBlocks.remove(location);
             case CUTTER -> cutters.remove(location);
             case PASTER -> pasters.remove(location);
-            case VACUUM -> vacuums.remove(location);
+            case VACUUM, ADVANCED_VACUUM -> vacuums.remove(location);
             case WIRELESS_TRANSMITTER -> wirelessTransmitters.remove(location);
             case WIRELESS_RECEIVER -> wirelessReceivers.remove(location);
             case POWER_OUTLET -> powerOutlets.remove(location);
@@ -385,6 +399,8 @@ public class NetworkRoot extends NetworkNode {
         nodeLocations.remove(location);
         cells.remove(location);
         monitors.remove(location);
+        inputOnlyMonitors.remove(location);
+        outputOnlyMonitors.remove(location);
         bridges.remove(location);
         importers.remove(location);
         exporters.remove(location);
@@ -450,7 +466,7 @@ public class NetworkRoot extends NetworkNode {
         }
 
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
-            for (int slot : GREEDY_BLOCK_AVAILABLE_SLOTS) {
+            for (int slot : getGreedyBlockSlots(blockMenu)) {
                 final ItemStack itemStack = blockMenu.getItemInSlot(slot);
                 if (itemStack != null && itemStack.getType() != Material.AIR) {
                     aggregator.add(itemStack, itemStack.getAmount());
@@ -575,6 +591,12 @@ public class NetworkRoot extends NetworkNode {
         return menus;
     }
 
+    /** Resolves the active storage slots from the placed greedy block variant. */
+    private int[] getGreedyBlockSlots(@NotNull BlockMenu menu) {
+        SlimefunItem item = BlockStorage.check(menu.getLocation());
+        return item instanceof NetworkGreedyBlock greedyBlock ? greedyBlock.getInputSlots() : new int[0];
+    }
+
     public synchronized boolean contains(@NotNull ItemStack itemStack) {
         return contains(new ItemRequest(itemStack, 1));
     }
@@ -627,7 +649,7 @@ public class NetworkRoot extends NetworkNode {
 
         // Greedy Blocks
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
-            for (int slot : GREEDY_BLOCK_AVAILABLE_SLOTS) {
+            for (int slot : getGreedyBlockSlots(blockMenu)) {
                 final ItemStack itemStack = blockMenu.getItemInSlot(slot);
                 if (itemStack == null
                         || itemStack.getType() == Material.AIR
@@ -672,7 +694,7 @@ public class NetworkRoot extends NetworkNode {
         long totalAmount = 0;
 
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
-            for (int slot : GREEDY_BLOCK_AVAILABLE_SLOTS) {
+            for (int slot : getGreedyBlockSlots(blockMenu)) {
                 ItemStack inputSlotItem = blockMenu.getItemInSlot(slot);
                 if (inputSlotItem != null && StackUtils.itemsMatch(inputSlotItem, itemStack)) {
                     totalAmount += inputSlotItem.getAmount();
@@ -708,7 +730,7 @@ public class NetworkRoot extends NetworkNode {
         HashMap<ItemStack, Long> totalAmounts = new HashMap<>();
 
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
-            for (int slot : GREEDY_BLOCK_AVAILABLE_SLOTS) {
+            for (int slot : getGreedyBlockSlots(blockMenu)) {
                 ItemStack inputSlotItem = blockMenu.getItemInSlot(slot);
                 if (inputSlotItem != null) {
                     for (ItemStack itemStack : itemStacks) {
@@ -840,6 +862,7 @@ public class NetworkRoot extends NetworkNode {
 
         final Set<Location> monitor = new HashSet<>();
         monitor.addAll(this.monitors);
+        monitor.addAll(this.inputOnlyMonitors);
         for (Location cellLocation : monitor) {
             final BlockFace face = NetworkDirectional.getSelectedFace(cellLocation);
 
@@ -898,12 +921,14 @@ public class NetworkRoot extends NetworkNode {
         }
 
         NetworkIntegrity.pruneStaleLocations(this.monitors, NetworkMonitor.class);
+        NetworkIntegrity.pruneStaleLocations(this.outputOnlyMonitors, NetworkDirectional.class);
 
         final Set<Location> addedLocations = ConcurrentHashMap.newKeySet();
         final Set<BarrelIdentity> barrelSet = ConcurrentHashMap.newKeySet();
 
         final Set<Location> monitor = new HashSet<>();
         monitor.addAll(this.monitors);
+        monitor.addAll(this.outputOnlyMonitors);
         for (Location cellLocation : monitor) {
             final BlockFace face = NetworkDirectional.getSelectedFace(cellLocation);
 
@@ -1207,7 +1232,7 @@ public class NetworkRoot extends NetworkNode {
 
         // Greedy Blocks
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
-            for (int slot : GREEDY_BLOCK_AVAILABLE_SLOTS) {
+            for (int slot : getGreedyBlockSlots(blockMenu)) {
                 final ItemStack itemStack = blockMenu.getItemInSlot(slot);
                 if (itemStack == null
                         || itemStack.getType() == Material.AIR
@@ -1342,7 +1367,7 @@ public class NetworkRoot extends NetworkNode {
             }
 
             blockMenu.markDirty();
-            NetworkTransportUtils.pushIntoMenu(blockMenu, incoming, GREEDY_BLOCK_AVAILABLE_SLOTS[0]);
+            NetworkTransportUtils.pushIntoMenu(blockMenu, incoming, getGreedyBlockSlots(blockMenu));
             if (incoming.getAmount() == 0) {
                 uncontrolAccessInput(accessor);
                 tryRecord(accessor, beforeItemStack, 0);
@@ -1516,7 +1541,7 @@ public class NetworkRoot extends NetworkNode {
             }
 
             blockMenu.markDirty();
-            NetworkTransportUtils.pushIntoMenu(blockMenu, incoming, GREEDY_BLOCK_AVAILABLE_SLOTS[0]);
+            NetworkTransportUtils.pushIntoMenu(blockMenu, incoming, getGreedyBlockSlots(blockMenu));
             // Given we have found a match, it doesn't matter if the item moved or not, we will not bring it in
             return;
         }

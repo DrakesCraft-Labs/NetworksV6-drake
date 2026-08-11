@@ -42,22 +42,31 @@ public class NetworksSlimefunItemStacks {
     public static final SlimefunItemStack NETWORK_CONTROLLER;
     public static final SlimefunItemStack NETWORK_BRIDGE;
     public static final SlimefunItemStack NETWORK_MONITOR;
+    public static final SlimefunItemStack NETWORK_INPUT_ONLY_MONITOR;
+    public static final SlimefunItemStack NETWORK_OUTPUT_ONLY_MONITOR;
     public static final SlimefunItemStack NETWORK_IMPORT;
+    public static final SlimefunItemStack NETWORK_ADVANCED_IMPORT;
     public static final SlimefunItemStack NETWORK_EXPORT;
+    public static final SlimefunItemStack NETWORK_ADVANCED_EXPORT;
     public static final SlimefunItemStack NETWORK_GRABBER;
+    public static final SlimefunItemStack NETWORK_ADVANCED_GRABBER;
     public static final SlimefunItemStack NETWORK_PUSHER;
+    public static final SlimefunItemStack NETWORK_ADVANCED_PUSHER;
     public static final SlimefunItemStack NETWORK_CONTROL_X;
     public static final SlimefunItemStack NETWORK_CONTROL_V;
     public static final SlimefunItemStack NETWORK_VACUUM;
+    public static final SlimefunItemStack NETWORK_ADVANCED_VACUUM;
     public static final SlimefunItemStack NETWORK_VANILLA_GRABBER;
     public static final SlimefunItemStack NETWORK_VANILLA_PUSHER;
     public static final SlimefunItemStack NETWORK_WIRELESS_TRANSMITTER;
     public static final SlimefunItemStack NETWORK_WIRELESS_RECEIVER;
     public static final SlimefunItemStack NETWORK_PURGER;
+    public static final SlimefunItemStack NETWORK_ADVANCED_PURGER;
     public static final SlimefunItemStack NETWORK_GRID;
     public static final SlimefunItemStack NETWORK_CRAFTING_GRID;
     public static final SlimefunItemStack NETWORK_CELL;
     public static final SlimefunItemStack NETWORK_GREEDY_BLOCK;
+    public static final SlimefunItemStack NETWORK_ADVANCED_GREEDY_BLOCK;
     public static final SlimefunItemStack NETWORK_QUANTUM_WORKBENCH;
     public static final SlimefunItemStack NETWORK_QUANTUM_STORAGE_1;
     public static final SlimefunItemStack NETWORK_QUANTUM_STORAGE_2;
@@ -77,6 +86,8 @@ public class NetworksSlimefunItemStacks {
     public static final SlimefunItemStack NETWORK_RECIPE_ENCODER;
     public static final SlimefunItemStack NETWORK_AUTO_CRAFTER;
     public static final SlimefunItemStack NETWORK_AUTO_CRAFTER_WITHHOLDING;
+    public static final SlimefunItemStack NETWORK_ADVANCED_AUTO_CRAFTER;
+    public static final SlimefunItemStack NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING;
 
     // Tools
     public static final SlimefunItemStack CRAFTING_BLUEPRINT;
@@ -249,6 +260,18 @@ public class NetworksSlimefunItemStacks {
             "Accepts items in from cargo."
         );
 
+        NETWORK_ADVANCED_IMPORT = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_IMPORT",
+            new ItemStack(Material.BLUE_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Import",
+            "A double-chest import buffer for",
+            "high-volume network deposits.",
+            "",
+            "Use its Slimefun setting to choose",
+            "how often it transfers items."
+        );
+
         NETWORK_EXPORT = Theme.themedSlimefunItemStack(
             "NTW_EXPORT",
             new ItemStack(Material.BLUE_STAINED_GLASS),
@@ -258,6 +281,19 @@ public class NetworksSlimefunItemStacks {
             "constantly export 1 stack of any",
             "given item.",
             "Accepts item withdrawal from cargo."
+        );
+
+        NETWORK_ADVANCED_EXPORT = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_EXPORT",
+            new ItemStack(Material.PURPLE_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Export",
+            "Request up to eighteen item types",
+            "and deliver them to an eighteen-slot",
+            "output buffer.",
+            "",
+            "Items that cannot fit return to",
+            "the network automatically."
         );
 
         NETWORK_GRABBER = Theme.themedSlimefunItemStack(
@@ -270,6 +306,16 @@ public class NetworksSlimefunItemStacks {
             "from within the selected machine."
         );
 
+        NETWORK_ADVANCED_GRABBER = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_GRABBER",
+            new ItemStack(Material.PURPLE_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Grabber",
+            "Moves up to 3,456 items per cycle",
+            "from the selected external inventory",
+            "into the network."
+        );
+
         NETWORK_PUSHER = Theme.themedSlimefunItemStack(
             "NTW_PUSHER",
             new ItemStack(Material.BROWN_STAINED_GLASS),
@@ -278,6 +324,16 @@ public class NetworksSlimefunItemStacks {
             "The Network Pusher will try",
             "to push a matching item from a",
             "given item into the chosen machine."
+        );
+
+        NETWORK_ADVANCED_PUSHER = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_PUSHER",
+            new ItemStack(Material.BLUE_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Pusher",
+            "Uses up to nine request templates",
+            "and moves up to 3,456 items per cycle",
+            "into the selected external inventory."
         );
 
         NETWORK_CONTROL_X = Theme.themedSlimefunItemStack(
@@ -319,6 +375,18 @@ public class NetworksSlimefunItemStacks {
             "into the Network.",
             "",
             MessageFormat.format("{0}Network Drain: {1}{2}/tick", Theme.CLICK_INFO, Theme.PASSIVE, 100)
+        );
+
+        NETWORK_ADVANCED_VACUUM = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_VACUUM",
+            new ItemStack(Material.LIGHT_BLUE_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Vacuum",
+            "Collects items into an eighteen-slot buffer",
+            "with optional whitelist or blacklist filters.",
+            "Filters can match item type or exact item data.",
+            "",
+            "Items are moved into the network safely."
         );
 
         NETWORK_VANILLA_GRABBER = Theme.themedSlimefunItemStack(
@@ -383,6 +451,18 @@ public class NetworksSlimefunItemStacks {
             "Use with great care!"
         );
 
+        NETWORK_ADVANCED_PURGER = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_PURGER",
+            new ItemStack(Material.RED_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Purger",
+            "Set up to forty-eight purge filters",
+            "to remove unwanted items from",
+            "the network in controlled batches.",
+            "",
+            "Filtered items are destroyed."
+        );
+
         NETWORK_GRID = Theme.themedSlimefunItemStack(
             "NTW_GRID",
             new ItemStack(Material.NOTE_BLOCK),
@@ -427,6 +507,16 @@ public class NetworksSlimefunItemStacks {
             "stack of. If more incoming items",
             "do not fit, they will not enter",
             "the network."
+        );
+
+        NETWORK_ADVANCED_GREEDY_BLOCK = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_GREEDY_BLOCK",
+            new ItemStack(Material.GLOWSTONE),
+            Theme.MACHINE,
+            "Advanced Network Greedy Block",
+            "Stores one matching item in nine slots.",
+            "Works as a larger protected endpoint",
+            "for bulk network storage."
         );
 
         NETWORK_QUANTUM_WORKBENCH = Theme.themedSlimefunItemStack(
@@ -614,6 +704,28 @@ public class NetworksSlimefunItemStacks {
             "Simple, right?"
         );
 
+        NETWORK_INPUT_ONLY_MONITOR = Theme.themedSlimefunItemStack(
+            "NTW_INPUT_ONLY_MONITOR",
+            new ItemStack(Material.LIME_STAINED_GLASS),
+            Theme.MACHINE,
+            "Network Input Monitor",
+            "Connects a storage block to the network",
+            "for deposits only.",
+            "Items can enter, but cannot be pulled",
+            "out through this monitor."
+        );
+
+        NETWORK_OUTPUT_ONLY_MONITOR = Theme.themedSlimefunItemStack(
+            "NTW_OUTPUT_ONLY_MONITOR",
+            new ItemStack(Material.ORANGE_STAINED_GLASS),
+            Theme.MACHINE,
+            "Network Output Monitor",
+            "Connects a storage block to the network",
+            "for withdrawals only.",
+            "Items can leave, but cannot be pushed",
+            "into storage through this monitor."
+        );
+
         NETWORK_RECIPE_ENCODER = Theme.themedSlimefunItemStack(
             "NTW_RECIPE_ENCODER",
             new ItemStack(Material.TARGET),
@@ -659,6 +771,36 @@ public class NetworksSlimefunItemStacks {
             "cargo.",
             "",
             MessageFormat.format("{0}Network Drain: {1}{2}/craft", Theme.CLICK_INFO, Theme.PASSIVE, 128)
+        );
+
+        NETWORK_ADVANCED_AUTO_CRAFTER = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_AUTO_CRAFTER",
+            new ItemStack(Material.CYAN_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Auto Crafter",
+            "Processes a stack of identical",
+            "Crafting Blueprints at once.",
+            "",
+            "Energy and ingredients scale with",
+            "the Blueprints inserted.",
+            "The result must fit in one stack.",
+            "",
+            MessageFormat.format("{0}Network Drain: {1}{2}/blueprint/craft", Theme.CLICK_INFO, Theme.PASSIVE, 96)
+        );
+
+        NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_AUTO_CRAFTER_WITHHOLDING",
+            new ItemStack(Material.LIGHT_BLUE_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Auto Crafter (Withholding)",
+            "Processes stacked Blueprints while",
+            "keeping its output available for cargo.",
+            "",
+            "Energy and ingredients scale with",
+            "the Blueprints inserted.",
+            "The result must fit in one stack.",
+            "",
+            MessageFormat.format("{0}Network Drain: {1}{2}/blueprint/craft", Theme.CLICK_INFO, Theme.PASSIVE, 192)
         );
 
         CRAFTING_BLUEPRINT = Theme.themedSlimefunItemStack(

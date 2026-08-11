@@ -39,7 +39,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -65,14 +64,24 @@ public class NetworkAutoCrafter extends NetworkObject {
 
     private final int chargePerCraft;
     private final boolean withholding;
+    private final boolean stackBlueprints;
 
     private static final Map<Location, BlueprintInstance> INSTANCE_MAP = new ConcurrentHashMap<>();
 
     public NetworkAutoCrafter(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe, int chargePerCraft, boolean withholding) {
+        this(itemGroup, item, recipeType, recipe, chargePerCraft, withholding, false);
+    }
+
+    /**
+     * Advanced crafters may process a stack of identical blueprints in one
+     * atomic operation. Standard crafters deliberately retain single-stack behavior.
+     */
+    public NetworkAutoCrafter(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe, int chargePerCraft, boolean withholding, boolean stackBlueprints) {
         super(itemGroup, item, recipeType, recipe, NodeType.CRAFTER);
 
         this.chargePerCraft = chargePerCraft;
         this.withholding = withholding;
+        this.stackBlueprints = stackBlueprints;
 
         this.getSlotsToDrop().add(BLUEPRINT_SLOT);
         this.getSlotsToDrop().add(OUTPUT_SLOT);
@@ -117,9 +126,11 @@ public class NetworkAutoCrafter extends NetworkObject {
             return;
         }
 
+        final int blueprintAmount = getBlueprintAmount(blueprint);
+        final long requiredCharge = getRequiredCharge(blueprintAmount);
         final long networkCharge = root.getRootPower();
 
-        if (hasSufficientPower(networkCharge, this.chargePerCraft)) {
+        if (hasSufficientPower(networkCharge, requiredCharge)) {
             final SlimefunItem item = SlimefunItem.getByItem(blueprint);
 
             if (!(item instanceof CraftingBlueprint)) {
@@ -142,12 +153,12 @@ public class NetworkAutoCrafter extends NetworkObject {
 
             final ItemStack output = blockMenu.getItemInSlot(OUTPUT_SLOT);
 
-            if (!canFitOutput(output, instance.getItemStack())) {
+            if (!canFitOutput(output, instance.getItemStack(), blueprintAmount)) {
                 return;
             }
 
-            if (tryCraft(blockMenu, instance, root)) {
-                root.removeRootPower(this.chargePerCraft);
+            if (tryCraft(blockMenu, instance, root, blueprintAmount)) {
+                root.removeRootPower(Math.toIntExact(requiredCharge));
             }
         }
     }
@@ -173,7 +184,7 @@ public class NetworkAutoCrafter extends NetworkObject {
         INSTANCE_MAP.remove(location);
     }
 
-    private boolean tryCraft(@Nonnull BlockMenu blockMenu, @Nonnull BlueprintInstance instance, @Nonnull NetworkRoot root) {
+    private boolean tryCraft(@Nonnull BlockMenu blockMenu, @Nonnull BlueprintInstance instance, @Nonnull NetworkRoot root, int blueprintAmount) {
         // Get the recipe input
         final ItemStack[] inputs = new ItemStack[9];
 
@@ -182,7 +193,7 @@ public class NetworkAutoCrafter extends NetworkObject {
         for (int i = 0; i < 9; i++) {
             final ItemStack requested = instance.getRecipeItems()[i];
             if (requested != null) {
-                requests[i] = new ItemRequest(requested, requested.getAmount());
+                requests[i] = new ItemRequest(requested, requested.getAmount() * blueprintAmount);
                 hasInput = true;
             }
         }
@@ -206,7 +217,7 @@ public class NetworkAutoCrafter extends NetworkObject {
             if (instance.getRecipe() == null) {
                 returnItems(root, inputs, blockMenu.getLocation());
                 return false;
-            } else if (Arrays.equals(instance.getRecipeItems(), inputs)) {
+            } else if (matchesBlueprintRecipe(instance.getRecipeItems(), inputs)) {
                 setCache(blockMenu, instance);
                 // CRÍTICO: clonar para no mutar el singleton de Bukkit Recipe
                 crafted = instance.getRecipe().getResult().clone();
@@ -217,6 +228,15 @@ public class NetworkAutoCrafter extends NetworkObject {
         if (crafted == null || crafted.getType() == Material.AIR) {
             returnItems(root, inputs, blockMenu.getLocation());
             return false;
+        }
+
+        if (blueprintAmount > 1) {
+            final long totalAmount = (long) crafted.getAmount() * blueprintAmount;
+            if (totalAmount > crafted.getMaxStackSize()) {
+                returnItems(root, inputs, blockMenu.getLocation());
+                return false;
+            }
+            crafted.setAmount((int) totalAmount);
         }
 
         // Push item
@@ -251,16 +271,57 @@ public class NetworkAutoCrafter extends NetworkObject {
         }
     }
 
-    static boolean hasSufficientPower(long availablePower, int requiredPower) {
+    /**
+     * Recipe identity is item/meta based. Amounts may be multiplied by an
+     * advanced crafter and must not prevent an otherwise valid vanilla recipe.
+     */
+    private static boolean matchesBlueprintRecipe(@Nonnull ItemStack[] recipeItems, @Nonnull ItemStack[] inputs) {
+        if (recipeItems.length != inputs.length) {
+            return false;
+        }
+
+        for (int slot = 0; slot < recipeItems.length; slot++) {
+            if (!StackUtils.itemsMatch(recipeItems[slot], inputs[slot])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    static boolean hasSufficientPower(long availablePower, long requiredPower) {
         return availablePower >= requiredPower;
     }
 
-    static boolean canFitOutput(@Nullable ItemStack currentOutput, @Nonnull ItemStack craftedOutput) {
+    static long getRequiredCharge(int chargePerCraft, int blueprintAmount) {
+        return Math.multiplyExact((long) chargePerCraft, blueprintAmount);
+    }
+
+    static boolean canFitOutput(@Nullable ItemStack currentOutput, @Nonnull ItemStack craftedOutput, int blueprintAmount) {
+        if (blueprintAmount < 1) {
+            return false;
+        }
+
+        final long totalAmount = (long) craftedOutput.getAmount() * blueprintAmount;
+        if (totalAmount > craftedOutput.getMaxStackSize()) {
+            return false;
+        }
         if (currentOutput == null || currentOutput.getType() == Material.AIR) {
             return true;
         }
         return StackUtils.itemsMatch(craftedOutput, currentOutput)
-            && currentOutput.getAmount() + craftedOutput.getAmount() <= currentOutput.getMaxStackSize();
+            && currentOutput.getAmount() + totalAmount <= currentOutput.getMaxStackSize();
+    }
+
+    static boolean canFitOutput(@Nullable ItemStack currentOutput, @Nonnull ItemStack craftedOutput) {
+        return canFitOutput(currentOutput, craftedOutput, 1);
+    }
+
+    private int getBlueprintAmount(@Nonnull ItemStack blueprint) {
+        return this.stackBlueprints ? blueprint.getAmount() : 1;
+    }
+
+    private long getRequiredCharge(int blueprintAmount) {
+        return getRequiredCharge(this.chargePerCraft, blueprintAmount);
     }
 
     public void releaseCache(@Nonnull BlockMenu blockMenu) {

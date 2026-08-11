@@ -35,4 +35,30 @@ class NetworkAutoCrafterTest extends BukkitTestSupport {
             new ItemStack(Material.EMERALD, 1)
         ));
     }
+
+    @Test
+    void advancedCrafterScalesEnergyByBlueprintCount() {
+        assertTrue(NetworkAutoCrafter.hasSufficientPower(
+            384,
+            NetworkAutoCrafter.getRequiredCharge(96, 4)
+        ));
+        assertFalse(NetworkAutoCrafter.hasSufficientPower(
+            383,
+            NetworkAutoCrafter.getRequiredCharge(96, 4)
+        ));
+    }
+
+    @Test
+    void advancedCrafterRejectsResultBeyondOneStack() {
+        assertFalse(NetworkAutoCrafter.canFitOutput(
+            null,
+            new ItemStack(Material.DIAMOND, 32),
+            3
+        ));
+        assertTrue(NetworkAutoCrafter.canFitOutput(
+            new ItemStack(Material.DIAMOND, 32),
+            new ItemStack(Material.DIAMOND, 8),
+            4
+        ));
+    }
 }

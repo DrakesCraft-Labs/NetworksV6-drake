@@ -33,22 +33,31 @@ public class NetworkSlimefunItems {
     public static final NetworkController NETWORK_CONTROLLER;
     public static final NetworkBridge NETWORK_BRIDGE;
     public static final NetworkMonitor NETWORK_MONITOR;
+    public static final NetworkInputOnlyMonitor NETWORK_INPUT_ONLY_MONITOR;
+    public static final NetworkOutputOnlyMonitor NETWORK_OUTPUT_ONLY_MONITOR;
     public static final NetworkImport NETWORK_IMPORT;
+    public static final NetworkAdvancedImport NETWORK_ADVANCED_IMPORT;
     public static final NetworkExport NETWORK_EXPORT;
+    public static final NetworkAdvancedExport NETWORK_ADVANCED_EXPORT;
     public static final NetworkGrabber NETWORK_GRABBER;
+    public static final NetworkAdvancedGrabber NETWORK_ADVANCED_GRABBER;
     public static final NetworkPusher NETWORK_PUSHER;
+    public static final NetworkAdvancedPusher NETWORK_ADVANCED_PUSHER;
     public static final NetworkControlX NETWORK_CONTROL_X;
     public static final NetworkControlV NETWORK_CONTROL_V;
     public static final NetworkVacuum NETWORK_VACUUM;
+    public static final NetworkAdvancedVacuum NETWORK_ADVANCED_VACUUM;
     public static final NetworkVanillaGrabber NETWORK_VANILLA_GRABBER;
     public static final NetworkVanillaPusher NETWORK_VANILLA_PUSHER;
     public static final NetworkWirelessTransmitter NETWORK_WIRELESS_TRANSMITTER;
     public static final NetworkWirelessReceiver NETWORK_WIRELESS_RECEIVER;
     public static final NetworkPurger NETWORK_PURGER;
+    public static final NetworkAdvancedPurger NETWORK_ADVANCED_PURGER;
     public static final NetworkGrid NETWORK_GRID;
     public static final NetworkCraftingGrid NETWORK_CRAFTING_GRID;
     public static final NetworkCell NETWORK_CELL;
     public static final NetworkGreedyBlock NETWORK_GREEDY_BLOCK;
+    public static final NetworkAdvancedGreedyBlock NETWORK_ADVANCED_GREEDY_BLOCK;
     public static final NetworkQuantumWorkbench NETWORK_QUANTUM_WORKBENCH;
     public static final NetworkQuantumStorage NETWORK_QUANTUM_STORAGE_1;
     public static final NetworkQuantumStorage NETWORK_QUANTUM_STORAGE_2;
@@ -68,6 +77,8 @@ public class NetworkSlimefunItems {
     public static final NetworkEncoder NETWORK_RECIPE_ENCODER;
     public static final NetworkAutoCrafter NETWORK_AUTO_CRAFTER;
     public static final NetworkAutoCrafter NETWORK_AUTO_CRAFTER_WITHHOLDING;
+    public static final NetworkAutoCrafter NETWORK_ADVANCED_AUTO_CRAFTER;
+    public static final NetworkAutoCrafter NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING;
 
     public static final CraftingBlueprint CRAFTING_BLUEPRINT;
     public static final NetworkProbe NETWORK_PROBE;
@@ -253,6 +264,28 @@ public class NetworkSlimefunItems {
                         )
         );
 
+        NETWORK_INPUT_ONLY_MONITOR = new NetworkInputOnlyMonitor(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_INPUT_ONLY_MONITOR,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        NETWORK_BRIDGE.getItem(), OPTIC_CABLE.getItem(), NETWORK_BRIDGE.getItem(),
+                        OPTIC_CABLE.getItem(), SlimefunItems.CARGO_INPUT_NODE.getItem().getItem(), OPTIC_CABLE.getItem(),
+                        NETWORK_BRIDGE.getItem(), NETWORK_MONITOR.getItem(), NETWORK_BRIDGE.getItem()
+                )
+        );
+
+        NETWORK_OUTPUT_ONLY_MONITOR = new NetworkOutputOnlyMonitor(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_OUTPUT_ONLY_MONITOR,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        NETWORK_BRIDGE.getItem(), OPTIC_CABLE.getItem(), NETWORK_BRIDGE.getItem(),
+                        OPTIC_CABLE.getItem(), SlimefunItems.CARGO_OUTPUT_NODE_2.getItem().getItem(), OPTIC_CABLE.getItem(),
+                        NETWORK_BRIDGE.getItem(), NETWORK_MONITOR.getItem(), NETWORK_BRIDGE.getItem()
+                )
+        );
+
         NETWORK_IMPORT = new NetworkImport(
                 NetworksItemGroups.NETWORK_ITEMS,
                 NetworksSlimefunItemStacks.NETWORK_IMPORT,
@@ -262,6 +295,17 @@ public class NetworkSlimefunItems {
                         OPTIC_CABLE.getItem(), SlimefunItems.CARGO_INPUT_NODE.getItem().getItem(), OPTIC_CABLE.getItem(),
                         NETWORK_BRIDGE.getItem(), OPTIC_CABLE.getItem(), NETWORK_BRIDGE.getItem()
                         )
+        );
+
+        NETWORK_ADVANCED_IMPORT = new NetworkAdvancedImport(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_IMPORT,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), ADVANCED_NANOBOTS.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_IMPORT.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), SlimefunItems.CARGO_MANAGER.getItem().getItem(), OPTIC_GLASS.getItem()
+                )
         );
 
         NETWORK_EXPORT = new NetworkExport(
@@ -275,6 +319,17 @@ public class NetworkSlimefunItems {
                         )
         );
 
+        NETWORK_ADVANCED_EXPORT = new NetworkAdvancedExport(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_EXPORT,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), ADVANCED_NANOBOTS.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_EXPORT.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), SlimefunItems.CARGO_MANAGER.getItem().getItem(), OPTIC_GLASS.getItem()
+                )
+        );
+
         NETWORK_GRABBER = new NetworkGrabber(
                 NetworksItemGroups.NETWORK_ITEMS,
                 NetworksSlimefunItemStacks.NETWORK_GRABBER,
@@ -286,6 +341,17 @@ public class NetworkSlimefunItems {
                         )
         );
 
+        NETWORK_ADVANCED_GRABBER = new NetworkAdvancedGrabber(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_GRABBER,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), ADVANCED_NANOBOTS.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_GRABBER.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), EMPOWERED_AI_CORE.getItem(), OPTIC_GLASS.getItem()
+                )
+        );
+
         NETWORK_PUSHER = new NetworkPusher(
                 NetworksItemGroups.NETWORK_ITEMS,
                 NetworksSlimefunItemStacks.NETWORK_PUSHER,
@@ -295,6 +361,17 @@ public class NetworkSlimefunItems {
                         OPTIC_CABLE.getItem(), NETWORK_EXPORT.getItem(), OPTIC_CABLE.getItem(),
                         OPTIC_GLASS.getItem(), OPTIC_CABLE.getItem(), OPTIC_GLASS.getItem()
                         )
+        );
+
+        NETWORK_ADVANCED_PUSHER = new NetworkAdvancedPusher(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_PUSHER,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), ADVANCED_NANOBOTS.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_PUSHER.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), EMPOWERED_AI_CORE.getItem(), OPTIC_GLASS.getItem()
+                )
         );
 
         NETWORK_CONTROL_X = new NetworkControlX(
@@ -328,6 +405,17 @@ public class NetworkSlimefunItems {
                         OPTIC_CABLE.getItem(), NetworksSlimefunItemStacks.NETWORK_IMPORT, OPTIC_CABLE.getItem(),
                         OPTIC_GLASS.getItem(), NetworksSlimefunItemStacks.NETWORK_POWER_OUTLET_1, OPTIC_GLASS.getItem()
                         )
+        );
+
+        NETWORK_ADVANCED_VACUUM = new NetworkAdvancedVacuum(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_VACUUM,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), ADVANCED_NANOBOTS.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_VACUUM.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), EMPOWERED_AI_CORE.getItem(), OPTIC_GLASS.getItem()
+                )
         );
 
         NETWORK_VANILLA_GRABBER = new NetworkVanillaGrabber(
@@ -385,6 +473,17 @@ public class NetworkSlimefunItems {
                         )
         );
 
+        NETWORK_ADVANCED_PURGER = new NetworkAdvancedPurger(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_PURGER,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), ADVANCED_NANOBOTS.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_PURGER.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), EMPOWERED_AI_CORE.getItem(), OPTIC_GLASS.getItem()
+                )
+        );
+
         NETWORK_GRID = new NetworkGrid(
                 NetworksItemGroups.NETWORK_ITEMS,
                 NetworksSlimefunItemStacks.NETWORK_GRID,
@@ -427,6 +526,17 @@ public class NetworkSlimefunItems {
                         OPTIC_CABLE.getItem(), NETWORK_CELL.getItem(), OPTIC_CABLE.getItem(),
                         NETWORK_BRIDGE.getItem(), SIMPLE_NANOBOTS.getItem(), NETWORK_BRIDGE.getItem()
                         )
+        );
+
+        NETWORK_ADVANCED_GREEDY_BLOCK = new NetworkAdvancedGreedyBlock(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_GREEDY_BLOCK,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), ADVANCED_NANOBOTS.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_GREEDY_BLOCK.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), EMPOWERED_AI_CORE.getItem(), OPTIC_GLASS.getItem()
+                )
         );
 
         NETWORK_QUANTUM_WORKBENCH = new NetworkQuantumWorkbench(
@@ -656,6 +766,34 @@ public class NetworkSlimefunItems {
                 true
         );
 
+        NETWORK_ADVANCED_AUTO_CRAFTER = new NetworkAutoCrafter(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_AUTO_CRAFTER,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), ADVANCED_NANOBOTS.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_AUTO_CRAFTER.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), EMPOWERED_AI_CORE.getItem(), OPTIC_GLASS.getItem()
+                ),
+                96,
+                false,
+                true
+        );
+
+        NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING = new NetworkAutoCrafter(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), PRISTINE_AI_CORE.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_AUTO_CRAFTER_WITHHOLDING.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), EMPOWERED_AI_CORE.getItem(), OPTIC_GLASS.getItem()
+                ),
+                192,
+                true,
+                true
+        );
+
         CRAFTING_BLUEPRINT = new CraftingBlueprint(
                 NetworksItemGroups.TOOLS,
                 NetworksSlimefunItemStacks.CRAFTING_BLUEPRINT,
@@ -836,22 +974,31 @@ public class NetworkSlimefunItems {
         NETWORK_CONTROLLER.register(plugin);
         NETWORK_BRIDGE.register(plugin);
         NETWORK_MONITOR.register(plugin);
+        NETWORK_INPUT_ONLY_MONITOR.register(plugin);
+        NETWORK_OUTPUT_ONLY_MONITOR.register(plugin);
         NETWORK_IMPORT.register(plugin);
+        NETWORK_ADVANCED_IMPORT.register(plugin);
         NETWORK_EXPORT.register(plugin);
+        NETWORK_ADVANCED_EXPORT.register(plugin);
         NETWORK_GRABBER.register(plugin);
+        NETWORK_ADVANCED_GRABBER.register(plugin);
         NETWORK_PUSHER.register(plugin);
+        NETWORK_ADVANCED_PUSHER.register(plugin);
         NETWORK_CONTROL_X.register(plugin);
         NETWORK_CONTROL_V.register(plugin);
         NETWORK_VACUUM.register(plugin);
+        NETWORK_ADVANCED_VACUUM.register(plugin);
         NETWORK_VANILLA_GRABBER.register(plugin);
         NETWORK_VANILLA_PUSHER.register(plugin);
         NETWORK_WIRELESS_TRANSMITTER.register(plugin);
         NETWORK_WIRELESS_RECEIVER.register(plugin);
         NETWORK_PURGER.register(plugin);
+        NETWORK_ADVANCED_PURGER.register(plugin);
         NETWORK_GRID.register(plugin);
         NETWORK_CRAFTING_GRID.register(plugin);
         NETWORK_CELL.register(plugin);
         NETWORK_GREEDY_BLOCK.register(plugin);
+        NETWORK_ADVANCED_GREEDY_BLOCK.register(plugin);
         NETWORK_QUANTUM_WORKBENCH.register(plugin);
         NETWORK_QUANTUM_STORAGE_1.register(plugin);
         NETWORK_QUANTUM_STORAGE_2.register(plugin);
@@ -871,6 +1018,8 @@ public class NetworkSlimefunItems {
         NETWORK_RECIPE_ENCODER.register(plugin);
         NETWORK_AUTO_CRAFTER.register(plugin);
         NETWORK_AUTO_CRAFTER_WITHHOLDING.register(plugin);
+        NETWORK_ADVANCED_AUTO_CRAFTER.register(plugin);
+        NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING.register(plugin);
 
         CRAFTING_BLUEPRINT.register(plugin);
         NETWORK_PROBE.register(plugin);

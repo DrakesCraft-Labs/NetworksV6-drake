@@ -44,9 +44,21 @@ public class NetworkGreedyBlock extends NetworkObject {
     );
 
     public NetworkGreedyBlock(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
-        super(itemGroup, item, recipeType, recipe, NodeType.GREEDY_BLOCK);
-        this.getSlotsToDrop().add(INPUT_SLOT);
+        this(itemGroup, item, recipeType, recipe, NodeType.GREEDY_BLOCK);
+    }
+
+    protected NetworkGreedyBlock(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe,
+        NodeType nodeType) {
+        super(itemGroup, item, recipeType, recipe, nodeType);
+        for (int slot : getInputSlots()) {
+            this.getSlotsToDrop().add(slot);
+        }
         this.getSlotsToDrop().add(TEMPLATE_SLOT);
+    }
+
+    /** Slots whose stacks are exposed to and stored by the network root. */
+    public int[] getInputSlots() {
+        return new int[]{INPUT_SLOT};
     }
 
     @Override
@@ -70,7 +82,7 @@ public class NetworkGreedyBlock extends NetworkObject {
             @Override
             public int[] getSlotsAccessedByItemTransport(ItemTransportFlow flow) {
                 if (flow == ItemTransportFlow.INSERT) {
-                    return new int[]{INPUT_SLOT};
+                    return getInputSlots();
                 }
                 return new int[0];
             }
