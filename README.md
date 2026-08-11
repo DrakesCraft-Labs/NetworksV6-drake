@@ -62,6 +62,8 @@ for a large, long-lived survival world:
 
 Read [the integrity guide](docs/INTEGRIDAD_DE_RED_DRAKESCRAFT.md) for the
 concrete invariants and smoke tests that protect inventories.
+Read the [NetworksExpansion port matrix](docs/NETWORKSEXPANSION_PORT_MATRIX.md)
+for the native feature boundary and deployment gate.
 
 ## Persistence
 
