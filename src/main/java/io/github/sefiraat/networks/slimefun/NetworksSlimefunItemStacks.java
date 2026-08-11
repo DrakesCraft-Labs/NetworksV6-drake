@@ -77,6 +77,8 @@ public class NetworksSlimefunItemStacks {
     public static final SlimefunItemStack NETWORK_RECIPE_ENCODER;
     public static final SlimefunItemStack NETWORK_AUTO_CRAFTER;
     public static final SlimefunItemStack NETWORK_AUTO_CRAFTER_WITHHOLDING;
+    public static final SlimefunItemStack NETWORK_ADVANCED_AUTO_CRAFTER;
+    public static final SlimefunItemStack NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING;
 
     // Tools
     public static final SlimefunItemStack CRAFTING_BLUEPRINT;
@@ -659,6 +661,36 @@ public class NetworksSlimefunItemStacks {
             "cargo.",
             "",
             MessageFormat.format("{0}Network Drain: {1}{2}/craft", Theme.CLICK_INFO, Theme.PASSIVE, 128)
+        );
+
+        NETWORK_ADVANCED_AUTO_CRAFTER = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_AUTO_CRAFTER",
+            new ItemStack(Material.CYAN_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Auto Crafter",
+            "Processes a stack of identical",
+            "Crafting Blueprints at once.",
+            "",
+            "Energy and ingredients scale with",
+            "the Blueprints inserted.",
+            "The result must fit in one stack.",
+            "",
+            MessageFormat.format("{0}Network Drain: {1}{2}/blueprint/craft", Theme.CLICK_INFO, Theme.PASSIVE, 96)
+        );
+
+        NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_AUTO_CRAFTER_WITHHOLDING",
+            new ItemStack(Material.LIGHT_BLUE_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Auto Crafter (Withholding)",
+            "Processes stacked Blueprints while",
+            "keeping its output available for cargo.",
+            "",
+            "Energy and ingredients scale with",
+            "the Blueprints inserted.",
+            "The result must fit in one stack.",
+            "",
+            MessageFormat.format("{0}Network Drain: {1}{2}/blueprint/craft", Theme.CLICK_INFO, Theme.PASSIVE, 192)
         );
 
         CRAFTING_BLUEPRINT = Theme.themedSlimefunItemStack(

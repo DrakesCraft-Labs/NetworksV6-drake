@@ -31,7 +31,7 @@ single digital network. It is maintained by DrakesCraft Labs for Paper/Purpur
 | Network topology | Controller, bridge, cells, power nodes, capacitors, power outlet and display |
 | Storage | Terminal/grid, quantum workbench, quantum storage tiers and stack-aware searches |
 | Transport | Import, export, grabber, pusher, vanilla grabber/pusher, vacuum and purger |
-| Automation | Recipe encoder, crafting blueprints, auto crafter and withholding auto crafter |
+| Automation | Recipe encoder, crafting blueprints, standard and advanced auto crafters, and withholding variants |
 | Remote work | Wireless transmitter/receiver, remote terminal, probe, configurators, crayon and rake |
 | World operations | Controlled `X`/`V` block actions, monitor and administrative debugger |
 
@@ -52,7 +52,9 @@ for a large, long-lived survival world:
 - **Atomic Quantum Storage:** insertions and withdrawals are serialized per
   storage cell; state is synchronised and marked dirty after mutations.
 - **Controlled auto-crafting:** blueprint validation, output withholding and
-  network reconstruction are protected from stale cache state.
+  network reconstruction are protected from stale cache state. Advanced
+  crafters process blueprint stacks atomically while charging every blueprint
+  and rejecting batches whose result cannot fit in one output stack.
 - **Restart safety:** pending state is persisted during shutdown and runtime
   caches are discarded only after data has been saved.
 - **Data-safe SQL preparation:** an optional, write-only SQLite mirror can audit
@@ -87,6 +89,9 @@ the latest state per location and remains one-way by design. It does **not** run
 Do not install Gugu's `Networks` or `NetworksExpansion` jars beside this addon:
 they are whole Networks forks with the same plugin identity. Useful upstream
 features are ported as reviewed source changes instead.
+
+See [upstream attribution and portability status](docs/UPSTREAM_ATTRIBUTION.md)
+for the source baseline and the compatibility boundary used by this repository.
 
 ---
 

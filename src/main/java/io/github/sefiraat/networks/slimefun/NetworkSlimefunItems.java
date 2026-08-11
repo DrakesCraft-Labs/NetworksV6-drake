@@ -68,6 +68,8 @@ public class NetworkSlimefunItems {
     public static final NetworkEncoder NETWORK_RECIPE_ENCODER;
     public static final NetworkAutoCrafter NETWORK_AUTO_CRAFTER;
     public static final NetworkAutoCrafter NETWORK_AUTO_CRAFTER_WITHHOLDING;
+    public static final NetworkAutoCrafter NETWORK_ADVANCED_AUTO_CRAFTER;
+    public static final NetworkAutoCrafter NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING;
 
     public static final CraftingBlueprint CRAFTING_BLUEPRINT;
     public static final NetworkProbe NETWORK_PROBE;
@@ -656,6 +658,34 @@ public class NetworkSlimefunItems {
                 true
         );
 
+        NETWORK_ADVANCED_AUTO_CRAFTER = new NetworkAutoCrafter(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_AUTO_CRAFTER,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), ADVANCED_NANOBOTS.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_AUTO_CRAFTER.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), EMPOWERED_AI_CORE.getItem(), OPTIC_GLASS.getItem()
+                ),
+                96,
+                false,
+                true
+        );
+
+        NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING = new NetworkAutoCrafter(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), PRISTINE_AI_CORE.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_AUTO_CRAFTER_WITHHOLDING.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), EMPOWERED_AI_CORE.getItem(), OPTIC_GLASS.getItem()
+                ),
+                192,
+                true,
+                true
+        );
+
         CRAFTING_BLUEPRINT = new CraftingBlueprint(
                 NetworksItemGroups.TOOLS,
                 NetworksSlimefunItemStacks.CRAFTING_BLUEPRINT,
@@ -871,6 +901,8 @@ public class NetworkSlimefunItems {
         NETWORK_RECIPE_ENCODER.register(plugin);
         NETWORK_AUTO_CRAFTER.register(plugin);
         NETWORK_AUTO_CRAFTER_WITHHOLDING.register(plugin);
+        NETWORK_ADVANCED_AUTO_CRAFTER.register(plugin);
+        NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING.register(plugin);
 
         CRAFTING_BLUEPRINT.register(plugin);
         NETWORK_PROBE.register(plugin);
