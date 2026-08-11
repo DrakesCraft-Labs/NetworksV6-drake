@@ -29,7 +29,7 @@ single digital network. It is maintained by DrakesCraft Labs for Paper/Purpur
 | Area | Included components |
 | --- | --- |
 | Network topology | Controller, bridge, storage monitor, input-only monitor, output-only monitor, cells, power nodes, capacitors, power outlet and display |
-| Storage | Terminal/grid, quantum workbench, quantum storage tiers and stack-aware searches |
+| Storage | Terminal/grid, quantum workbench, standard and nine-slot greedy blocks, quantum storage tiers and stack-aware searches |
 | Transport | Import, export, grabber, pusher, vanilla grabber/pusher, vacuum and purger |
 | Automation | Recipe encoder, crafting blueprints, standard and advanced auto crafters, filtered advanced vacuums, and withholding variants |
 | Remote work | Wireless transmitter/receiver, remote terminal, probe, configurators, crayon and rake |

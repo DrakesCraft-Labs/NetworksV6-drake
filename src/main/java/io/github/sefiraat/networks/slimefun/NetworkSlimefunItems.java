@@ -55,6 +55,7 @@ public class NetworkSlimefunItems {
     public static final NetworkCraftingGrid NETWORK_CRAFTING_GRID;
     public static final NetworkCell NETWORK_CELL;
     public static final NetworkGreedyBlock NETWORK_GREEDY_BLOCK;
+    public static final NetworkAdvancedGreedyBlock NETWORK_ADVANCED_GREEDY_BLOCK;
     public static final NetworkQuantumWorkbench NETWORK_QUANTUM_WORKBENCH;
     public static final NetworkQuantumStorage NETWORK_QUANTUM_STORAGE_1;
     public static final NetworkQuantumStorage NETWORK_QUANTUM_STORAGE_2;
@@ -501,6 +502,17 @@ public class NetworkSlimefunItems {
                         OPTIC_CABLE.getItem(), NETWORK_CELL.getItem(), OPTIC_CABLE.getItem(),
                         NETWORK_BRIDGE.getItem(), SIMPLE_NANOBOTS.getItem(), NETWORK_BRIDGE.getItem()
                         )
+        );
+
+        NETWORK_ADVANCED_GREEDY_BLOCK = new NetworkAdvancedGreedyBlock(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_GREEDY_BLOCK,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), ADVANCED_NANOBOTS.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_GREEDY_BLOCK.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), EMPOWERED_AI_CORE.getItem(), OPTIC_GLASS.getItem()
+                )
         );
 
         NETWORK_QUANTUM_WORKBENCH = new NetworkQuantumWorkbench(
@@ -960,6 +972,7 @@ public class NetworkSlimefunItems {
         NETWORK_CRAFTING_GRID.register(plugin);
         NETWORK_CELL.register(plugin);
         NETWORK_GREEDY_BLOCK.register(plugin);
+        NETWORK_ADVANCED_GREEDY_BLOCK.register(plugin);
         NETWORK_QUANTUM_WORKBENCH.register(plugin);
         NETWORK_QUANTUM_STORAGE_1.register(plugin);
         NETWORK_QUANTUM_STORAGE_2.register(plugin);

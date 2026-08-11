@@ -71,7 +71,6 @@ public class NetworkRoot extends NetworkNode {
     @Getter
     private final Set<Location> nodeLocations = ConcurrentHashMap.newKeySet();
     private final int[] CELL_AVAILABLE_SLOTS = NetworkCell.SLOTS;
-    private final int[] GREEDY_BLOCK_AVAILABLE_SLOTS = new int[]{NetworkGreedyBlock.INPUT_SLOT};
     @Getter
     private final Set<Location> bridges = ConcurrentHashMap.newKeySet();
     @Getter
@@ -467,7 +466,7 @@ public class NetworkRoot extends NetworkNode {
         }
 
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
-            for (int slot : GREEDY_BLOCK_AVAILABLE_SLOTS) {
+            for (int slot : getGreedyBlockSlots(blockMenu)) {
                 final ItemStack itemStack = blockMenu.getItemInSlot(slot);
                 if (itemStack != null && itemStack.getType() != Material.AIR) {
                     aggregator.add(itemStack, itemStack.getAmount());
@@ -592,6 +591,12 @@ public class NetworkRoot extends NetworkNode {
         return menus;
     }
 
+    /** Resolves the active storage slots from the placed greedy block variant. */
+    private int[] getGreedyBlockSlots(@NotNull BlockMenu menu) {
+        SlimefunItem item = BlockStorage.check(menu.getLocation());
+        return item instanceof NetworkGreedyBlock greedyBlock ? greedyBlock.getInputSlots() : new int[0];
+    }
+
     public synchronized boolean contains(@NotNull ItemStack itemStack) {
         return contains(new ItemRequest(itemStack, 1));
     }
@@ -644,7 +649,7 @@ public class NetworkRoot extends NetworkNode {
 
         // Greedy Blocks
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
-            for (int slot : GREEDY_BLOCK_AVAILABLE_SLOTS) {
+            for (int slot : getGreedyBlockSlots(blockMenu)) {
                 final ItemStack itemStack = blockMenu.getItemInSlot(slot);
                 if (itemStack == null
                         || itemStack.getType() == Material.AIR
@@ -689,7 +694,7 @@ public class NetworkRoot extends NetworkNode {
         long totalAmount = 0;
 
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
-            for (int slot : GREEDY_BLOCK_AVAILABLE_SLOTS) {
+            for (int slot : getGreedyBlockSlots(blockMenu)) {
                 ItemStack inputSlotItem = blockMenu.getItemInSlot(slot);
                 if (inputSlotItem != null && StackUtils.itemsMatch(inputSlotItem, itemStack)) {
                     totalAmount += inputSlotItem.getAmount();
@@ -725,7 +730,7 @@ public class NetworkRoot extends NetworkNode {
         HashMap<ItemStack, Long> totalAmounts = new HashMap<>();
 
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
-            for (int slot : GREEDY_BLOCK_AVAILABLE_SLOTS) {
+            for (int slot : getGreedyBlockSlots(blockMenu)) {
                 ItemStack inputSlotItem = blockMenu.getItemInSlot(slot);
                 if (inputSlotItem != null) {
                     for (ItemStack itemStack : itemStacks) {
@@ -1227,7 +1232,7 @@ public class NetworkRoot extends NetworkNode {
 
         // Greedy Blocks
         for (BlockMenu blockMenu : getGreedyBlockMenus()) {
-            for (int slot : GREEDY_BLOCK_AVAILABLE_SLOTS) {
+            for (int slot : getGreedyBlockSlots(blockMenu)) {
                 final ItemStack itemStack = blockMenu.getItemInSlot(slot);
                 if (itemStack == null
                         || itemStack.getType() == Material.AIR
@@ -1362,7 +1367,7 @@ public class NetworkRoot extends NetworkNode {
             }
 
             blockMenu.markDirty();
-            NetworkTransportUtils.pushIntoMenu(blockMenu, incoming, GREEDY_BLOCK_AVAILABLE_SLOTS[0]);
+            NetworkTransportUtils.pushIntoMenu(blockMenu, incoming, getGreedyBlockSlots(blockMenu));
             if (incoming.getAmount() == 0) {
                 uncontrolAccessInput(accessor);
                 tryRecord(accessor, beforeItemStack, 0);
@@ -1536,7 +1541,7 @@ public class NetworkRoot extends NetworkNode {
             }
 
             blockMenu.markDirty();
-            NetworkTransportUtils.pushIntoMenu(blockMenu, incoming, GREEDY_BLOCK_AVAILABLE_SLOTS[0]);
+            NetworkTransportUtils.pushIntoMenu(blockMenu, incoming, getGreedyBlockSlots(blockMenu));
             // Given we have found a match, it doesn't matter if the item moved or not, we will not bring it in
             return;
         }

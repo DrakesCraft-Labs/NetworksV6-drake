@@ -64,6 +64,7 @@ public class NetworksSlimefunItemStacks {
     public static final SlimefunItemStack NETWORK_CRAFTING_GRID;
     public static final SlimefunItemStack NETWORK_CELL;
     public static final SlimefunItemStack NETWORK_GREEDY_BLOCK;
+    public static final SlimefunItemStack NETWORK_ADVANCED_GREEDY_BLOCK;
     public static final SlimefunItemStack NETWORK_QUANTUM_WORKBENCH;
     public static final SlimefunItemStack NETWORK_QUANTUM_STORAGE_1;
     public static final SlimefunItemStack NETWORK_QUANTUM_STORAGE_2;
@@ -484,6 +485,16 @@ public class NetworksSlimefunItemStacks {
             "stack of. If more incoming items",
             "do not fit, they will not enter",
             "the network."
+        );
+
+        NETWORK_ADVANCED_GREEDY_BLOCK = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_GREEDY_BLOCK",
+            new ItemStack(Material.GLOWSTONE),
+            Theme.MACHINE,
+            "Advanced Network Greedy Block",
+            "Stores one matching item in nine slots.",
+            "Works as a larger protected endpoint",
+            "for bulk network storage."
         );
 
         NETWORK_QUANTUM_WORKBENCH = Theme.themedSlimefunItemStack(

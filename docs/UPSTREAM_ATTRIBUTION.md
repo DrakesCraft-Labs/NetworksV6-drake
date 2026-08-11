@@ -27,6 +27,9 @@ The native ports currently included are:
 - Advanced vacuum: eighteen buffered slots, persistent blacklist/whitelist
   filters and material or exact-item matching, implemented on Drake's legacy
   BlockStorage without Gugu storage dependencies.
+- Advanced greedy block: nine slots for a matching storage template. The Drake
+  root resolves its slots from the placed block, preserving old one-slot greedy
+  blocks and avoiding a storage-data conversion.
 
 The auto-crafter checks keep the operation atomic and prevent item loss or free
 throughput. The monitor port updates the root's input/output caches separately,
