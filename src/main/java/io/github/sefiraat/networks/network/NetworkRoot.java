@@ -338,6 +338,7 @@ public class NetworkRoot extends NetworkNode {
             case WIRELESS_RECEIVER -> wirelessReceivers.add(location);
             case POWER_OUTLET -> powerOutlets.add(location);
         }
+        invalidateBarrelCaches();
     }
 
     /**
@@ -395,6 +396,8 @@ public class NetworkRoot extends NetworkNode {
         nodeLocations.remove(location);
         cells.remove(location);
         monitors.remove(location);
+        inputOnlyMonitors.remove(location);
+        outputOnlyMonitors.remove(location);
         bridges.remove(location);
         importers.remove(location);
         exporters.remove(location);
