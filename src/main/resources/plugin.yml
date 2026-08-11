@@ -5,6 +5,11 @@ main: io.github.sefiraat.networks.Networks
 website: https://github.com/DrakesCraft-Labs/NetworksV6-drake
 version: ${project.version}
 api-version: "1.21"
+
+# Paper descarga esto la primera vez y lo pone en el classpath del plugin, en vez de
+# empaquetarlo. Solo lo usa el espejo SQL opcional del quantum storage.
+libraries:
+  - org.xerial:sqlite-jdbc:3.50.3.0
 depend:
   - Slimefun
 softdepend:

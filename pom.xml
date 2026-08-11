@@ -75,7 +75,6 @@
                         <includes>
                             <include>com.github.drakescraft_labs:sefilib-drake</include>
                             <include>com.github.cryptomorin:XSeries</include>
-                            <include>org.xerial:sqlite-jdbc</include>
                         </includes>
                     </artifactSet>
                     <relocations>
@@ -187,10 +186,21 @@
             <artifactId>XSeries</artifactId>
             <version>${xseries.version}</version>
         </dependency>
+        <!--
+            El driver de SQLite NO se empaqueta: pesa 13 MB y el espejo SQL viene apagado
+            ('persistence.quantum.mode: slimefun'). Empaquetarlo multiplicaba el jar por doce
+            para una funcion que casi nadie va a encender.
+
+            En su lugar lo declara plugin.yml en 'libraries': Paper lo descarga la primera vez
+            y lo pone en el classpath del plugin solo si hace falta. Si aun asi faltara,
+            QuantumStorageMirror.create() ya captura el fallo, avisa en el log y se queda
+            apagado en vez de tumbar el arranque.
+        -->
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.50.3.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.bgsoftware</groupId>
