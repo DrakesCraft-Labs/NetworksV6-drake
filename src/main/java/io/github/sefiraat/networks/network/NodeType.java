@@ -19,6 +19,7 @@ public enum NodeType {
     PASTER,
     VACUUM,
     PURGER,
+    ADVANCED_PURGER,
     CRAFTER,
     POWER_NODE,
     POWER_OUTLET,

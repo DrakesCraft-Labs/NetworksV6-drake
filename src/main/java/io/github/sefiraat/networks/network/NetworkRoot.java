@@ -327,6 +327,7 @@ public class NetworkRoot extends NetworkNode {
             case GRABBER -> grabbers.add(location);
             case PUSHER -> pushers.add(location);
             case PURGER -> purgers.add(location);
+            case ADVANCED_PURGER -> purgers.add(location);
             case CRAFTER -> crafters.add(location);
             case POWER_NODE -> powerNodes.add(location);
             case POWER_DISPLAY -> powerDisplays.add(location);
@@ -366,6 +367,7 @@ public class NetworkRoot extends NetworkNode {
             case GRABBER -> grabbers.remove(location);
             case PUSHER -> pushers.remove(location);
             case PURGER -> purgers.remove(location);
+            case ADVANCED_PURGER -> purgers.remove(location);
             case CRAFTER -> crafters.remove(location);
             case POWER_NODE -> powerNodes.remove(location);
             case POWER_DISPLAY -> powerDisplays.remove(location);

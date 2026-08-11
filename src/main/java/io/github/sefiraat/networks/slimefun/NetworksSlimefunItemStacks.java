@@ -58,6 +58,7 @@ public class NetworksSlimefunItemStacks {
     public static final SlimefunItemStack NETWORK_WIRELESS_TRANSMITTER;
     public static final SlimefunItemStack NETWORK_WIRELESS_RECEIVER;
     public static final SlimefunItemStack NETWORK_PURGER;
+    public static final SlimefunItemStack NETWORK_ADVANCED_PURGER;
     public static final SlimefunItemStack NETWORK_GRID;
     public static final SlimefunItemStack NETWORK_CRAFTING_GRID;
     public static final SlimefunItemStack NETWORK_CELL;
@@ -412,6 +413,18 @@ public class NetworksSlimefunItemStacks {
             "matching items from the network",
             "and instantly void them.",
             "Use with great care!"
+        );
+
+        NETWORK_ADVANCED_PURGER = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_PURGER",
+            new ItemStack(Material.RED_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Purger",
+            "Set up to forty-eight purge filters",
+            "to remove unwanted items from",
+            "the network in controlled batches.",
+            "",
+            "Filtered items are destroyed."
         );
 
         NETWORK_GRID = Theme.themedSlimefunItemStack(

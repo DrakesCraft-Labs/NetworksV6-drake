@@ -49,6 +49,7 @@ public class NetworkSlimefunItems {
     public static final NetworkWirelessTransmitter NETWORK_WIRELESS_TRANSMITTER;
     public static final NetworkWirelessReceiver NETWORK_WIRELESS_RECEIVER;
     public static final NetworkPurger NETWORK_PURGER;
+    public static final NetworkAdvancedPurger NETWORK_ADVANCED_PURGER;
     public static final NetworkGrid NETWORK_GRID;
     public static final NetworkCraftingGrid NETWORK_CRAFTING_GRID;
     public static final NetworkCell NETWORK_CELL;
@@ -433,6 +434,17 @@ public class NetworkSlimefunItems {
                         OPTIC_CABLE.getItem(), SlimefunItems.TRASH_CAN.getItem().getItem(), OPTIC_CABLE.getItem(),
                         OPTIC_GLASS.getItem(), OPTIC_CABLE.getItem(), OPTIC_GLASS.getItem()
                         )
+        );
+
+        NETWORK_ADVANCED_PURGER = new NetworkAdvancedPurger(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_PURGER,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), ADVANCED_NANOBOTS.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_PURGER.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), EMPOWERED_AI_CORE.getItem(), OPTIC_GLASS.getItem()
+                )
         );
 
         NETWORK_GRID = new NetworkGrid(
@@ -930,6 +942,7 @@ public class NetworkSlimefunItems {
         NETWORK_WIRELESS_TRANSMITTER.register(plugin);
         NETWORK_WIRELESS_RECEIVER.register(plugin);
         NETWORK_PURGER.register(plugin);
+        NETWORK_ADVANCED_PURGER.register(plugin);
         NETWORK_GRID.register(plugin);
         NETWORK_CRAFTING_GRID.register(plugin);
         NETWORK_CELL.register(plugin);

@@ -22,6 +22,8 @@ The native ports currently included are:
   synchronized, remainder-safe import path.
 - Advanced export: eighteen templates and eighteen output slots; failed menu
   insertions flow back through the same protected network return path.
+- Advanced purger: up to forty-eight explicit filters, with the standard
+  purger's deliberate destruction semantics and synchronous world access.
 
 The auto-crafter checks keep the operation atomic and prevent item loss or free
 throughput. The monitor port updates the root's input/output caches separately,
