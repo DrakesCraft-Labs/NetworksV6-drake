@@ -24,6 +24,9 @@ The native ports currently included are:
   insertions flow back through the same protected network return path.
 - Advanced purger: up to forty-eight explicit filters, with the standard
   purger's deliberate destruction semantics and synchronous world access.
+- Advanced vacuum: eighteen buffered slots, persistent blacklist/whitelist
+  filters and material or exact-item matching, implemented on Drake's legacy
+  BlockStorage without Gugu storage dependencies.
 
 The auto-crafter checks keep the operation atomic and prevent item loss or free
 throughput. The monitor port updates the root's input/output caches separately,

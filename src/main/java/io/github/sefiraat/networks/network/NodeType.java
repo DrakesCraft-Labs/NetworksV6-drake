@@ -18,6 +18,7 @@ public enum NodeType {
     CUTTER,
     PASTER,
     VACUUM,
+    ADVANCED_VACUUM,
     PURGER,
     ADVANCED_PURGER,
     CRAFTER,

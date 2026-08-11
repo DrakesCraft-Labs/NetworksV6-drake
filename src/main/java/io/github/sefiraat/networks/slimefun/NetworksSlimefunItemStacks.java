@@ -53,6 +53,7 @@ public class NetworksSlimefunItemStacks {
     public static final SlimefunItemStack NETWORK_CONTROL_X;
     public static final SlimefunItemStack NETWORK_CONTROL_V;
     public static final SlimefunItemStack NETWORK_VACUUM;
+    public static final SlimefunItemStack NETWORK_ADVANCED_VACUUM;
     public static final SlimefunItemStack NETWORK_VANILLA_GRABBER;
     public static final SlimefunItemStack NETWORK_VANILLA_PUSHER;
     public static final SlimefunItemStack NETWORK_WIRELESS_TRANSMITTER;
@@ -351,6 +352,18 @@ public class NetworksSlimefunItemStacks {
             "into the Network.",
             "",
             MessageFormat.format("{0}Network Drain: {1}{2}/tick", Theme.CLICK_INFO, Theme.PASSIVE, 100)
+        );
+
+        NETWORK_ADVANCED_VACUUM = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_VACUUM",
+            new ItemStack(Material.LIGHT_BLUE_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Vacuum",
+            "Collects items into an eighteen-slot buffer",
+            "with optional whitelist or blacklist filters.",
+            "Filters can match item type or exact item data.",
+            "",
+            "Items are moved into the network safely."
         );
 
         NETWORK_VANILLA_GRABBER = Theme.themedSlimefunItemStack(

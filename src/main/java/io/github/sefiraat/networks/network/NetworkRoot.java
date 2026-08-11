@@ -335,7 +335,7 @@ public class NetworkRoot extends NetworkNode {
             case GREEDY_BLOCK -> greedyBlocks.add(location);
             case CUTTER -> cutters.add(location);
             case PASTER -> pasters.add(location);
-            case VACUUM -> vacuums.add(location);
+            case VACUUM, ADVANCED_VACUUM -> vacuums.add(location);
             case WIRELESS_TRANSMITTER -> wirelessTransmitters.add(location);
             case WIRELESS_RECEIVER -> wirelessReceivers.add(location);
             case POWER_OUTLET -> powerOutlets.add(location);
@@ -375,7 +375,7 @@ public class NetworkRoot extends NetworkNode {
             case GREEDY_BLOCK -> greedyBlocks.remove(location);
             case CUTTER -> cutters.remove(location);
             case PASTER -> pasters.remove(location);
-            case VACUUM -> vacuums.remove(location);
+            case VACUUM, ADVANCED_VACUUM -> vacuums.remove(location);
             case WIRELESS_TRANSMITTER -> wirelessTransmitters.remove(location);
             case WIRELESS_RECEIVER -> wirelessReceivers.remove(location);
             case POWER_OUTLET -> powerOutlets.remove(location);
