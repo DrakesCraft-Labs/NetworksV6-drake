@@ -33,6 +33,8 @@ public class NetworkSlimefunItems {
     public static final NetworkController NETWORK_CONTROLLER;
     public static final NetworkBridge NETWORK_BRIDGE;
     public static final NetworkMonitor NETWORK_MONITOR;
+    public static final NetworkInputOnlyMonitor NETWORK_INPUT_ONLY_MONITOR;
+    public static final NetworkOutputOnlyMonitor NETWORK_OUTPUT_ONLY_MONITOR;
     public static final NetworkImport NETWORK_IMPORT;
     public static final NetworkExport NETWORK_EXPORT;
     public static final NetworkGrabber NETWORK_GRABBER;
@@ -253,6 +255,28 @@ public class NetworkSlimefunItems {
                         OPTIC_CABLE.getItem(), SlimefunItems.CARGO_MOTOR.getItem().getItem(), OPTIC_CABLE.getItem(),
                         NETWORK_BRIDGE.getItem(), OPTIC_CABLE.getItem(), NETWORK_BRIDGE.getItem()
                         )
+        );
+
+        NETWORK_INPUT_ONLY_MONITOR = new NetworkInputOnlyMonitor(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_INPUT_ONLY_MONITOR,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        NETWORK_BRIDGE.getItem(), OPTIC_CABLE.getItem(), NETWORK_BRIDGE.getItem(),
+                        OPTIC_CABLE.getItem(), SlimefunItems.CARGO_INPUT_NODE.getItem().getItem(), OPTIC_CABLE.getItem(),
+                        NETWORK_BRIDGE.getItem(), NETWORK_MONITOR.getItem(), NETWORK_BRIDGE.getItem()
+                )
+        );
+
+        NETWORK_OUTPUT_ONLY_MONITOR = new NetworkOutputOnlyMonitor(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_OUTPUT_ONLY_MONITOR,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        NETWORK_BRIDGE.getItem(), OPTIC_CABLE.getItem(), NETWORK_BRIDGE.getItem(),
+                        OPTIC_CABLE.getItem(), SlimefunItems.CARGO_OUTPUT_NODE_2.getItem().getItem(), OPTIC_CABLE.getItem(),
+                        NETWORK_BRIDGE.getItem(), NETWORK_MONITOR.getItem(), NETWORK_BRIDGE.getItem()
+                )
         );
 
         NETWORK_IMPORT = new NetworkImport(
@@ -866,6 +890,8 @@ public class NetworkSlimefunItems {
         NETWORK_CONTROLLER.register(plugin);
         NETWORK_BRIDGE.register(plugin);
         NETWORK_MONITOR.register(plugin);
+        NETWORK_INPUT_ONLY_MONITOR.register(plugin);
+        NETWORK_OUTPUT_ONLY_MONITOR.register(plugin);
         NETWORK_IMPORT.register(plugin);
         NETWORK_EXPORT.register(plugin);
         NETWORK_GRABBER.register(plugin);

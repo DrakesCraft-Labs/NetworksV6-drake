@@ -42,6 +42,8 @@ public class NetworksSlimefunItemStacks {
     public static final SlimefunItemStack NETWORK_CONTROLLER;
     public static final SlimefunItemStack NETWORK_BRIDGE;
     public static final SlimefunItemStack NETWORK_MONITOR;
+    public static final SlimefunItemStack NETWORK_INPUT_ONLY_MONITOR;
+    public static final SlimefunItemStack NETWORK_OUTPUT_ONLY_MONITOR;
     public static final SlimefunItemStack NETWORK_IMPORT;
     public static final SlimefunItemStack NETWORK_EXPORT;
     public static final SlimefunItemStack NETWORK_GRABBER;
@@ -614,6 +616,28 @@ public class NetworksSlimefunItemStacks {
             "The Network Power Display will",
             "display the power in the network.",
             "Simple, right?"
+        );
+
+        NETWORK_INPUT_ONLY_MONITOR = Theme.themedSlimefunItemStack(
+            "NTW_INPUT_ONLY_MONITOR",
+            new ItemStack(Material.LIME_STAINED_GLASS),
+            Theme.MACHINE,
+            "Network Input Monitor",
+            "Connects a storage block to the network",
+            "for deposits only.",
+            "Items can enter, but cannot be pulled",
+            "out through this monitor."
+        );
+
+        NETWORK_OUTPUT_ONLY_MONITOR = Theme.themedSlimefunItemStack(
+            "NTW_OUTPUT_ONLY_MONITOR",
+            new ItemStack(Material.ORANGE_STAINED_GLASS),
+            Theme.MACHINE,
+            "Network Output Monitor",
+            "Connects a storage block to the network",
+            "for withdrawals only.",
+            "Items can leave, but cannot be pushed",
+            "into storage through this monitor."
         );
 
         NETWORK_RECIPE_ENCODER = Theme.themedSlimefunItemStack(

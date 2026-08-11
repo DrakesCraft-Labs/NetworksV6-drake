@@ -77,6 +77,10 @@ public class NetworkRoot extends NetworkNode {
     @Getter
     private final Set<Location> monitors = ConcurrentHashMap.newKeySet();
     @Getter
+    private final Set<Location> inputOnlyMonitors = ConcurrentHashMap.newKeySet();
+    @Getter
+    private final Set<Location> outputOnlyMonitors = ConcurrentHashMap.newKeySet();
+    @Getter
     private final Set<Location> importers = ConcurrentHashMap.newKeySet();
     @Getter
     private final Set<Location> exporters = ConcurrentHashMap.newKeySet();
@@ -312,6 +316,8 @@ public class NetworkRoot extends NetworkNode {
             case CONTROLLER -> this.controller = location;
             case BRIDGE -> bridges.add(location);
             case STORAGE_MONITOR -> monitors.add(location);
+            case INPUT_ONLY_MONITOR -> inputOnlyMonitors.add(location);
+            case OUTPUT_ONLY_MONITOR -> outputOnlyMonitors.add(location);
             case IMPORT -> importers.add(location);
             case EXPORT -> exporters.add(location);
             case GRID -> grids.add(location);
@@ -346,6 +352,8 @@ public class NetworkRoot extends NetworkNode {
             }
             case BRIDGE -> bridges.remove(location);
             case STORAGE_MONITOR -> monitors.remove(location);
+            case INPUT_ONLY_MONITOR -> inputOnlyMonitors.remove(location);
+            case OUTPUT_ONLY_MONITOR -> outputOnlyMonitors.remove(location);
             case IMPORT -> importers.remove(location);
             case EXPORT -> exporters.remove(location);
             case GRID -> grids.remove(location);
@@ -840,6 +848,7 @@ public class NetworkRoot extends NetworkNode {
 
         final Set<Location> monitor = new HashSet<>();
         monitor.addAll(this.monitors);
+        monitor.addAll(this.inputOnlyMonitors);
         for (Location cellLocation : monitor) {
             final BlockFace face = NetworkDirectional.getSelectedFace(cellLocation);
 
@@ -898,12 +907,14 @@ public class NetworkRoot extends NetworkNode {
         }
 
         NetworkIntegrity.pruneStaleLocations(this.monitors, NetworkMonitor.class);
+        NetworkIntegrity.pruneStaleLocations(this.outputOnlyMonitors, NetworkDirectional.class);
 
         final Set<Location> addedLocations = ConcurrentHashMap.newKeySet();
         final Set<BarrelIdentity> barrelSet = ConcurrentHashMap.newKeySet();
 
         final Set<Location> monitor = new HashSet<>();
         monitor.addAll(this.monitors);
+        monitor.addAll(this.outputOnlyMonitors);
         for (Location cellLocation : monitor) {
             final BlockFace face = NetworkDirectional.getSelectedFace(cellLocation);
 
