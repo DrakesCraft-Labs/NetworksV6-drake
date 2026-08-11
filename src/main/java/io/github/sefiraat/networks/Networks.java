@@ -12,6 +12,7 @@ import io.github.sefiraat.networks.listeners.SyncListener;
 import io.github.sefiraat.networks.managers.ListenerManager;
 import io.github.sefiraat.networks.managers.SupportedPluginManager;
 import io.github.sefiraat.networks.network.SupportedRecipes;
+import io.github.sefiraat.networks.persistence.QuantumStorageMirror;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import io.github.sefiraat.networks.slimefun.network.NetworkController;
 import io.github.sefiraat.networks.slimefun.network.NetworkQuantumStorage;
@@ -41,6 +42,7 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
 
     private ListenerManager listenerManager;
     private SupportedPluginManager supportedPluginManager;
+    private QuantumStorageMirror quantumStorageMirror;
 
     public Networks() {
         this.username = "DrakesCraft-Labs";
@@ -59,6 +61,7 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
         getLogger().info("########################################");
 
         saveDefaultConfig();
+        this.quantumStorageMirror = QuantumStorageMirror.create(this);
 
         this.supportedPluginManager = new SupportedPluginManager();
         setupSlimefun();
@@ -125,6 +128,9 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
         }
         
         saveData();
+        if (quantumStorageMirror != null) {
+            quantumStorageMirror.close();
+        }
         NetworkQuantumStorage.clearRuntimeCache();
         NetworkController.clearRuntimeState();
         NetworkRoot.clearRuntimeHistory();
@@ -239,5 +245,12 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
 
     public static ListenerManager getListenerManager() {
         return Networks.getInstance().listenerManager;
+    }
+
+    /** Records a quantum state in the optional SQL mirror without changing Slimefun persistence. */
+    public void recordQuantumStorage(@Nonnull Location location, @Nonnull io.github.sefiraat.networks.network.stackcaches.QuantumCache cache) {
+        if (quantumStorageMirror != null) {
+            quantumStorageMirror.record(location, cache);
+        }
     }
 }

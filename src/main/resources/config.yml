@@ -1,1 +1,9 @@
 auto-update: false
+
+# Slimefun BlockStorage is always authoritative. mirror-sql is an opt-in audit mirror only;
+# it never restores or deletes existing machine data.
+persistence:
+  quantum:
+    mode: slimefun
+    sqlite-file: quantum-storage-mirror.db
+    flush-seconds: 5

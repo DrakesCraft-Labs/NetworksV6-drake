@@ -1,5 +1,6 @@
 package io.github.sefiraat.networks.slimefun.network;
 
+import io.github.sefiraat.networks.Networks;
 import io.github.sefiraat.networks.network.stackcaches.QuantumCache;
 import io.github.sefiraat.networks.utils.*;
 import io.github.sefiraat.networks.utils.datatypes.DataTypeMethods;
@@ -505,6 +506,7 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
     private static void syncBlock(@Nonnull Location location, @Nonnull QuantumCache cache) {
         BlockStorage.addBlockInfo(location, BS_AMOUNT, String.valueOf(cache.getAmount()));
         BlockStorage.addBlockInfo(location, BS_VOID, String.valueOf(cache.isVoidExcess()));
+        Networks.getInstance().recordQuantumStorage(location, cache);
     }
 
     public static Map<Location, QuantumCache> getCaches() {

@@ -71,6 +71,21 @@ coincidir con la lógica, recetas o protecciones anti-dupe activas.
   reproducirlo en [Issues](https://github.com/DrakesCraft-Labs/NetworksV6-drake/issues).
 - Conservamos los avisos de licencia y autoría original requeridos por los forks.
 
+### Persistencia de Quantum Storage
+
+Los Quantum Storage conservan como fuente de verdad el `BlockStorage` de Slimefun.
+Para auditoría o una futura migración explícita, se puede activar un espejo SQLite
+sin leerlo ni restaurar inventarios desde él:
+
+```yml
+persistence:
+  quantum:
+    mode: mirror-sql
+```
+
+El espejo sólo coalescea escrituras y nunca borra ni reemplaza datos existentes. No
+activa una migración de Slimefun ni convierte datos legacy a SQL.
+
 ---
 
 <div align="center">
