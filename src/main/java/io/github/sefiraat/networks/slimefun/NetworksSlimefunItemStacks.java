@@ -49,7 +49,9 @@ public class NetworksSlimefunItemStacks {
     public static final SlimefunItemStack NETWORK_EXPORT;
     public static final SlimefunItemStack NETWORK_ADVANCED_EXPORT;
     public static final SlimefunItemStack NETWORK_GRABBER;
+    public static final SlimefunItemStack NETWORK_ADVANCED_GRABBER;
     public static final SlimefunItemStack NETWORK_PUSHER;
+    public static final SlimefunItemStack NETWORK_ADVANCED_PUSHER;
     public static final SlimefunItemStack NETWORK_CONTROL_X;
     public static final SlimefunItemStack NETWORK_CONTROL_V;
     public static final SlimefunItemStack NETWORK_VACUUM;
@@ -304,6 +306,16 @@ public class NetworksSlimefunItemStacks {
             "from within the selected machine."
         );
 
+        NETWORK_ADVANCED_GRABBER = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_GRABBER",
+            new ItemStack(Material.PURPLE_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Grabber",
+            "Moves up to 3,456 items per cycle",
+            "from the selected external inventory",
+            "into the network."
+        );
+
         NETWORK_PUSHER = Theme.themedSlimefunItemStack(
             "NTW_PUSHER",
             new ItemStack(Material.BROWN_STAINED_GLASS),
@@ -312,6 +324,16 @@ public class NetworksSlimefunItemStacks {
             "The Network Pusher will try",
             "to push a matching item from a",
             "given item into the chosen machine."
+        );
+
+        NETWORK_ADVANCED_PUSHER = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_PUSHER",
+            new ItemStack(Material.BLUE_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Pusher",
+            "Uses up to nine request templates",
+            "and moves up to 3,456 items per cycle",
+            "into the selected external inventory."
         );
 
         NETWORK_CONTROL_X = Theme.themedSlimefunItemStack(

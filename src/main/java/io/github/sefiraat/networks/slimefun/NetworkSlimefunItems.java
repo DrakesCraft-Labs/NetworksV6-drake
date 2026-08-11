@@ -40,7 +40,9 @@ public class NetworkSlimefunItems {
     public static final NetworkExport NETWORK_EXPORT;
     public static final NetworkAdvancedExport NETWORK_ADVANCED_EXPORT;
     public static final NetworkGrabber NETWORK_GRABBER;
+    public static final NetworkAdvancedGrabber NETWORK_ADVANCED_GRABBER;
     public static final NetworkPusher NETWORK_PUSHER;
+    public static final NetworkAdvancedPusher NETWORK_ADVANCED_PUSHER;
     public static final NetworkControlX NETWORK_CONTROL_X;
     public static final NetworkControlV NETWORK_CONTROL_V;
     public static final NetworkVacuum NETWORK_VACUUM;
@@ -339,6 +341,17 @@ public class NetworkSlimefunItems {
                         )
         );
 
+        NETWORK_ADVANCED_GRABBER = new NetworkAdvancedGrabber(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_GRABBER,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), ADVANCED_NANOBOTS.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_GRABBER.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), EMPOWERED_AI_CORE.getItem(), OPTIC_GLASS.getItem()
+                )
+        );
+
         NETWORK_PUSHER = new NetworkPusher(
                 NetworksItemGroups.NETWORK_ITEMS,
                 NetworksSlimefunItemStacks.NETWORK_PUSHER,
@@ -348,6 +361,17 @@ public class NetworkSlimefunItems {
                         OPTIC_CABLE.getItem(), NETWORK_EXPORT.getItem(), OPTIC_CABLE.getItem(),
                         OPTIC_GLASS.getItem(), OPTIC_CABLE.getItem(), OPTIC_GLASS.getItem()
                         )
+        );
+
+        NETWORK_ADVANCED_PUSHER = new NetworkAdvancedPusher(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_PUSHER,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), ADVANCED_NANOBOTS.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_PUSHER.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), EMPOWERED_AI_CORE.getItem(), OPTIC_GLASS.getItem()
+                )
         );
 
         NETWORK_CONTROL_X = new NetworkControlX(
@@ -957,7 +981,9 @@ public class NetworkSlimefunItems {
         NETWORK_EXPORT.register(plugin);
         NETWORK_ADVANCED_EXPORT.register(plugin);
         NETWORK_GRABBER.register(plugin);
+        NETWORK_ADVANCED_GRABBER.register(plugin);
         NETWORK_PUSHER.register(plugin);
+        NETWORK_ADVANCED_PUSHER.register(plugin);
         NETWORK_CONTROL_X.register(plugin);
         NETWORK_CONTROL_V.register(plugin);
         NETWORK_VACUUM.register(plugin);

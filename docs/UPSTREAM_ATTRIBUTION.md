@@ -30,6 +30,9 @@ The native ports currently included are:
 - Advanced greedy block: nine slots for a matching storage template. The Drake
   root resolves its slots from the placed block, preserving old one-slot greedy
   blocks and avoiding a storage-data conversion.
+- Advanced grabber and pusher: bounded high-throughput directional transport.
+  Both use the Drake transport utility, so failed insertions return to the
+  source network rather than disappearing or creating duplicate stacks.
 
 The auto-crafter checks keep the operation atomic and prevent item loss or free
 throughput. The monitor port updates the root's input/output caches separately,
