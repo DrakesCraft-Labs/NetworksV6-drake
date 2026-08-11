@@ -18,6 +18,8 @@ The native ports currently included are:
   blueprint and refuses a batch whose result cannot fit in one inventory stack.
 - Input-only and output-only monitors: directional storage links which make the
   intended one-way flow explicit without changing a player's existing monitors.
+- Advanced import: a 54-slot buffer that transfers through Drake's existing
+  synchronized, remainder-safe import path.
 
 The auto-crafter checks keep the operation atomic and prevent item loss or free
 throughput. The monitor port updates the root's input/output caches separately,

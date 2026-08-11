@@ -45,6 +45,7 @@ public class NetworksSlimefunItemStacks {
     public static final SlimefunItemStack NETWORK_INPUT_ONLY_MONITOR;
     public static final SlimefunItemStack NETWORK_OUTPUT_ONLY_MONITOR;
     public static final SlimefunItemStack NETWORK_IMPORT;
+    public static final SlimefunItemStack NETWORK_ADVANCED_IMPORT;
     public static final SlimefunItemStack NETWORK_EXPORT;
     public static final SlimefunItemStack NETWORK_GRABBER;
     public static final SlimefunItemStack NETWORK_PUSHER;
@@ -251,6 +252,18 @@ public class NetworksSlimefunItemStacks {
             "item inside it into the network, up",
             "to 9 stacks per SF tick.",
             "Accepts items in from cargo."
+        );
+
+        NETWORK_ADVANCED_IMPORT = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_IMPORT",
+            new ItemStack(Material.BLUE_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Import",
+            "A double-chest import buffer for",
+            "high-volume network deposits.",
+            "",
+            "Use its Slimefun setting to choose",
+            "how often it transfers items."
         );
 
         NETWORK_EXPORT = Theme.themedSlimefunItemStack(

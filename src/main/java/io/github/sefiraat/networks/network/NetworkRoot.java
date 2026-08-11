@@ -319,6 +319,7 @@ public class NetworkRoot extends NetworkNode {
             case INPUT_ONLY_MONITOR -> inputOnlyMonitors.add(location);
             case OUTPUT_ONLY_MONITOR -> outputOnlyMonitors.add(location);
             case IMPORT -> importers.add(location);
+            case ADVANCED_IMPORT -> importers.add(location);
             case EXPORT -> exporters.add(location);
             case GRID -> grids.add(location);
             case CELL -> cells.add(location);
@@ -355,6 +356,7 @@ public class NetworkRoot extends NetworkNode {
             case INPUT_ONLY_MONITOR -> inputOnlyMonitors.remove(location);
             case OUTPUT_ONLY_MONITOR -> outputOnlyMonitors.remove(location);
             case IMPORT -> importers.remove(location);
+            case ADVANCED_IMPORT -> importers.remove(location);
             case EXPORT -> exporters.remove(location);
             case GRID -> grids.remove(location);
             case CELL -> cells.remove(location);

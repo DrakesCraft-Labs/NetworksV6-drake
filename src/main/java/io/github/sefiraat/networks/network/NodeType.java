@@ -7,6 +7,7 @@ public enum NodeType {
     INPUT_ONLY_MONITOR,
     OUTPUT_ONLY_MONITOR,
     IMPORT,
+    ADVANCED_IMPORT,
     EXPORT,
     GRID,
     CELL,

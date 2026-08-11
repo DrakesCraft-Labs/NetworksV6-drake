@@ -36,6 +36,7 @@ public class NetworkSlimefunItems {
     public static final NetworkInputOnlyMonitor NETWORK_INPUT_ONLY_MONITOR;
     public static final NetworkOutputOnlyMonitor NETWORK_OUTPUT_ONLY_MONITOR;
     public static final NetworkImport NETWORK_IMPORT;
+    public static final NetworkAdvancedImport NETWORK_ADVANCED_IMPORT;
     public static final NetworkExport NETWORK_EXPORT;
     public static final NetworkGrabber NETWORK_GRABBER;
     public static final NetworkPusher NETWORK_PUSHER;
@@ -288,6 +289,17 @@ public class NetworkSlimefunItems {
                         OPTIC_CABLE.getItem(), SlimefunItems.CARGO_INPUT_NODE.getItem().getItem(), OPTIC_CABLE.getItem(),
                         NETWORK_BRIDGE.getItem(), OPTIC_CABLE.getItem(), NETWORK_BRIDGE.getItem()
                         )
+        );
+
+        NETWORK_ADVANCED_IMPORT = new NetworkAdvancedImport(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_ADVANCED_IMPORT,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        OPTIC_GLASS.getItem(), ADVANCED_NANOBOTS.getItem(), OPTIC_GLASS.getItem(),
+                        OPTIC_CABLE.getItem(), NETWORK_IMPORT.getItem(), OPTIC_CABLE.getItem(),
+                        OPTIC_GLASS.getItem(), SlimefunItems.CARGO_MANAGER.getItem().getItem(), OPTIC_GLASS.getItem()
+                )
         );
 
         NETWORK_EXPORT = new NetworkExport(
@@ -893,6 +905,7 @@ public class NetworkSlimefunItems {
         NETWORK_INPUT_ONLY_MONITOR.register(plugin);
         NETWORK_OUTPUT_ONLY_MONITOR.register(plugin);
         NETWORK_IMPORT.register(plugin);
+        NETWORK_ADVANCED_IMPORT.register(plugin);
         NETWORK_EXPORT.register(plugin);
         NETWORK_GRABBER.register(plugin);
         NETWORK_PUSHER.register(plugin);
