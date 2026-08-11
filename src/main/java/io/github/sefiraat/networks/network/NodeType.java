@@ -9,6 +9,7 @@ public enum NodeType {
     IMPORT,
     ADVANCED_IMPORT,
     EXPORT,
+    ADVANCED_EXPORT,
     GRID,
     CELL,
     WIPER,

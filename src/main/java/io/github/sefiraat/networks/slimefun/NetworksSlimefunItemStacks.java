@@ -47,6 +47,7 @@ public class NetworksSlimefunItemStacks {
     public static final SlimefunItemStack NETWORK_IMPORT;
     public static final SlimefunItemStack NETWORK_ADVANCED_IMPORT;
     public static final SlimefunItemStack NETWORK_EXPORT;
+    public static final SlimefunItemStack NETWORK_ADVANCED_EXPORT;
     public static final SlimefunItemStack NETWORK_GRABBER;
     public static final SlimefunItemStack NETWORK_PUSHER;
     public static final SlimefunItemStack NETWORK_CONTROL_X;
@@ -275,6 +276,19 @@ public class NetworksSlimefunItemStacks {
             "constantly export 1 stack of any",
             "given item.",
             "Accepts item withdrawal from cargo."
+        );
+
+        NETWORK_ADVANCED_EXPORT = Theme.themedSlimefunItemStack(
+            "NTW_ADVANCED_EXPORT",
+            new ItemStack(Material.PURPLE_GLAZED_TERRACOTTA),
+            Theme.MACHINE,
+            "Advanced Network Export",
+            "Request up to eighteen item types",
+            "and deliver them to an eighteen-slot",
+            "output buffer.",
+            "",
+            "Items that cannot fit return to",
+            "the network automatically."
         );
 
         NETWORK_GRABBER = Theme.themedSlimefunItemStack(

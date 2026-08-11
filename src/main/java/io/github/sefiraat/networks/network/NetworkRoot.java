@@ -321,6 +321,7 @@ public class NetworkRoot extends NetworkNode {
             case IMPORT -> importers.add(location);
             case ADVANCED_IMPORT -> importers.add(location);
             case EXPORT -> exporters.add(location);
+            case ADVANCED_EXPORT -> exporters.add(location);
             case GRID -> grids.add(location);
             case CELL -> cells.add(location);
             case GRABBER -> grabbers.add(location);
@@ -359,6 +360,7 @@ public class NetworkRoot extends NetworkNode {
             case IMPORT -> importers.remove(location);
             case ADVANCED_IMPORT -> importers.remove(location);
             case EXPORT -> exporters.remove(location);
+            case ADVANCED_EXPORT -> exporters.remove(location);
             case GRID -> grids.remove(location);
             case CELL -> cells.remove(location);
             case GRABBER -> grabbers.remove(location);
