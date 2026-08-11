@@ -35,15 +35,20 @@ public class QuantumCache extends ItemStackCache {
         return this.storedItemMeta;
     }
 
-    public int getAmount() {
+    public synchronized int getAmount() {
         return amount;
     }
 
-    public void setAmount(int amount) {
+    public synchronized void setAmount(int amount) {
         this.amount = amount;
     }
 
-    public int increaseAmount(int amount) {
+    /**
+     * Applies an insertion atomically for this storage cell. Quantum storage can be reached by
+     * menus, ticks and network requests in close succession; keeping the amount mutation together
+     * prevents a stale read from producing a duplicate withdrawal.
+     */
+    public synchronized int increaseAmount(int amount) {
         long total = (long) this.amount + (long) amount;
         if (total > this.limit) {
             this.amount = this.limit;
@@ -56,7 +61,7 @@ public class QuantumCache extends ItemStackCache {
         return 0;
     }
 
-    public void reduceAmount(int amount) {
+    public synchronized void reduceAmount(int amount) {
         this.amount = Math.max(0, this.amount - amount);
     }
 
@@ -64,7 +69,7 @@ public class QuantumCache extends ItemStackCache {
         return limit;
     }
 
-    public boolean isVoidExcess() {
+    public synchronized boolean isVoidExcess() {
         return voidExcess;
     }
 
@@ -72,12 +77,12 @@ public class QuantumCache extends ItemStackCache {
         return supportsCustomMaxAmount;
     }
 
-    public void setVoidExcess(boolean voidExcess) {
+    public synchronized void setVoidExcess(boolean voidExcess) {
         this.voidExcess = voidExcess;
     }
 
     @Nullable
-    public ItemStack withdrawItem(int amount) {
+    public synchronized ItemStack withdrawItem(int amount) {
         if (this.getItemStack() == null || this.amount <= 0) {
             return null;
         }
@@ -89,7 +94,7 @@ public class QuantumCache extends ItemStackCache {
     }
 
     @Nullable
-    public ItemStack withdrawItem() {
+    public synchronized ItemStack withdrawItem() {
         if (this.getItemStack() == null) {
             return null;
         }
