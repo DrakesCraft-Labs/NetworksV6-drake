@@ -117,7 +117,7 @@ public class NetworkSlimefunItems {
                         glass, glass, glass,
                         glass, SYNTHETIC_EMERALD_SHARD.getItem(), glass,
                         glass, glass, glass
-                ),// 试试能不能跑
+                ), // Compatibility recipe for the Drake core
                 Converter.getItem(NetworksSlimefunItemStacks.OPTIC_GLASS, 8)
         );
 

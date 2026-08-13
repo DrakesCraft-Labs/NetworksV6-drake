@@ -62,9 +62,7 @@ public class BlockStateRefreshListener implements Listener {
         return bp(block.getX(), block.getY(), block.getZ());
     }
 
-    //我们先用timeit测了，你测还是我测，我16g，现在还剩2g
-    //你内存多少，im 16g，那我来 :|
-    // 那我测官方版的
+    // Refresh profiling is intentionally kept out of the production listener.
     static long bp(int x, int y, int z) {
         return BlockPosition.getAsLong(x, y, z);
     }

@@ -1011,13 +1011,13 @@ public class NetworkRoot extends NetworkNode {
     }
 
     public synchronized ItemStack getItemStack0(@NotNull Location accessor, @NotNull ItemRequest request) {
-        ItemStack stackToReturn = null; // 按F8
+        ItemStack stackToReturn = null;
 
-        if (request.getAmount() <= 0) {// 按F8
+        if (request.getAmount() <= 0) {
             return null;
         }
 
-        if (!allowAccessOutput(accessor)) {// 按F8
+        if (!allowAccessOutput(accessor)) {
             return null;
         }
 
@@ -1028,9 +1028,9 @@ public class NetworkRoot extends NetworkNode {
             boolean found = false;
             List<Location> misses = new ArrayList<>();
             // Netex - Cache end
-            for (Map.Entry<Location, Integer> entry : m.entrySet()) { // 到这里
+            for (Map.Entry<Location, Integer> entry : m.entrySet()) {
                 // try cache first
-                BarrelIdentity barrelIdentity = accessOutputAbleBarrel(entry.getKey()); // 到这里
+                BarrelIdentity barrelIdentity = accessOutputAbleBarrel(entry.getKey());
                 if (barrelIdentity != null) {
                     final ItemStack itemStack = barrelIdentity.getItemStack();
 
@@ -1085,13 +1085,13 @@ public class NetworkRoot extends NetworkNode {
                 for (Location miss : misses) {
                     minusCacheMiss(accessor, miss);
                 }
-            } // 到这里
+            }
             // Netex - Cache end
         }
 
         // Barrels first
-        for (BarrelIdentity barrelIdentity : getOutputAbleBarrels()) { // outputable barrels size 是 0,
-            // <editor-fold desc="do barrel"> // 你有放存储吗， CELL，只有单元？yea 量子肯定可以
+        for (BarrelIdentity barrelIdentity : getOutputAbleBarrels()) {
+            // <editor-fold desc="do barrel">
             final ItemStack itemStack = barrelIdentity.getItemStack();
 
             if (itemStack == null || !StackUtils.itemsMatch(request.getItemStack(), itemStack)) {
