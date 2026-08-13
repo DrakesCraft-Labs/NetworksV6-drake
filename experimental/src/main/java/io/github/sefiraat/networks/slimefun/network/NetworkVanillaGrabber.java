@@ -119,7 +119,7 @@ public class NetworkVanillaGrabber extends NetworkDirectional {
         } else if (inventory instanceof BrewerInventory brewerInventory) {
             for (int i = 0; i < 3; i++) {
                 final ItemStack stack = brewerInventory.getContents()[i];
-                if (stack != null && stack.getType() != Material.AIR) { // 网拓复制过来的，包能跑
+                if (stack != null && stack.getType() != Material.AIR) { // Mirrors the expansion behavior for compatibility.
                     final PotionMeta potionMeta = (PotionMeta) stack.getItemMeta();
                     if (Slimefun.getMinecraftVersion().isAtLeast(com.github.drakescraft_labs.slimefun4.api.MinecraftVersion.MINECRAFT_1_20_5)) {
                         // 1.20.5 or higher

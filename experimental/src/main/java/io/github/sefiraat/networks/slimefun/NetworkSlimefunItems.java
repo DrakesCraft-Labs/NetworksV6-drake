@@ -123,7 +123,7 @@ public class NetworkSlimefunItems {
                         glass, glass, glass,
                         glass, SYNTHETIC_EMERALD_SHARD.getItem(), glass,
                         glass, glass, glass
-                ),// 试试能不能跑
+                ), // Experimental registration retained for compatibility testing.
                 Converter.getItem(NetworksSlimefunItemStacks.OPTIC_GLASS, 8)
         );
 
