@@ -63,11 +63,10 @@ public class NetworkStorage {
         int controllers = 0;
         int invalid = 0;
 
-        // The ticker already indexes every ticking Slimefun block by chunk.
-        // Avoid walking the world's complete BlockStorage map on the main thread.
-        for (Location location : com.github.drakescraft_labs.slimefun4.implementation.Slimefun
-            .getTickerTask()
-            .getLocations(chunk)) {
+        // BlockStorage maintains a per-chunk index of every persisted Slimefun block.
+        // The ticker contains only blocks already scheduled, which misses freshly loaded
+        // Networks nodes and forces players to replace machines to register them.
+        for (Location location : BlockStorage.getLocations(chunk)) {
             SlimefunItem item = BlockStorage.check(location);
             if (item == null) {
                 invalid++;

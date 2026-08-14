@@ -73,19 +73,21 @@ public class SyncListener implements Listener {
             return;
         }
 
-        indexChunk(event.getChunk());
+        final org.bukkit.Chunk chunk = event.getChunk();
+        org.bukkit.Bukkit.getScheduler().runTask(io.github.sefiraat.networks.Networks.getInstance(), () -> {
+            if (chunk.isLoaded()) {
+                indexChunk(chunk);
+            }
+        });
     }
 
     /** Reindexes network nodes in a chunk that Slimefun loaded before Networks was ready. */
     public static int indexChunk(@Nonnull org.bukkit.Chunk chunk) {
         int indexed = 0;
 
-        // Slimefun already maintains a chunk index for ticking blocks. Every
-        // NetworkObject has a BlockTicker, so this avoids scanning the world's
-        // complete BlockStorage map whenever a player crosses a chunk border.
-        for (Location location : com.github.drakescraft_labs.slimefun4.implementation.Slimefun
-            .getTickerTask()
-            .getLocations(chunk)) {
+        // Use Slimefun's persistent per-chunk index. The ticker index only contains
+        // blocks already scheduled and therefore cannot repair a cold-loaded network.
+        for (Location location : com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.getLocations(chunk)) {
             final com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem item =
                 com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.check(location);
 
