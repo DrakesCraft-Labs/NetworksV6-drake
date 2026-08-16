@@ -904,6 +904,13 @@ public class NetworkRoot extends NetworkNode {
             }
         }
 
+        // Durante carga/reconstruccion BlockStorage puede conocer el monitor antes de que
+        // QuantumCache hidrate el storage. No cacheamos ese falso vacio: el siguiente tick
+        // vuelve a resolverlo y la granja se recupera sin recolocar el controller.
+        if (barrelSet.isEmpty() && !monitor.isEmpty()) {
+            return barrelSet;
+        }
+
         this.inputAbleBarrels = barrelSet;
         this.mapInputAbleBarrels = new ConcurrentHashMap<>();
         for (BarrelIdentity storage : barrelSet) {
@@ -968,6 +975,11 @@ public class NetworkRoot extends NetworkNode {
                     barrelSet.add(storage);
                 }
             }
+        }
+
+        // Misma regla para salidas: una carga parcial no debe congelar una red vacia.
+        if (barrelSet.isEmpty() && !monitor.isEmpty()) {
+            return barrelSet;
         }
 
         this.outputAbleBarrels = barrelSet;
