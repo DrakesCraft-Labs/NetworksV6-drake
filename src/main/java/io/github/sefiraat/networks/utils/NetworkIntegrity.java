@@ -28,6 +28,13 @@ public final class NetworkIntegrity {
         if (location == null || location.getWorld() == null) {
             return false;
         }
+        // Un chunk descargado no significa que la maquina ya no exista. Consultar el bloque
+        // devolvia AIR y pruneStaleLocations expulsaba del grafo a nodos perfectamente validos:
+        // el jugador se alejaba, el chunk se descargaba y al volver su granja ya no estaba en la
+        // red. Sin el chunk cargado no hay nada que comprobar, asi que se le da por bueno.
+        if (!location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) {
+            return true;
+        }
         if (location.getBlock().getType() == Material.AIR) {
             return false;
         }
@@ -38,6 +45,12 @@ public final class NetworkIntegrity {
     public static boolean isExpectedMachine(@Nullable Location location, @Nonnull Class<? extends SlimefunItem> type) {
         if (!isNetworksMachine(location)) {
             return false;
+        }
+        // Mismo motivo que arriba: sin el chunk cargado, BlockStorage devuelve null y la maquina
+        // se daria por perdida. Se conserva hasta poder comprobarla de verdad.
+        if (location != null && location.getWorld() != null
+                && !location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) {
+            return true;
         }
         final SlimefunItem item = BlockStorage.check(location);
         return type.isInstance(item);

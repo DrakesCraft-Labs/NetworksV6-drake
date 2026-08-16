@@ -70,6 +70,21 @@ public class NetworkRoot extends NetworkNode {
     private final long CREATED_TIME = System.currentTimeMillis();
     @Getter
     private final Set<Location> nodeLocations = ConcurrentHashMap.newKeySet();
+
+    /**
+     * Inventario agregado de la red, reutilizado durante una ventana muy corta.
+     *
+     * getAllNetworkItems() recorre barriles, greedy blocks, crafters y celdas, y cada uno de esos
+     * cuatro pasos repite su propio pruneStaleLocations sobre la red entera. Con varias rejillas
+     * abiertas sobre la misma red ese trabajo se repetia integro por cada una y en cada tick.
+     *
+     * Medio segundo de cache es imperceptible para quien mira la pantalla --la rejilla ya solo se
+     * refresca cuando alguien la tiene abierta-- y recorta el recorrido a una vez por ventana en
+     * lugar de una por rejilla.
+     */
+    private volatile Map<ItemStack, Integer> cachedNetworkItems;
+    private volatile long cachedNetworkItemsAt;
+    private static final long CACHE_ITEMS_MS = 500L;
     private final int[] CELL_AVAILABLE_SLOTS = NetworkCell.SLOTS;
     @Getter
     private final Set<Location> bridges = ConcurrentHashMap.newKeySet();
@@ -456,6 +471,12 @@ public class NetworkRoot extends NetworkNode {
     }
 
     public @NotNull Map<ItemStack, Integer> getAllNetworkItems() {
+        final long ahora = System.currentTimeMillis();
+        final Map<ItemStack, Integer> reciente = cachedNetworkItems;
+        if (reciente != null && ahora - cachedNetworkItemsAt < CACHE_ITEMS_MS) {
+            return reciente;
+        }
+
         final NetworkStackAggregator aggregator = new NetworkStackAggregator();
 
         for (BarrelIdentity barrelIdentity : getOutputAbleBarrels()) {
@@ -493,7 +514,20 @@ public class NetworkRoot extends NetworkNode {
             }
         }
 
-        return aggregator.asMap();
+        final Map<ItemStack, Integer> resultado = aggregator.asMap();
+        cachedNetworkItems = resultado;
+        cachedNetworkItemsAt = ahora;
+        return resultado;
+    }
+
+    /**
+     * Descarta el inventario cacheado.
+     *
+     * Se llama cuando algo saca o mete items por codigo, para que la siguiente lectura no
+     * devuelva una foto anterior al cambio.
+     */
+    public void invalidateNetworkItemsCache() {
+        cachedNetworkItems = null;
     }
 
     @Deprecated
