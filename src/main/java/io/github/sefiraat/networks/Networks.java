@@ -107,6 +107,16 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
         Bukkit.getScheduler().runTaskLater(this, () -> {
             try {
                 int indexed = SyncListener.indexLoadedChunks();
+                // Registrar los nodos no basta: un controlador que ya reconstruyo antes de que el
+                // reindex devolviera al registro un nodo lejano conserva su topologia y no lo
+                // readopta, porque solo reconstruye si su red es nula o esta sucia. Tras reindexar
+                // se marcan sucias las redes cargadas para que cada controlador rehaga su grafo una
+                // vez e incorpore lo que faltara. Es lo que dejaba un nodo fuera de su red tras un
+                // reinicio, con todo bien conectado y la maquina sin trabajar.
+                for (org.bukkit.World world : Bukkit.getWorlds()) {
+                    io.github.sefiraat.networks.slimefun.network.NetworkController
+                        .markNetworksDirtyInWorld(world);
+                }
                 getLogger().info("Startup network reindex added " + indexed + " node(s).");
             } catch (Exception exception) {
                 getLogger().severe("Startup network reindex failed: " + exception.getMessage());

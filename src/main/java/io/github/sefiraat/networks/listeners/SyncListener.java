@@ -75,16 +75,65 @@ public class SyncListener implements Listener {
 
         final org.bukkit.Chunk chunk = event.getChunk();
         org.bukkit.Bukkit.getScheduler().runTask(io.github.sefiraat.networks.Networks.getInstance(), () -> {
-            if (chunk.isLoaded()) {
-                // Reindexar devuelve los nodos al registro global, pero las redes ya construidas
-                // conservan sus listas y no los incorporan solas. Sin este aviso la maquina vuelve
-                // a existir para Networks y sigue fuera de su propia red.
-                if (indexChunk(chunk) > 0) {
-                    io.github.sefiraat.networks.slimefun.network.NetworkController
-                        .markNetworksDirtyInWorld(chunk.getWorld());
-                }
+            if (!chunk.isLoaded()) {
+                return;
+            }
+            // Reindexar devuelve los nodos al registro global. indexChunk solo cuenta los que aun
+            // no estaban registrados, pero al descargarse un chunk sus nodos permanecen en el
+            // registro: en una recarga durante la partida ninguno cuenta como nuevo, indexChunk
+            // devolvia 0 y el aviso de reconstruccion no se disparaba. El nodo volvia a existir
+            // para Networks y seguia fuera de su propia red hasta que alguien rompia o colocaba
+            // algo cerca. Es justo el "lo tengo todo conectado y el nodo no saca" que reportaban.
+            //
+            // Por eso el aviso ya no depende de que haya nodos nuevos, sino de que alguno haya
+            // quedado desligado de su red activa. indexChunk se sigue llamando para registrar lo
+            // que falte, y la decision de reconstruir la toma la deteccion de desincronizacion.
+            indexChunk(chunk);
+            if (chunkHasDetachedNodes(chunk)) {
+                io.github.sefiraat.networks.slimefun.network.NetworkController
+                    .markNetworksDirtyInWorld(chunk.getWorld());
             }
         });
+    }
+
+    /**
+     * Si el chunk contiene algun nodo de Networks que no esta ligado a su red activa.
+     *
+     * Cuenta como desligado el nodo sin NetworkNode --recien devuelto al registro y aun sin
+     * adoptar-- y el que apunta a una raiz que ya no es la vigente de su controlador, porque este
+     * reconstruyo y creo una nueva sin alcanzarlo. En ambos casos el nodo existe para Networks
+     * pero no para su propia red, que es la desincronizacion que hay que reconciliar. Un nodo bien
+     * conectado apunta a la raiz que NETWORKS tiene registrada para su controlador, y no dispara
+     * nada, de modo que una recarga normal no provoca reconstrucciones.
+     */
+    private static boolean chunkHasDetachedNodes(@Nonnull org.bukkit.Chunk chunk) {
+        for (Location location : com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.getLocations(chunk)) {
+            final com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem item =
+                com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.check(location);
+
+            if (!(item instanceof io.github.sefiraat.networks.slimefun.network.NetworkObject)) {
+                continue;
+            }
+
+            final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(location);
+            if (definition == null) {
+                continue;
+            }
+
+            final io.github.sefiraat.networks.network.NetworkNode node = definition.getNode();
+            if (node == null) {
+                return true;
+            }
+
+            final io.github.sefiraat.networks.network.NetworkRoot root = node.getRoot();
+            final Location controller = root.getController();
+            if (controller == null
+                || io.github.sefiraat.networks.slimefun.network.NetworkController
+                        .getNetworks().get(controller) != root) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Reindexes network nodes in a chunk that Slimefun loaded before Networks was ready. */
