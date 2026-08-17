@@ -41,12 +41,21 @@ public class NetworksMain implements CommandExecutor {
 
     @Override
     public boolean onCommand(@Nonnull CommandSender sender, @Nonnull Command command, @Nonnull String label, @Nonnull String[] args) {
+        if (args.length == 0) {
+            return false;
+        }
+
+        if (args[0].equalsIgnoreCase("doctor")) {
+            runDoctor(sender);
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("reload")) {
+            reloadNetworks(sender);
+            return true;
+        }
+
         if (sender instanceof Player player) {
-
-            if (args.length == 0) {
-                return false;
-            }
-
             if (args[0].equalsIgnoreCase("fillquantum")) {
                 if ((player.isOp() || player.hasPermission("networks.admin")) && args.length >= 2) {
                     try {
@@ -67,16 +76,6 @@ public class NetworksMain implements CommandExecutor {
                 repairNetwork(player);
                 return true;
             }
-
-            if (args[0].equalsIgnoreCase("doctor")) {
-                runDoctor(player);
-                return true;
-            }
-
-            if (args[0].equalsIgnoreCase("reload")) {
-                reloadNetworks(player);
-                return true;
-            }
         }
         return true;
     }
@@ -88,9 +87,9 @@ public class NetworksMain implements CommandExecutor {
      * apuntando a una raiz que su controlador ya sustituyo -- que es la causa de "lo tengo todo
      * conectado y la maquina no trabaja". Da tambien el numero de redes activas y de nodos.
      */
-    private void runDoctor(@Nonnull Player player) {
-        if (!player.isOp() && !player.hasPermission("networks.admin")) {
-            player.sendMessage(Theme.ERROR + "No tienes permiso.");
+    private void runDoctor(@Nonnull CommandSender sender) {
+        if (!sender.isOp() && !sender.hasPermission("networks.admin") && sender instanceof Player) {
+            sender.sendMessage(Theme.ERROR + "No tienes permiso.");
             return;
         }
 
@@ -114,17 +113,17 @@ public class NetworksMain implements CommandExecutor {
             }
         }
 
-        player.sendMessage(Theme.MAIN + "===== Networks Doctor =====");
-        player.sendMessage(Theme.PASSIVE + "Redes activas: " + Theme.SUCCESS + networks.size());
-        player.sendMessage(Theme.PASSIVE + "Nodos registrados: " + Theme.SUCCESS + total);
-        player.sendMessage(Theme.PASSIVE + "Nodos huerfanos (sin red): "
+        sender.sendMessage(Theme.MAIN + "===== Networks Doctor =====");
+        sender.sendMessage(Theme.PASSIVE + "Redes activas: " + Theme.SUCCESS + networks.size());
+        sender.sendMessage(Theme.PASSIVE + "Nodos registrados: " + Theme.SUCCESS + total);
+        sender.sendMessage(Theme.PASSIVE + "Nodos huerfanos (sin red): "
                 + (orphans > 0 ? Theme.ERROR : Theme.SUCCESS) + orphans);
-        player.sendMessage(Theme.PASSIVE + "Nodos con raiz obsoleta: "
+        sender.sendMessage(Theme.PASSIVE + "Nodos con raiz obsoleta: "
                 + (stale > 0 ? Theme.WARNING : Theme.SUCCESS) + stale);
         if (orphans > 0 || stale > 0) {
-            player.sendMessage(Theme.WARNING + "Usa /networks reload para reconciliar todas las redes en caliente.");
+            sender.sendMessage(Theme.WARNING + "Usa /networks reload para reconciliar todas las redes en caliente.");
         } else {
-            player.sendMessage(Theme.SUCCESS + "Todas las redes estan sanas.");
+            sender.sendMessage(Theme.SUCCESS + "Todas las redes estan sanas.");
         }
     }
 
@@ -136,9 +135,9 @@ public class NetworksMain implements CommandExecutor {
      * recarga el jar ni toca datos persistentes: solo repara la topologia en memoria. Es el
      * "aplicar el fix del net sin reinicio" -- sirve para reparar redes rotas al vuelo.
      */
-    private void reloadNetworks(@Nonnull Player player) {
-        if (!player.isOp() && !player.hasPermission("networks.admin")) {
-            player.sendMessage(Theme.ERROR + "No tienes permiso.");
+    private void reloadNetworks(@Nonnull CommandSender sender) {
+        if (!sender.isOp() && !sender.hasPermission("networks.admin") && sender instanceof Player) {
+            sender.sendMessage(Theme.ERROR + "No tienes permiso.");
             return;
         }
 
@@ -148,9 +147,9 @@ public class NetworksMain implements CommandExecutor {
             NetworkController.markNetworksDirtyInWorld(world);
             worlds++;
         }
-        player.sendMessage(Theme.SUCCESS + "Reconciliacion en caliente lanzada: "
+        sender.sendMessage(Theme.SUCCESS + "Reconciliacion en caliente lanzada: "
                 + indexed + " nodo(s) reindexado(s), " + worlds + " mundo(s) marcado(s).");
-        player.sendMessage(Theme.PASSIVE + "Las redes se reconstruyen en los proximos ticks. "
+        sender.sendMessage(Theme.PASSIVE + "Las redes se reconstruyen en los proximos ticks. "
                 + "Comprueba con /networks doctor.");
     }
 

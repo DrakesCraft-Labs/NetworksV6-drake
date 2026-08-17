@@ -75,23 +75,12 @@ public class SyncListener implements Listener {
 
         final org.bukkit.Chunk chunk = event.getChunk();
         org.bukkit.Bukkit.getScheduler().runTask(io.github.sefiraat.networks.Networks.getInstance(), () -> {
-            if (!chunk.isLoaded()) {
-                return;
-            }
-            // Reindexar devuelve los nodos al registro global. indexChunk solo cuenta los que aun
-            // no estaban registrados, pero al descargarse un chunk sus nodos permanecen en el
-            // registro: en una recarga durante la partida ninguno cuenta como nuevo, indexChunk
-            // devolvia 0 y el aviso de reconstruccion no se disparaba. El nodo volvia a existir
-            // para Networks y seguia fuera de su propia red hasta que alguien rompia o colocaba
-            // algo cerca. Es justo el "lo tengo todo conectado y el nodo no saca" que reportaban.
-            //
-            // Por eso el aviso ya no depende de que haya nodos nuevos, sino de que alguno haya
-            // quedado desligado de su red activa. indexChunk se sigue llamando para registrar lo
-            // que falte, y la decision de reconstruir la toma la deteccion de desincronizacion.
-            indexChunk(chunk);
-            if (chunkHasDetachedNodes(chunk)) {
-                io.github.sefiraat.networks.slimefun.network.NetworkController
-                    .markNetworksDirtyInWorld(chunk.getWorld());
+            if (chunk.isLoaded()) {
+                indexChunk(chunk);
+                if (chunkHasDetachedNodes(chunk)) {
+                    io.github.sefiraat.networks.slimefun.network.NetworkController
+                        .markNetworksDirtyInWorld(chunk.getWorld());
+                }
             }
         });
     }
