@@ -76,7 +76,13 @@ public class SyncListener implements Listener {
         final org.bukkit.Chunk chunk = event.getChunk();
         org.bukkit.Bukkit.getScheduler().runTask(io.github.sefiraat.networks.Networks.getInstance(), () -> {
             if (chunk.isLoaded()) {
-                indexChunk(chunk);
+                // Reindexar devuelve los nodos al registro global, pero las redes ya construidas
+                // conservan sus listas y no los incorporan solas. Sin este aviso la maquina vuelve
+                // a existir para Networks y sigue fuera de su propia red.
+                if (indexChunk(chunk) > 0) {
+                    io.github.sefiraat.networks.slimefun.network.NetworkController
+                        .markNetworksDirtyInWorld(chunk.getWorld());
+                }
             }
         });
     }

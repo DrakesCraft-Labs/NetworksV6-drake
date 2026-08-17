@@ -152,6 +152,28 @@ public class NetworkController extends NetworkObject {
         initializedControllers.remove(location);
     }
 
+    /**
+     * Marca para reconstruccion las redes que alcanzan un mundo recien reindexado.
+     *
+     * Al cargarse un chunk, SyncListener devuelve sus nodos al registro global, pero el
+     * NetworkRoot del controlador conserva las listas que tenia: la maquina vuelve a existir para
+     * Networks y sigue sin existir para su propia red. Como rebuildNetwork solo corre si la red es
+     * nula o esta sucia, el nodo recuperado no se reincorporaba nunca y la granja seguia parada
+     * hasta que alguien rompia o colocaba algo cerca.
+     *
+     * Se marcan todas las redes del mundo afectado y no solo las cercanas porque una red puede
+     * extenderse mucho mas alla del chunk que se acaba de cargar; el coste es una reconstruccion
+     * diferida por controlador, que ya esta amortiguada por DIRTY_DELAY_TICKS.
+     */
+    public static void markNetworksDirtyInWorld(@Nonnull org.bukkit.World world) {
+        long ahora = world.getGameTime();
+        for (Location controlador : NETWORKS.keySet()) {
+            if (world.equals(controlador.getWorld()) && DIRTY_NETWORKS.add(controlador)) {
+                DIRTY_TICK.put(controlador, ahora);
+            }
+        }
+    }
+
     public static Map<Location, NetworkRoot> getNetworks() {
         return NETWORKS;
     }
