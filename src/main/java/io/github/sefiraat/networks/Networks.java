@@ -134,6 +134,8 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
         NetworkQuantumStorage.clearRuntimeCache();
         NetworkController.clearRuntimeState();
         NetworkRoot.clearRuntimeHistory();
+        // El cache de permisos crece con cada par de dueno y ubicacion vistos.
+        io.github.sefiraat.networks.utils.OwnerAccessCache.clear();
         NetworkStorage.clearRuntimeState();
         instance = null;
     }

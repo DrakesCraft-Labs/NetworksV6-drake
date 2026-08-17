@@ -76,9 +76,9 @@ public class NetworkVanillaPusher extends NetworkDirectional {
         } catch (IllegalArgumentException e) {
             return;
         }
-        final OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(uuid);
-
-        if (!Slimefun.getProtectionManager().hasPermission(offlinePlayer, targetBlock, Interaction.INTERACT_BLOCK)) {
+        // Cacheado unos segundos: esta comprobacion consulta a WorldGuard y se repetia en cada
+        // tick de cada nodo para responder casi siempre lo mismo.
+        if (!io.github.sefiraat.networks.utils.OwnerAccessCache.canInteract(uuid, targetBlock)) {
             return;
         }
 
