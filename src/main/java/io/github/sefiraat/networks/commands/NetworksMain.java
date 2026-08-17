@@ -67,8 +67,91 @@ public class NetworksMain implements CommandExecutor {
                 repairNetwork(player);
                 return true;
             }
+
+            if (args[0].equalsIgnoreCase("doctor")) {
+                runDoctor(player);
+                return true;
+            }
+
+            if (args[0].equalsIgnoreCase("reload")) {
+                reloadNetworks(player);
+                return true;
+            }
         }
         return true;
+    }
+
+    /**
+     * Diagnostico de salud de las redes cargadas. No cambia nada.
+     *
+     * Cuenta los nodos que existen para Networks pero no para ninguna red -- sin NetworkNode, o
+     * apuntando a una raiz que su controlador ya sustituyo -- que es la causa de "lo tengo todo
+     * conectado y la maquina no trabaja". Da tambien el numero de redes activas y de nodos.
+     */
+    private void runDoctor(@Nonnull Player player) {
+        if (!player.isOp() && !player.hasPermission("networks.admin")) {
+            player.sendMessage(Theme.ERROR + "No tienes permiso.");
+            return;
+        }
+
+        final Map<org.bukkit.Location, io.github.sefiraat.networks.network.NetworkRoot> networks =
+            NetworkController.getNetworks();
+        int orphans = 0;
+        int stale = 0;
+        int total = 0;
+
+        for (Map.Entry<org.bukkit.Location, io.github.sefiraat.networks.network.NodeDefinition> entry
+                : NetworkStorage.getAllNetworkObjects().entrySet()) {
+            total++;
+            final io.github.sefiraat.networks.network.NetworkNode node = entry.getValue().getNode();
+            if (node == null) {
+                orphans++;
+                continue;
+            }
+            final org.bukkit.Location controller = node.getRoot().getController();
+            if (controller == null || networks.get(controller) != node.getRoot()) {
+                stale++;
+            }
+        }
+
+        player.sendMessage(Theme.MAIN + "===== Networks Doctor =====");
+        player.sendMessage(Theme.PASSIVE + "Redes activas: " + Theme.SUCCESS + networks.size());
+        player.sendMessage(Theme.PASSIVE + "Nodos registrados: " + Theme.SUCCESS + total);
+        player.sendMessage(Theme.PASSIVE + "Nodos huerfanos (sin red): "
+                + (orphans > 0 ? Theme.ERROR : Theme.SUCCESS) + orphans);
+        player.sendMessage(Theme.PASSIVE + "Nodos con raiz obsoleta: "
+                + (stale > 0 ? Theme.WARNING : Theme.SUCCESS) + stale);
+        if (orphans > 0 || stale > 0) {
+            player.sendMessage(Theme.WARNING + "Usa /networks reload para reconciliar todas las redes en caliente.");
+        } else {
+            player.sendMessage(Theme.SUCCESS + "Todas las redes estan sanas.");
+        }
+    }
+
+    /**
+     * Reconcilia en caliente el estado de todas las redes cargadas, sin reiniciar el servidor.
+     *
+     * Devuelve al registro los nodos de los chunks cargados y marca sucias todas las redes para
+     * que cada controlador rehaga su grafo una vez y readopte lo que estuviera desligado. No
+     * recarga el jar ni toca datos persistentes: solo repara la topologia en memoria. Es el
+     * "aplicar el fix del net sin reinicio" -- sirve para reparar redes rotas al vuelo.
+     */
+    private void reloadNetworks(@Nonnull Player player) {
+        if (!player.isOp() && !player.hasPermission("networks.admin")) {
+            player.sendMessage(Theme.ERROR + "No tienes permiso.");
+            return;
+        }
+
+        final int indexed = io.github.sefiraat.networks.listeners.SyncListener.indexLoadedChunks();
+        int worlds = 0;
+        for (org.bukkit.World world : org.bukkit.Bukkit.getWorlds()) {
+            NetworkController.markNetworksDirtyInWorld(world);
+            worlds++;
+        }
+        player.sendMessage(Theme.SUCCESS + "Reconciliacion en caliente lanzada: "
+                + indexed + " nodo(s) reindexado(s), " + worlds + " mundo(s) marcado(s).");
+        player.sendMessage(Theme.PASSIVE + "Las redes se reconstruyen en los proximos ticks. "
+                + "Comprueba con /networks doctor.");
     }
 
     /**
