@@ -85,6 +85,23 @@ public class NetworkRoot extends NetworkNode {
     private volatile Map<ItemStack, Integer> cachedNetworkItems;
     private volatile long cachedNetworkItemsAt;
     private static final long CACHE_ITEMS_MS = 500L;
+
+    /**
+     * Menus de la red resueltos, reutilizados durante un instante.
+     *
+     * Cada uno de estos getters lanza un pruneStaleLocations sobre todas sus ubicaciones y
+     * consulta BlockStorage una por una. El problema no es el coste en si, sino donde ocurre:
+     * addItemStack0 esta sincronizado sobre la raiz y llama a getGreedyBlockMenus dentro del
+     * bloqueo, de modo que cada item que entra a la red retiene el lock mientras recorre nodos.
+     * Con varios importadores trabajando a la vez, todos esperan a que el anterior termine su
+     * recorrido y la red entera parece congelarse.
+     *
+     * 250 ms es mas corto que un ciclo de Slimefun, asi que una maquina recien puesta entra en la
+     * siguiente pasada y el jugador no percibe demora.
+     */
+    private final Map<String, Set<BlockMenu>> cachedMenus = new ConcurrentHashMap<>();
+    private final Map<String, Long> cachedMenusAt = new ConcurrentHashMap<>();
+    private static final long CACHE_MENUS_MS = 250L;
     private final int[] CELL_AVAILABLE_SLOTS = NetworkCell.SLOTS;
     @Getter
     private final Set<Location> bridges = ConcurrentHashMap.newKeySet();
@@ -528,6 +545,22 @@ public class NetworkRoot extends NetworkNode {
      */
     public void invalidateNetworkItemsCache() {
         cachedNetworkItems = null;
+        cachedMenus.clear();
+        cachedMenusAt.clear();
+    }
+
+    /** Menus guardados para esa clave, o null si no hay o ya caducaron. */
+    private @Nullable Set<BlockMenu> menusCacheados(@NotNull String clave) {
+        final Long momento = cachedMenusAt.get(clave);
+        if (momento == null || System.currentTimeMillis() - momento >= CACHE_MENUS_MS) {
+            return null;
+        }
+        return cachedMenus.get(clave);
+    }
+
+    private void guardarMenus(@NotNull String clave, @NotNull Set<BlockMenu> menus) {
+        cachedMenus.put(clave, menus);
+        cachedMenusAt.put(clave, System.currentTimeMillis());
     }
 
     @Deprecated
@@ -585,6 +618,10 @@ public class NetworkRoot extends NetworkNode {
 
     @NotNull
     public Set<BlockMenu> getCellMenus() {
+        final Set<BlockMenu> reciente = menusCacheados("cells");
+        if (reciente != null) {
+            return reciente;
+        }
         NetworkIntegrity.pruneStaleLocations(this.cells, NetworkCell.class);
         final Set<BlockMenu> menus = new HashSet<>();
         for (Location cellLocation : this.cells) {
@@ -596,11 +633,16 @@ public class NetworkRoot extends NetworkNode {
                 menus.add(menu);
             }
         }
+        guardarMenus("cells", menus);
         return menus;
     }
 
     @NotNull
     public Set<BlockMenu> getCrafterOutputs() {
+        final Set<BlockMenu> reciente = menusCacheados("crafters");
+        if (reciente != null) {
+            return reciente;
+        }
         NetworkIntegrity.pruneStaleLocations(this.crafters, NetworkAutoCrafter.class);
         final Set<BlockMenu> menus = new HashSet<>();
         for (Location location : this.crafters) {
@@ -609,11 +651,16 @@ public class NetworkRoot extends NetworkNode {
                 menus.add(menu);
             }
         }
+        guardarMenus("crafters", menus);
         return menus;
     }
 
     @NotNull
     public Set<BlockMenu> getGreedyBlockMenus() {
+        final Set<BlockMenu> reciente = menusCacheados("greedy");
+        if (reciente != null) {
+            return reciente;
+        }
         NetworkIntegrity.pruneStaleLocations(this.greedyBlocks, NetworkGreedyBlock.class);
         final Set<BlockMenu> menus = new HashSet<>();
         for (Location location : this.greedyBlocks) {
@@ -622,6 +669,7 @@ public class NetworkRoot extends NetworkNode {
                 menus.add(menu);
             }
         }
+        guardarMenus("greedy", menus);
         return menus;
     }
 
