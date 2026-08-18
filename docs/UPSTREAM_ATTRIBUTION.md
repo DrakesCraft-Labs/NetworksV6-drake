@@ -1,43 +1,28 @@
-# Upstream Attribution
+# Atribucion a los autores originales
 
-## NetworksExpansion portability work
+**NetworksV6-drake** es un port mantenido por DrakesCraft Labs de un addon creado por otras personas.
+Se publica al amparo de su licencia **GPL-3.0-only**, que permite redistribuir y modificar siempre que
+se conserve el credito y la propia licencia.
 
-This repository ports selected gameplay behavior from
-[NetworksExpansion](https://github.com/balugaq/NetworksExpansion), inspected at
-commit `5cfd662` (2026-08-11).
+## Autoria original
 
-The upstream project is a complete replacement fork of Networks and targets the
-Gugu Slimefun API, JEG, and Gugu storage services. DrakesCraft must remain a
-single `NetworksV6-Drake` addon built against the Drake Slimefun API, so the
-upstream JAR is not bundled, loaded, or registered beside this plugin.
+- Sefiraat
+- mmmjjkx
+- DrakesCraft-Labs
 
-The native ports currently included are:
+El diseno, las mecanicas y la mayor parte del codigo son suyos. DrakesCraft Labs no reclama
+autoria sobre ese trabajo.
 
-- Advanced auto-crafter behavior: stacks of identical crafting blueprints can
-  be processed together. Drake's implementation additionally charges power per
-  blueprint and refuses a batch whose result cannot fit in one inventory stack.
-- Input-only and output-only monitors: directional storage links which make the
-  intended one-way flow explicit without changing a player's existing monitors.
-- Advanced import: a 54-slot buffer that transfers through Drake's existing
-  synchronized, remainder-safe import path.
-- Advanced export: eighteen templates and eighteen output slots; failed menu
-  insertions flow back through the same protected network return path.
-- Advanced purger: up to forty-eight explicit filters, with the standard
-  purger's deliberate destruction semantics and synchronous world access.
-- Advanced vacuum: eighteen buffered slots, persistent blacklist/whitelist
-  filters and material or exact-item matching, implemented on Drake's legacy
-  BlockStorage without Gugu storage dependencies.
-- Advanced greedy block: nine slots for a matching storage template. The Drake
-  root resolves its slots from the placed block, preserving old one-slot greedy
-  blocks and avoiding a storage-data conversion.
-- Advanced grabber and pusher: bounded high-throughput directional transport.
-  Both use the Drake transport utility, so failed insertions return to the
-  source network rather than disappearing or creating duplicate stacks.
+## Que ha hecho DrakesCraft Labs
 
-The auto-crafter checks keep the operation atomic and prevent item loss or free
-throughput. The monitor port updates the root's input/output caches separately,
-so a one-way link cannot silently become a bidirectional storage endpoint.
+- Portar el addon a Paper/Purpur 1.21.11 y a Java 21.
+- Adaptarlo al fork de Slimefun que usa el servidor.
+- Traducir al espanol los textos que ve el jugador.
+- Corregir fallos y ajustar el balance para DrakesCraft.
 
-Future ports must be made module by module. Any candidate that requires a Gugu
-core namespace, JEG, or a second primary storage system needs a Drake-compatible
-adapter and regression tests before it is registered.
+Si eres autor original y quieres que se retire esta publicacion, abre una incidencia en el
+repositorio y se retira.
+
+## Licencia
+
+GPL-3.0-only. El texto completo esta en el fichero LICENSE de este repositorio.
