@@ -95,16 +95,33 @@ public class NetworksMain implements CommandExecutor {
 
         final Map<org.bukkit.Location, io.github.sefiraat.networks.network.NetworkRoot> networks =
             NetworkController.getNetworks();
-        int orphans = 0;
+        int orphansLoaded = 0;
+        int orphansUnloaded = 0;
         int stale = 0;
         int total = 0;
 
         for (Map.Entry<org.bukkit.Location, io.github.sefiraat.networks.network.NodeDefinition> entry
                 : NetworkStorage.getAllNetworkObjects().entrySet()) {
             total++;
+            final org.bukkit.Location location = entry.getKey();
             final io.github.sefiraat.networks.network.NetworkNode node = entry.getValue().getNode();
             if (node == null) {
-                orphans++;
+                /*
+                 * Separar los huerfanos por si su chunk esta cargado es la diferencia entre un
+                 * numero que sirve y uno que no.
+                 *
+                 * Un controlador solo entra en NETWORKS cuando tickea, y Slimefun solo tickea
+                 * chunks cargados. Asi que TODA base sin nadie cerca aporta huerfanos, y son
+                 * normales: en cuanto alguien se acerca, el controlador tickea y los adopta.
+                 * Contarlos juntos daba cifras enormes que no distinguian "no hay nadie ahi" de
+                 * "esto esta roto", que es justo lo que hay que saber.
+                 */
+                if (location.getWorld() != null
+                        && location.getWorld().isChunkLoaded(location.getBlockX() >> 4, location.getBlockZ() >> 4)) {
+                    orphansLoaded++;
+                } else {
+                    orphansUnloaded++;
+                }
                 continue;
             }
             final org.bukkit.Location controller = node.getRoot().getController();
@@ -116,11 +133,15 @@ public class NetworksMain implements CommandExecutor {
         sender.sendMessage(Theme.MAIN + "===== Networks Doctor =====");
         sender.sendMessage(Theme.PASSIVE + "Redes activas: " + Theme.SUCCESS + networks.size());
         sender.sendMessage(Theme.PASSIVE + "Nodos registrados: " + Theme.SUCCESS + total);
-        sender.sendMessage(Theme.PASSIVE + "Nodos huerfanos (sin red): "
-                + (orphans > 0 ? Theme.ERROR : Theme.SUCCESS) + orphans);
+        sender.sendMessage(Theme.PASSIVE + "Huerfanos en chunk CARGADO: "
+                + (orphansLoaded > 0 ? Theme.ERROR : Theme.SUCCESS) + orphansLoaded
+                + Theme.PASSIVE + "  <- los que importan");
+        sender.sendMessage(Theme.PASSIVE + "Huerfanos en chunk descargado: "
+                + Theme.SUCCESS + orphansUnloaded
+                + Theme.PASSIVE + "  (normal: nadie cerca de esa base)");
         sender.sendMessage(Theme.PASSIVE + "Nodos con raiz obsoleta: "
                 + (stale > 0 ? Theme.WARNING : Theme.SUCCESS) + stale);
-        if (orphans > 0 || stale > 0) {
+        if (orphansLoaded > 0 || stale > 0) {
             sender.sendMessage(Theme.WARNING + "Usa /networks reload para reconciliar todas las redes en caliente.");
         } else {
             sender.sendMessage(Theme.SUCCESS + "Todas las redes estan sanas.");

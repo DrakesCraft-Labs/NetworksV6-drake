@@ -95,9 +95,16 @@ public abstract class NetworkObject extends SlimefunItem implements AdminDebugga
     }
 
     protected void addToRegistry(@Nonnull Block block) {
-        if (!NetworkStorage.getAllNetworkObjects().containsKey(block.getLocation())) {
-            final NodeDefinition nodeDefinition = new NodeDefinition(nodeType);
-            NetworkStorage.getAllNetworkObjects().put(block.getLocation(), nodeDefinition);
+        final Location location = block.getLocation();
+        final NodeDefinition nodeDefinition = new NodeDefinition(nodeType);
+        if (NetworkStorage.getAllNetworkObjects().putIfAbsent(location, nodeDefinition) == null) {
+            /*
+             * A persisted node can reach its first ticker after the controller already rebuilt.
+             * Registering it without invalidating the graph leaves the machine disconnected until
+             * a player breaks or places a nearby block. World-wide invalidation is intentional:
+             * a network can cross chunk boundaries, and the dirty set coalesces the startup burst.
+             */
+            NetworkController.markNetworksDirtyInWorld(block.getWorld());
         }
     }
 
