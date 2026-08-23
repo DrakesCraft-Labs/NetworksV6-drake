@@ -2,8 +2,11 @@ package io.github.sefiraat.networks.listeners;
 
 import io.github.sefiraat.networks.NetworkStorage;
 import io.github.sefiraat.networks.network.NodeDefinition;
+import io.github.sefiraat.networks.slimefun.network.NetworkObject;
 import io.github.sefiraat.networks.utils.NetworkIntegrity;
 import io.github.sefiraat.networks.utils.NetworkUtils;
+import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
+import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
@@ -13,11 +16,42 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 
 import javax.annotation.Nonnull;
 
 public class SyncListener implements Listener {
+
+    /**
+     * Removes a persisted Networks ghost before Slimefun's normal-priority placement guard sees
+     * the coordinate. The replaced state is the real block that existed before this event.
+     */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onBlockPlacePreflight(@Nonnull BlockPlaceEvent event) {
+        final Location location = event.getBlock().getLocation();
+        final SlimefunItem stored = BlockStorage.check(location);
+        if (stored instanceof NetworkObject
+                && event.getBlockReplacedState().getType() != stored.getItem().getType()) {
+            NetworkUtils.clearNetwork(location);
+            BlockStorage.clearBlockInfo(location);
+        }
+    }
+
+    /** Clears invisible Networks machines when the player first interacts with their old block. */
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onGhostInteract(@Nonnull PlayerInteractEvent event) {
+        if (event.getClickedBlock() == null) {
+            return;
+        }
+        final Location location = event.getClickedBlock().getLocation();
+        final SlimefunItem stored = BlockStorage.check(location);
+        if (stored instanceof NetworkObject
+                && !NetworkIntegrity.hasExpectedPhysicalMaterial(event.getClickedBlock(), stored)) {
+            NetworkUtils.clearNetwork(location);
+            BlockStorage.clearBlockInfo(location);
+        }
+    }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onBlockBreak(@Nonnull BlockBreakEvent event) {
@@ -131,11 +165,19 @@ public class SyncListener implements Listener {
 
         // Use Slimefun's persistent per-chunk index. The ticker index only contains
         // blocks already scheduled and therefore cannot repair a cold-loaded network.
-        for (Location location : com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.getLocations(chunk)) {
+        // Copy the locations because clearing a ghost updates Slimefun's backing index.
+        for (Location location : new java.util.ArrayList<>(BlockStorage.getLocations(chunk))) {
             final com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem item =
-                com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.check(location);
+                BlockStorage.check(location);
 
-            if (item instanceof io.github.sefiraat.networks.slimefun.network.NetworkObject networkObject
+            if (item instanceof NetworkObject
+                    && !NetworkIntegrity.hasExpectedPhysicalMaterial(location.getBlock(), item)) {
+                NetworkUtils.clearNetwork(location);
+                BlockStorage.clearBlockInfo(location);
+                continue;
+            }
+
+            if (item instanceof NetworkObject networkObject
                 && !NetworkStorage.getAllNetworkObjects().containsKey(location)) {
                 final NodeDefinition nodeDefinition = new NodeDefinition(networkObject.getNodeType());
                 NetworkStorage.getAllNetworkObjects().put(location, nodeDefinition);

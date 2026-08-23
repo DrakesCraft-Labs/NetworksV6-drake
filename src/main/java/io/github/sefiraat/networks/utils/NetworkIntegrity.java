@@ -7,6 +7,7 @@ import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,7 +40,20 @@ public final class NetworkIntegrity {
             return false;
         }
         final SlimefunItem item = BlockStorage.check(location);
-        return item != null && item.getId().startsWith(NETWORK_ID_PREFIX);
+        return item != null && item.getId().startsWith(NETWORK_ID_PREFIX)
+            && hasExpectedPhysicalMaterial(location.getBlock(), item);
+    }
+
+    /**
+     * Confirms that persisted Slimefun metadata still describes the physical block in the world.
+     * A non-air vanilla block is not enough: stale NTW metadata on dirt or snow previously made
+     * Networks treat an invisible machine as real and Slimefun rejected every replacement.
+     */
+    public static boolean hasExpectedPhysicalMaterial(@Nonnull Block block, @Nonnull SlimefunItem item) {
+        final Material expected = item.getItem().getType();
+        final Material actual = block.getType();
+        return actual == expected
+            || (expected == Material.PLAYER_HEAD && actual == Material.PLAYER_WALL_HEAD);
     }
 
     public static boolean isExpectedMachine(@Nullable Location location, @Nonnull Class<? extends SlimefunItem> type) {
