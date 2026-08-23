@@ -4,6 +4,8 @@ import io.github.sefiraat.networks.NetworkStorage;
 import io.github.sefiraat.networks.network.NetworkRoot;
 import io.github.sefiraat.networks.network.NodeDefinition;
 import io.github.sefiraat.networks.network.NodeType;
+import io.github.sefiraat.networks.utils.NetworkIntegrity;
+import io.github.sefiraat.networks.utils.NetworkUtils;
 import io.github.sefiraat.networks.utils.Theme;
 import com.github.drakescraft_labs.slimefun4.api.events.PlayerRightClickEvent;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
@@ -142,13 +144,22 @@ public abstract class NetworkObject extends SlimefunItem implements AdminDebugga
             Block block = blockOptional.get();
             Block target = block.getRelative(event.getClickedFace());
 
-            addToRegistry(block);
             for (BlockFace checkFace : CHECK_FACES) {
                 Block checkBlock = target.getRelative(checkFace);
 
                 // Check for node definitions. If there isn't one, we don't care
                 NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(checkBlock.getLocation());
                 if (definition == null) {
+                    continue;
+                }
+
+                /*
+                 * A stale definition beside the target must not turn an ordinary placement into
+                 * a fake controller conflict. Purge it here, before the custom right-click event
+                 * can cancel creation of Bukkit's BlockPlaceEvent.
+                 */
+                if (!NetworkIntegrity.isNetworksMachine(checkBlock.getLocation())) {
+                    NetworkUtils.clearNetwork(checkBlock.getLocation());
                     continue;
                 }
 
