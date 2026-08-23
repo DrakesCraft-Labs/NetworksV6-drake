@@ -1,17 +1,11 @@
 package io.github.sefiraat.networks.network;
 
 import io.github.sefiraat.networks.NetworkStorage;
-import io.github.sefiraat.networks.Networks;
-import io.github.sefiraat.networks.slimefun.network.NetworkController;
 import io.github.sefiraat.networks.slimefun.network.NetworkPowerNode;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nonnull;
 import java.util.EnumSet;
@@ -110,9 +104,11 @@ public class NetworkNode {
 
                 final NodeType testType = testDefinition.getType();
 
-                // Kill additional controllers if it isn't the root
+                // A shared bridge between controllers is an invalid topology, but it must never
+                // cost the player a machine. Isolate the foreign controller and expose the
+                // conflict through diagnostics instead of breaking the block in-world.
                 if (testType == NodeType.CONTROLLER && !testLocation.equals(currentNode.getRoot().nodePosition)) {
-                    currentNode.killAdditionalController(testLocation);
+                    currentNode.getRoot().recordControllerConflict(testLocation);
                     continue;
                 }
 
@@ -129,22 +125,6 @@ public class NetworkNode {
                     queue.add(networkNode);
                 }
             }
-        }
-    }
-
-    private void killAdditionalController(@Nonnull Location location) {
-        final Block block = location.getBlock();
-        final ItemStack toDrop = BlockStorage.retrieve(block);
-        if (toDrop != null) {
-            BukkitRunnable runnable = new BukkitRunnable() {
-                @Override
-                public void run() {
-                    location.getWorld().dropItemNaturally(location, toDrop);
-                    block.setType(Material.AIR);
-                }
-            };
-            runnable.runTask(Networks.getInstance());
-            NetworkController.wipeNetwork(location);
         }
     }
 

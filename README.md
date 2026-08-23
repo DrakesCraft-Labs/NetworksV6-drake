@@ -58,6 +58,8 @@
 ## 🛡️ Capa de Fiabilidad y Estabilidad Drake
 
 * **Reconciliación en Caliente**: Diagnóstico y autoreparación de nodos huérfanos con `/networks doctor` y `/networks reload`.
+* **Topologías Seguras**: Si dos controladores quedan conectados, ambas máquinas se conservan; las redes se aíslan y el conflicto aparece en `/networks doctor` y `/networks inspect`.
+* **Inspección Operativa**: Mira un controlador y ejecuta `/networks inspect` para consultar nodos, capacidad, energía, almacenamiento, E/S, crafters y conflictos sin modificar la red.
 * **Guardas Anti-Duplicación**: Bloqueo de acciones ambiguas de inventario (clic central, collect-to-cursor) en interfaces de red.
 * **Persistencia Atómica**: Las transacciones se confirman de forma atómica en `BlockStorage` antes de modificar los contenedores.
 

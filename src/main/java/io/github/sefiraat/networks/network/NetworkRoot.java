@@ -70,6 +70,8 @@ public class NetworkRoot extends NetworkNode {
     private final long CREATED_TIME = System.currentTimeMillis();
     @Getter
     private final Set<Location> nodeLocations = ConcurrentHashMap.newKeySet();
+    @Getter
+    private final Set<Location> conflictingControllers = ConcurrentHashMap.newKeySet();
 
     /**
      * Inventario agregado de la red, reutilizado durante una ventana muy corta.
@@ -372,6 +374,14 @@ public class NetworkRoot extends NetworkNode {
             case POWER_OUTLET -> powerOutlets.add(location);
         }
         invalidateBarrelCaches();
+    }
+
+    /**
+     * Records a controller reached through this graph without mutating either machine.
+     * The foreign controller is deliberately excluded from this root so both networks remain safe.
+     */
+    public void recordControllerConflict(@NotNull Location location) {
+        conflictingControllers.add(location);
     }
 
     /**

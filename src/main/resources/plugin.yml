@@ -39,3 +39,8 @@ commands:
   networks:
     description: /networks
     usage: /networks <sub>
+    permission: networks.admin
+permissions:
+  networks.admin:
+    description: Allows Networks diagnostics, repair and maintenance commands.
+    default: op

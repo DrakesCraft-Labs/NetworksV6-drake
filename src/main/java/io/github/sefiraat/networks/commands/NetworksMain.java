@@ -1,6 +1,7 @@
 package io.github.sefiraat.networks.commands;
 
 import io.github.sefiraat.networks.network.stackcaches.QuantumCache;
+import io.github.sefiraat.networks.network.NetworkRoot;
 import io.github.sefiraat.networks.NetworkStorage;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import io.github.sefiraat.networks.slimefun.network.NetworkController;
@@ -15,6 +16,7 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
@@ -22,9 +24,13 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
-public class NetworksMain implements CommandExecutor {
+public class NetworksMain implements CommandExecutor, TabCompleter {
+
+    private static final List<String> SUBCOMMANDS = List.of("doctor", "inspect", "reload", "repair", "fillquantum");
 
     private static final Map<Integer, NetworkQuantumStorage> QUANTUM_REPLACEMENT_MAP = new HashMap<>();
 
@@ -56,6 +62,10 @@ public class NetworksMain implements CommandExecutor {
         }
 
         if (sender instanceof Player player) {
+            if (args[0].equalsIgnoreCase("inspect")) {
+                inspectNetwork(player);
+                return true;
+            }
             if (args[0].equalsIgnoreCase("fillquantum")) {
                 if ((player.isOp() || player.hasPermission("networks.admin")) && args.length >= 2) {
                     try {
@@ -80,6 +90,23 @@ public class NetworksMain implements CommandExecutor {
         return true;
     }
 
+    @Override
+    public List<String> onTabComplete(@Nonnull CommandSender sender, @Nonnull Command command,
+                                      @Nonnull String alias, @Nonnull String[] args) {
+        if (!sender.isOp() && !sender.hasPermission("networks.admin")) {
+            return List.of();
+        }
+        if (args.length == 1) {
+            final String prefix = args[0].toLowerCase(Locale.ROOT);
+            return SUBCOMMANDS.stream().filter(value -> value.startsWith(prefix)).toList();
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("repair")
+                && "chunk".startsWith(args[1].toLowerCase(Locale.ROOT))) {
+            return List.of("chunk");
+        }
+        return List.of();
+    }
+
     /**
      * Diagnostico de salud de las redes cargadas. No cambia nada.
      *
@@ -98,7 +125,16 @@ public class NetworksMain implements CommandExecutor {
         int orphansLoaded = 0;
         int orphansUnloaded = 0;
         int stale = 0;
+        int conflicts = 0;
+        int overburdened = 0;
         int total = 0;
+
+        for (NetworkRoot root : networks.values()) {
+            conflicts += root.getConflictingControllers().size();
+            if (root.isOverburdened()) {
+                overburdened++;
+            }
+        }
 
         for (Map.Entry<org.bukkit.Location, io.github.sefiraat.networks.network.NodeDefinition> entry
                 : NetworkStorage.getAllNetworkObjects().entrySet()) {
@@ -141,11 +177,51 @@ public class NetworksMain implements CommandExecutor {
                 + Theme.PASSIVE + "  (normal: nadie cerca de esa base)");
         sender.sendMessage(Theme.PASSIVE + "Nodos con raiz obsoleta: "
                 + (stale > 0 ? Theme.WARNING : Theme.SUCCESS) + stale);
+        sender.sendMessage(Theme.PASSIVE + "Controladores conectados entre si: "
+                + (conflicts > 0 ? Theme.ERROR : Theme.SUCCESS) + conflicts);
+        sender.sendMessage(Theme.PASSIVE + "Redes sobrecargadas: "
+                + (overburdened > 0 ? Theme.WARNING : Theme.SUCCESS) + overburdened);
+        if (conflicts > 0) {
+            sender.sendMessage(Theme.ERROR + "Separa los controladores: Networks los aisló y no eliminó ningún bloque.");
+        }
         if (orphansLoaded > 0 || stale > 0) {
             sender.sendMessage(Theme.WARNING + "Usa /networks reload para reconciliar todas las redes en caliente.");
-        } else {
+        } else if (conflicts == 0 && overburdened == 0) {
             sender.sendMessage(Theme.SUCCESS + "Todas las redes estan sanas.");
         }
+    }
+
+    /** Shows the topology of the controller currently targeted without changing runtime state. */
+    private void inspectNetwork(@Nonnull Player player) {
+        if (!player.isOp() && !player.hasPermission("networks.admin")) {
+            player.sendMessage(Theme.ERROR + "No tienes permiso.");
+            return;
+        }
+        final Block block = player.getTargetBlockExact(8);
+        if (block == null) {
+            player.sendMessage(Theme.ERROR + "Mira un Network Controller a menos de 8 bloques.");
+            return;
+        }
+        final NetworkRoot root = NetworkController.getNetworks().get(block.getLocation());
+        if (root == null) {
+            player.sendMessage(Theme.ERROR + "Ese bloque no es un controlador activo.");
+            return;
+        }
+        player.sendMessage(Theme.MAIN + "===== Network Inspect =====");
+        player.sendMessage(Theme.PASSIVE + "Nodos: " + Theme.SUCCESS + root.getNodeCount()
+                + Theme.PASSIVE + "/" + root.getMaxNodes());
+        player.sendMessage(Theme.PASSIVE + "Energía: " + Theme.SUCCESS + root.getRootPower());
+        player.sendMessage(Theme.PASSIVE + "Almacenamiento: " + Theme.SUCCESS
+                + (root.getCells().size() + root.getGreedyBlocks().size())
+                + Theme.PASSIVE + " | E/S: " + Theme.SUCCESS
+                + (root.getImporters().size() + root.getExporters().size()));
+        player.sendMessage(Theme.PASSIVE + "Grids: " + Theme.SUCCESS + root.getGrids().size()
+                + Theme.PASSIVE + " | Crafters: " + Theme.SUCCESS + root.getCrafters().size());
+        player.sendMessage(Theme.PASSIVE + "Conflictos: "
+                + (root.getConflictingControllers().isEmpty() ? Theme.SUCCESS : Theme.ERROR)
+                + root.getConflictingControllers().size()
+                + Theme.PASSIVE + " | Sobrecargada: "
+                + (root.isOverburdened() ? Theme.ERROR + "sí" : Theme.SUCCESS + "no"));
     }
 
     /**

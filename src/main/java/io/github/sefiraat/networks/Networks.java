@@ -67,7 +67,9 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
         setupSlimefun();
 
         this.listenerManager = new ListenerManager();
-        this.getCommand("networks").setExecutor(new NetworksMain());
+        final NetworksMain networksCommand = new NetworksMain();
+        this.getCommand("networks").setExecutor(networksCommand);
+        this.getCommand("networks").setTabCompleter(networksCommand);
 
         SupportedRecipes.setup();
 
