@@ -58,10 +58,26 @@ public class SyncListener implements Listener {
         NetworkUtils.clearNetwork(event.getBlock().getLocation());
     }
 
+    /**
+     * Expulsa del grafo la coordenada que acaba de ocupar un bloque ajeno (#230).
+     *
+     * El BlockListener de Slimefun tambien escucha en HIGHEST y corre ANTES que este, porque
+     * Networks se habilita despues de su dependencia: cuando lo que se coloca es una maquina NTW,
+     * Slimefun ya persistio su id y ya invoco NetworkObject.onPlace, que registro el nodo. Borrarlo
+     * aqui sin mirar dejaba el registro recien creado en nada, y el nodo solo volvia al grafo
+     * cuando su propio ticker lo redescubria y disparaba otra reconstruccion diferida: eso es lo
+     * que los jugadores describen como tener que colocar la maquina tres veces (#268).
+     */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPlace(@Nonnull BlockPlaceEvent event) {
         final Location location = event.getBlock().getLocation();
         NetworkIntegrity.onForeignBlockOccupied(location);
+
+        // Una maquina NTW real en la coordenada es el nodo que se acaba de colocar, no un fantasma.
+        if (NetworkIntegrity.isNetworksMachine(location)) {
+            return;
+        }
+
         NetworkUtils.clearNetwork(location);
     }
 

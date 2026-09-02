@@ -187,6 +187,15 @@ public abstract class NetworkObject extends SlimefunItem implements AdminDebugga
         // Register first, then invalidate adjacent roots so a newly added node is
         // included without requiring players to replace the Network Controller.
         final Location location = event.getBlockPlaced().getLocation();
+
+        // addToRegistry usa putIfAbsent, asi que una definicion persistida de la maquina anterior
+        // sobreviviria con su NodeType antiguo y el grafo trataria a esta como lo que ya no es.
+        // El jugador acaba de colocarla: su tipo manda sobre cualquier resto en la coordenada.
+        final NodeDefinition previous = NetworkStorage.getAllNetworkObjects().get(location);
+        if (previous != null && previous.getType() != this.nodeType) {
+            NetworkUtils.clearNetwork(location);
+        }
+
         addToRegistry(event.getBlockPlaced());
         NetworkController.markDirty(location);
     }

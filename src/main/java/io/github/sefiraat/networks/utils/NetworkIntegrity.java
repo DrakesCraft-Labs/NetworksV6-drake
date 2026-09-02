@@ -5,6 +5,7 @@ import io.github.sefiraat.networks.network.NetworkRoot;
 import io.github.sefiraat.networks.network.NodeDefinition;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
+import com.github.drakescraft_labs.slimefun4.utils.BlockStorageIntegrity;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -48,12 +49,13 @@ public final class NetworkIntegrity {
      * Confirms that persisted Slimefun metadata still describes the physical block in the world.
      * A non-air vanilla block is not enough: stale NTW metadata on dirt or snow previously made
      * Networks treat an invisible machine as real and Slimefun rejected every replacement.
+     *
+     * Se delega en el predicado de Slimefun para no mantener una copia mas pobre: la version
+     * local solo toleraba PLAYER_HEAD/PLAYER_WALL_HEAD, asi que cualquier maquina cuya base
+     * fuese antorcha, cartel o estandarte colocada en pared se daba por fantasma y se borraba.
      */
     public static boolean hasExpectedPhysicalMaterial(@Nonnull Block block, @Nonnull SlimefunItem item) {
-        final Material expected = item.getItem().getType();
-        final Material actual = block.getType();
-        return actual == expected
-            || (expected == Material.PLAYER_HEAD && actual == Material.PLAYER_WALL_HEAD);
+        return BlockStorageIntegrity.matches(block, item);
     }
 
     public static boolean isExpectedMachine(@Nullable Location location, @Nonnull Class<? extends SlimefunItem> type) {
