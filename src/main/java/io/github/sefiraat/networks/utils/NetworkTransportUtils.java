@@ -1,6 +1,8 @@
 package io.github.sefiraat.networks.utils;
 
 import io.github.sefiraat.networks.network.NetworkRoot;
+import io.github.sefiraat.networks.slimefun.network.NetworkAutoCrafter;
+import io.github.sefiraat.networks.slimefun.network.NetworkQuantumWorkbench;
 import io.github.sefiraat.networks.slimefun.network.NetworkVanillaGrabber;
 import io.github.sefiraat.networks.slimefun.network.NetworkVanillaPusher;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
@@ -181,6 +183,18 @@ public final class NetworkTransportUtils {
     }
 
     /**
+     * Nodos NTW cuyos slots de transporte contienen items reales de la máquina y no
+     * una vista del almacenamiento de la red: pueden actuar como inventario externo
+     * sin abrir el vector de dupe de #230/#240 (celdas y quantum storage siguen vetados).
+     */
+    private static final Class<?>[] TRANSPORT_SAFE_NODES = {
+        NetworkVanillaGrabber.class,
+        NetworkVanillaPusher.class,
+        NetworkAutoCrafter.class,
+        NetworkQuantumWorkbench.class
+    };
+
+    /**
      * No extraer desde otra máquina Networks (evita estados híbridos tipo #230).
      */
     public static boolean isExternalInventory(@Nullable BlockMenu menu) {
@@ -195,8 +209,14 @@ public final class NetworkTransportUtils {
         if (itemId == null || !itemId.startsWith(NETWORK_ID_PREFIX)) {
             return true;
         }
-        return itemType != null
-                && (NetworkVanillaGrabber.class.isAssignableFrom(itemType)
-                || NetworkVanillaPusher.class.isAssignableFrom(itemType));
+        if (itemType == null) {
+            return false;
+        }
+        for (Class<?> safeNode : TRANSPORT_SAFE_NODES) {
+            if (safeNode.isAssignableFrom(itemType)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
