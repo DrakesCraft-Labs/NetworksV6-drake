@@ -9,6 +9,7 @@ import io.github.sefiraat.networks.network.NodeType;
 import com.github.drakescraft_labs.slimefun4.api.events.PlayerRightClickEvent;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemSetting;
+import com.github.drakescraft_labs.slimefun4.api.items.ItemState;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import com.github.drakescraft_labs.slimefun4.api.items.settings.IntRangeSetting;
@@ -32,6 +33,7 @@ public class NetworkController extends NetworkObject {
     private static final Set<Location> CRAYONS = new HashSet<>();
     protected final Map<Location, Boolean> firstTickMap = new HashMap<>();
     private final ItemSetting<Integer> maxNodes;
+    private volatile int cachedMaxNodes = -1;
 
     public NetworkController(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(itemGroup, item, recipeType, recipe, NodeType.CONTROLLER);
@@ -54,7 +56,7 @@ public class NetworkController extends NetworkObject {
                         }
 
                         addToRegistry(block);
-                        NetworkRoot networkRoot = new NetworkRoot(block.getLocation(), NodeType.CONTROLLER, maxNodes.getValue());
+                        NetworkRoot networkRoot = new NetworkRoot(block.getLocation(), NodeType.CONTROLLER, getMaxNodes());
                         networkRoot.addAllChildren();
 
                         NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(block.getLocation());
@@ -71,6 +73,34 @@ public class NetworkController extends NetworkObject {
                     }
                 }
         );
+    }
+
+    @Override
+    public void postRegister() {
+        super.postRegister();
+        try {
+            this.cachedMaxNodes = maxNodes.getValue();
+        } catch (Throwable t) {
+            this.cachedMaxNodes = maxNodes.getDefaultValue();
+        }
+    }
+
+    public int getMaxNodes() {
+        if (cachedMaxNodes > 0) {
+            return cachedMaxNodes;
+        }
+        if (getState() == ItemState.UNREGISTERED) {
+            return maxNodes.getDefaultValue();
+        }
+        try {
+            int val = maxNodes.getValue();
+            if (val > 0) {
+                cachedMaxNodes = val;
+                return val;
+            }
+        } catch (Throwable ignored) {
+        }
+        return maxNodes.getDefaultValue();
     }
 
     public static Map<Location, NetworkRoot> getNetworks() {

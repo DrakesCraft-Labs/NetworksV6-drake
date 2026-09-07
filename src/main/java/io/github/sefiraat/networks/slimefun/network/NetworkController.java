@@ -9,6 +9,7 @@ import io.github.sefiraat.networks.utils.Theme;
 import com.github.drakescraft_labs.slimefun4.api.events.PlayerRightClickEvent;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemSetting;
+import com.github.drakescraft_labs.slimefun4.api.items.ItemState;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import com.github.drakescraft_labs.slimefun4.api.items.settings.IntRangeSetting;
@@ -41,6 +42,7 @@ public class NetworkController extends NetworkObject {
     private static final int DIRTY_DELAY_TICKS = 3;
 
     private final ItemSetting<Integer> maxNodes;
+    private volatile int cachedMaxNodes = -1;
     // Shared controllers must be cleared on plugin shutdown to avoid stale locations after restart.
     protected static final Set<Location> initializedControllers = ConcurrentHashMap.newKeySet();
 
@@ -152,6 +154,34 @@ public class NetworkController extends NetworkObject {
         initializedControllers.remove(location);
     }
 
+    @Override
+    public void postRegister() {
+        super.postRegister();
+        try {
+            this.cachedMaxNodes = maxNodes.getValue();
+        } catch (Throwable t) {
+            this.cachedMaxNodes = maxNodes.getDefaultValue();
+        }
+    }
+
+    public int getMaxNodes() {
+        if (cachedMaxNodes > 0) {
+            return cachedMaxNodes;
+        }
+        if (getState() == ItemState.UNREGISTERED) {
+            return maxNodes.getDefaultValue();
+        }
+        try {
+            int val = maxNodes.getValue();
+            if (val > 0) {
+                cachedMaxNodes = val;
+                return val;
+            }
+        } catch (Throwable ignored) {
+        }
+        return maxNodes.getDefaultValue();
+    }
+
     /**
      * Marca para reconstruccion las redes que alcanzan un mundo recien reindexado.
      *
@@ -253,7 +283,7 @@ public class NetworkController extends NetworkObject {
         //
         // addAllChildren no depende del estado previo: recorre por adyacencia y sobrescribe la
         // asignacion de cada nodo que alcanza, asi que reconstruir primero es seguro.
-        final NetworkRoot networkRoot = new NetworkRoot(location, NodeType.CONTROLLER, maxNodes.getValue());
+        final NetworkRoot networkRoot = new NetworkRoot(location, NodeType.CONTROLLER, getMaxNodes());
         networkRoot.addAllChildren();
 
         final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(location);
