@@ -49,11 +49,7 @@ public class NetworkController extends NetworkObject {
     public NetworkController(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(itemGroup, item, recipeType, recipe, NodeType.CONTROLLER);
 
-        // DrakesCraft already has a deliberate 10,000-node controller setting in
-        // Items.yml. Keeping the validation ceiling below that value meant
-        // ItemSetting.reload() rejected it and left the setting uninitialized;
-        // every controller tick then emitted a warning and fell back implicitly.
-        maxNodes = new IntRangeSetting(this, "max_nodes", 10, 2000, 10_000);
+        maxNodes = new IntRangeSetting(this, "max_nodes", 10, 2000, 5000);
         addItemSetting(maxNodes);
 
         addItemHandler(
