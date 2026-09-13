@@ -3,7 +3,6 @@ package io.github.sefiraat.networks.slimefun.network;
 import io.github.sefiraat.networks.network.stackcaches.QuantumCache;
 import io.github.sefiraat.networks.utils.ItemCreator;
 import io.github.sefiraat.networks.utils.Keys;
-import io.github.sefiraat.networks.utils.NetworkTransportUtils;
 import io.github.sefiraat.networks.utils.Theme;
 import io.github.sefiraat.networks.utils.datatypes.DataTypeMethods;
 import io.github.sefiraat.networks.utils.datatypes.PersistentQuantumStorageType;
@@ -13,7 +12,7 @@ import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
 import com.github.drakescraft_labs.slimefun4.core.handlers.BlockBreakHandler;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.items.CustomItemStack;
+import com.github.drakescraft_labs.slimefun4.libraries.dough.items.ItemUtils;
 import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.Interaction;
 import com.github.drakescraft_labs.slimefun4.utils.SlimefunUtils;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
@@ -21,17 +20,21 @@ import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenuPreset;
 import com.github.drakescraft_labs.slimefun4.legacy.api.item_transport.ItemTransportFlow;
 import org.bukkit.Material;
+import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class NetworkQuantumWorkbench extends SlimefunItem {
 
@@ -46,7 +49,8 @@ public class NetworkQuantumWorkbench extends SlimefunItem {
 
     private static final ItemStack CRAFT_BUTTON_STACK = ItemCreator.create(
         Material.CRAFTING_TABLE,
-        Theme.CLICK_INFO + "Click to entangle"
+        Theme.CLICK_INFO + "Click to entangle",
+        Theme.PASSIVE + "Shift-click to craft up to one stack"
     );
 
     private static final Map<ItemStack[], ItemStack> RECIPES = new HashMap<>();
@@ -100,7 +104,7 @@ public class NetworkQuantumWorkbench extends SlimefunItem {
             @Override
             public void newInstance(@Nonnull BlockMenu menu, @Nonnull Block b) {
                 menu.addMenuClickHandler(CRAFT_SLOT, (p, slot, item, action) -> {
-                    craft(menu);
+                    craft(menu, action.isShiftClicked());
                     return false;
                 });
             }
@@ -108,86 +112,162 @@ public class NetworkQuantumWorkbench extends SlimefunItem {
     }
 
     public void craft(@Nonnull BlockMenu menu) {
-        final ItemStack itemInOutput = menu.getItemInSlot(OUTPUT_SLOT);
+        craft(menu, false);
+    }
 
-        // Quick escape, we only allow crafting if the output is empty
-        if (itemInOutput != null && itemInOutput.getType() != Material.AIR) {
+    public void craft(@Nonnull BlockMenu menu, boolean shiftClicked) {
+        // Inventory changes and Slimefun's persistence snapshots share the server thread.
+        if (!Bukkit.isPrimaryThread()) {
             return;
         }
 
-        final ItemStack[] inputs = new ItemStack[RECIPE_SLOTS.length];
-        int i = 0;
-
-        // Fill the inputs
-        for (int recipeSlot : RECIPE_SLOTS) {
-            ItemStack stack = menu.getItemInSlot(recipeSlot);
-            inputs[i] = stack;
-            i++;
+        final ItemStack[] before = new ItemStack[RECIPE_SLOTS.length];
+        final ItemStack[] remaining = new ItemStack[RECIPE_SLOTS.length];
+        for (int i = 0; i < RECIPE_SLOTS.length; i++) {
+            before[i] = copy(menu.getItemInSlot(RECIPE_SLOTS[i]));
+            remaining[i] = copy(before[i]);
         }
+        final ItemStack outputBefore = copy(menu.getItemInSlot(OUTPUT_SLOT));
+        ItemStack output = copy(outputBefore);
+        int crafts = 0;
 
-        ItemStack crafted = null;
-
-        // Go through each recipe, test and set the ItemStack if found
         for (Map.Entry<ItemStack[], ItemStack> entry : RECIPES.entrySet()) {
-            if (testRecipe(inputs, entry.getKey())) {
-                crafted = entry.getValue().clone();
-                break;
+            if (!testRecipe(remaining, entry.getKey())) {
+                continue;
             }
-        }
-
-        if (crafted != null) {
-            final ItemStack coreItem = inputs[4];
-            final SlimefunItem oldQuantum = coreItem == null ? null : SlimefunItem.getByItem(coreItem);
-
-            if (oldQuantum instanceof NetworkQuantumStorage) {
-                final ItemMeta oldMeta = coreItem.getItemMeta();
-                final ItemMeta newMeta = crafted.getItemMeta();
-                final NetworkQuantumStorage newQuantum = (NetworkQuantumStorage) SlimefunItem.getByItem(crafted);
-                final QuantumCache oldCache = DataTypeMethods.getCustom(oldMeta, Keys.QUANTUM_STORAGE_INSTANCE, PersistentQuantumStorageType.TYPE);
-
-                if (oldCache != null && oldCache.getItemStack() != null) {
-                    final QuantumCache newCache = new QuantumCache(
-                        oldCache.getItemStack().clone(),
-                        oldCache.getAmount(),
-                        newQuantum.getMaxAmount(),
-                        oldCache.isVoidExcess()
-                    );
-                    DataTypeMethods.setCustom(newMeta, Keys.QUANTUM_STORAGE_INSTANCE, PersistentQuantumStorageType.TYPE, newCache);
-                    newCache.addMetaLore(newMeta);
-                    crafted.setItemMeta(newMeta);
+            while (crafts < (shiftClicked ? 64 : 1) && testRecipe(remaining, entry.getKey())) {
+                final ItemStack crafted = prepareOutput(remaining, entry.getKey(), entry.getValue());
+                if (isEmpty(crafted)) {
+                    break;
                 }
-            }
+                final int capacity = Math.min(crafted.getMaxStackSize(), menu.toInventory().getMaxStackSize());
+                final int currentAmount = isEmpty(output) ? 0 : output.getAmount();
+                if ((!isEmpty(output) && !output.isSimilar(crafted))
+                    || crafted.getAmount() > capacity - currentAmount) {
+                    break;
+                }
 
-            NetworkTransportUtils.pushIntoMenu(menu, crafted, OUTPUT_SLOT);
-            for (int recipeSlot : RECIPE_SLOTS) {
-                if (menu.getItemInSlot(recipeSlot) != null) {
-                    menu.consumeItem(recipeSlot, 1, true);
-                    if (menu.getItemInSlot(recipeSlot) != null && menu.getItemInSlot(recipeSlot).getAmount() <= 0) {
-                        menu.replaceExistingItem(recipeSlot, null);
+                // Stateful cells are upgraded individually and never merged with another cell.
+                final boolean stateful = hasQuantumData(remaining[4]);
+                if (stateful && !isEmpty(output)) {
+                    break;
+                }
+                output = crafted.clone();
+                output.setAmount(currentAmount + crafted.getAmount());
+                for (int i = 0; i < remaining.length; i++) {
+                    if (!isEmpty(entry.getKey()[i])) {
+                        ItemUtils.consumeItem(remaining[i], entry.getKey()[i].getAmount(), true);
+                        if (isEmpty(remaining[i])) {
+                            remaining[i] = null;
+                        }
                     }
                 }
+                crafts++;
+                if (stateful) {
+                    break;
+                }
             }
-            menu.markDirty();
+            break;
+        }
+
+        if (crafts == 0 || !Objects.equals(outputBefore, menu.getItemInSlot(OUTPUT_SLOT))) {
+            return;
+        }
+        for (int i = 0; i < before.length; i++) {
+            if (!Objects.equals(before[i], menu.getItemInSlot(RECIPE_SLOTS[i]))) {
+                return;
+            }
+        }
+        // Everything is prepared before mutating live slots. This preset has no change hook;
+        // bypass hooks during commit so callbacks cannot observe or interrupt a partial craft.
+        for (int i = 0; i < remaining.length; i++) {
+            menu.replaceExistingItem(RECIPE_SLOTS[i], remaining[i], false);
+        }
+        menu.replaceExistingItem(OUTPUT_SLOT, output, false);
+        menu.markDirty();
+    }
+
+    private ItemStack prepareOutput(ItemStack[] inputs, ItemStack[] recipe, ItemStack result) {
+        if (isEmpty(result)) {
+            return null;
+        }
+        final ItemStack crafted = result.clone();
+        for (int i = 0; i < inputs.length; i++) {
+            if (i != 4 && hasQuantumData(inputs[i])) {
+                return null;
+            }
+        }
+        final ItemStack core = inputs[4];
+        if (!hasQuantumData(core)) {
+            return crafted;
+        }
+        if (core.getAmount() != 1 || recipe[4].getAmount() != 1 || crafted.getAmount() != 1
+            || !(SlimefunItem.getByItem(core) instanceof NetworkQuantumStorage)
+            || !(SlimefunItem.getByItem(crafted) instanceof NetworkQuantumStorage upgraded)) {
+            return null;
+        }
+        try {
+            final ItemMeta oldMeta = core.getItemMeta();
+            final QuantumCache oldCache = DataTypeMethods.getCustom(
+                oldMeta, Keys.QUANTUM_STORAGE_INSTANCE, PersistentQuantumStorageType.TYPE);
+            if (oldCache == null || oldCache.getAmount() < 0 || oldCache.getAmount() > upgraded.getMaxAmount()
+                || (isEmpty(oldCache.getItemStack()) && oldCache.getAmount() != 0)) {
+                return null;
+            }
+            final ItemMeta newMeta = crafted.getItemMeta();
+            // Copy the complete nested PDC, including flags and extension keys, changing only capacity.
+            final PersistentDataContainer data = oldMeta.getPersistentDataContainer().get(
+                Keys.QUANTUM_STORAGE_INSTANCE, PersistentDataType.TAG_CONTAINER);
+            final PersistentDataContainer copy = newMeta.getPersistentDataContainer().getAdapterContext().newPersistentDataContainer();
+            data.copyTo(copy, true);
+            copy.set(PersistentQuantumStorageType.MAX_AMOUNT, PersistentDataType.INTEGER, upgraded.getMaxAmount());
+            newMeta.getPersistentDataContainer().set(Keys.QUANTUM_STORAGE_INSTANCE, PersistentDataType.TAG_CONTAINER, copy);
+            if (!isEmpty(oldCache.getItemStack())) {
+                oldCache.addMetaLore(newMeta);
+            }
+            crafted.setItemMeta(newMeta);
+            return crafted;
+        } catch (RuntimeException exception) {
+            // Invalid or incompatible PDC must leave the original cell and ingredients untouched.
+            return null;
         }
     }
 
+    private static boolean hasQuantumData(ItemStack stack) {
+        return !isEmpty(stack) && stack.hasItemMeta()
+            && stack.getItemMeta().getPersistentDataContainer().has(Keys.QUANTUM_STORAGE_INSTANCE);
+    }
+
+    private static boolean isEmpty(ItemStack stack) {
+        return stack == null || stack.getType().isAir() || stack.getAmount() <= 0;
+    }
+
+    private static ItemStack copy(ItemStack stack) {
+        return stack == null ? null : stack.clone();
+    }
+
     private boolean testRecipe(ItemStack[] input, ItemStack[] recipe) {
+        if (recipe.length != input.length) {
+            return false;
+        }
+        boolean hasIngredient = false;
         for (int test = 0; test < recipe.length; test++) {
             final ItemStack inputItem = input[test];
             final ItemStack recipeItem = recipe[test];
-            final boolean inputEmpty = inputItem == null || inputItem.getType() == Material.AIR;
-            final boolean recipeEmpty = recipeItem == null || recipeItem.getType() == Material.AIR;
+            final boolean inputEmpty = isEmpty(inputItem);
+            final boolean recipeEmpty = isEmpty(recipeItem);
             if (inputEmpty && recipeEmpty) {
                 continue;
             }
             if (inputEmpty || recipeEmpty) {
                 return false;
             }
-            if (!SlimefunUtils.isItemSimilar(inputItem, recipeItem, true, false, false)) {
+            hasIngredient = true;
+            if (!SlimefunUtils.isItemSimilar(inputItem, recipeItem, true, true, false)) {
                 return false;
             }
         }
-        return true;
+        return hasIngredient;
     }
 
     private BlockBreakHandler getBlockBreakHandler() {

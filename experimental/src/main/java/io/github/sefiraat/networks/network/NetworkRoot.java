@@ -636,6 +636,18 @@ public class NetworkRoot extends NetworkNode {
         return 0;
     }
 
+    public long getRootPower() {
+        long current = 0;
+        for (Location node : powerNodes) {
+            final SlimefunItem item = BlockStorage.check(node);
+            if (item instanceof NetworkPowerNode powerNode) {
+                current += powerNode.getCharge(node);
+            }
+        }
+        this.rootPower = current;
+        return current;
+    }
+
     public void addRootPower(long power) {
         this.rootPower += power;
     }
