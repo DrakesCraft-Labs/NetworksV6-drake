@@ -106,7 +106,7 @@ public class NetworkCraftingGrid extends AbstractGrid {
                 menu.replaceExistingItem(getPagePrevious(), getPagePreviousStack());
                 menu.addMenuClickHandler(getPagePrevious(), (p, slot, item, action) -> {
                     GridCache gridCache = getCache(menu);
-                    gridCache.setPage(gridCache.getPage() <= 0 ? 0 : gridCache.getPage() - 1);
+                    gridCache.setPage(GridCache.previousPage(gridCache.getPage()));
                     CACHE_MAP.put(menu.getLocation(), gridCache);
                     return false;
                 });
@@ -114,7 +114,7 @@ public class NetworkCraftingGrid extends AbstractGrid {
                 menu.replaceExistingItem(getPageNext(), getPageNextStack());
                 menu.addMenuClickHandler(getPageNext(), (p, slot, item, action) -> {
                     GridCache gridCache = getCache(menu);
-                    gridCache.setPage(gridCache.getPage() >= gridCache.getMaxPages() ? gridCache.getMaxPages() : gridCache.getPage() + 1);
+                    gridCache.setPage(GridCache.nextPage(gridCache.getPage(), gridCache.getMaxPages()));
                     getCacheMap().put(menu.getLocation(), gridCache);
                     return false;
                 });

@@ -34,6 +34,21 @@ public class GridCache {
         this.maxPages = maxPages;
     }
 
+    /**
+     * Pagina siguiente acotada al maximo publicado. El maximo se sanea aqui tambien porque una
+     * rejilla vacia llego a publicar -1 y el boton dejaba la cache en la pagina -1, lo que hacia
+     * que {@code AbstractGrid#updateDisplay} calculara un indice de subList negativo.
+     */
+    public static int nextPage(int page, int maxPages) {
+        final int limit = Math.max(0, maxPages);
+        return page >= limit ? limit : page + 1;
+    }
+
+    /** Pagina anterior, nunca por debajo de la pagina 0. */
+    public static int previousPage(int page) {
+        return page <= 0 ? 0 : page - 1;
+    }
+
     @Nonnull
     public SortOrder getSortOrder() {
         return sortOrder;

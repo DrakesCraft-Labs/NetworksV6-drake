@@ -179,7 +179,11 @@ public abstract class AbstractGrid extends NetworkObject {
         final List<Map.Entry<ItemStack, Integer>> entries = getEntries(root, gridCache);
         final int pages = (int) Math.ceil(entries.size() / (double) getDisplaySlots().length) - 1;
 
-        gridCache.setMaxPages(pages);
+        // Con la rejilla vacia `pages` vale -1 (ceil(0/slots) - 1). Publicarlo como maximo hacia
+        // que el boton de pagina siguiente dejara la cache en la pagina -1, y al reaparecer items
+        // el subList de mas abajo arrancaba en un indice negativo (IndexOutOfBoundsException por
+        // tick). Siempre existe la pagina 0, asi que el maximo publicado nunca baja de ella.
+        gridCache.setMaxPages(Math.max(0, pages));
 
         // Set everything to blank and return if there are no pages (no items)
         if (pages < 0) {
@@ -187,8 +191,9 @@ public abstract class AbstractGrid extends NetworkObject {
             return;
         }
 
-        // Reset selected page if it no longer exists due to items being removed
-        if (gridCache.getPage() > pages) {
+        // Reset selected page if it no longer exists due to items being removed.
+        // El limite inferior tambien se comprueba para sanear caches que ya quedaron en negativo.
+        if (gridCache.getPage() > pages || gridCache.getPage() < 0) {
             gridCache.setPage(0);
         }
 
