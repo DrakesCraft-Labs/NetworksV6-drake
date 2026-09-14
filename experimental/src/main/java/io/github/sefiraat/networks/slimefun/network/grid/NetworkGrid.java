@@ -120,8 +120,29 @@ public class NetworkGrid extends AbstractGrid {
                         return true;
                     }
 
-                    // Shift+Left-click
-                    receiveItem(p, i, a, menu);
+                    if (i == null || i.getType() == org.bukkit.Material.AIR) {
+                        return false;
+                    }
+
+                    // Remover del inventario preventivamente contra dupes concurrentes
+                    final ItemStack toInsert = i.clone();
+                    p.getInventory().setItem(s, null);
+                    receiveItem(p, toInsert, a, menu);
+
+                    // Si la red no pudo absorber todo o parte del ítem, devolver el remanente (#emilio-flight-gem).
+                    if (toInsert.getAmount() > 0) {
+                        final ItemStack current = p.getInventory().getItem(s);
+                        if (current == null || current.getType() == org.bukkit.Material.AIR) {
+                            p.getInventory().setItem(s, toInsert);
+                        } else {
+                            final java.util.Map<Integer, ItemStack> overflow = p.getInventory().addItem(toInsert);
+                            for (ItemStack leftover : overflow.values()) {
+                                if (leftover != null && leftover.getAmount() > 0) {
+                                    p.getWorld().dropItemNaturally(p.getLocation(), leftover);
+                                }
+                            }
+                        }
+                    }
                     return false;
                 });
             }

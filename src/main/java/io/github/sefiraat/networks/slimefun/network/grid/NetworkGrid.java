@@ -127,9 +127,26 @@ public class NetworkGrid extends AbstractGrid {
                         return false;
                     }
 
-                    // Remover del inventario ANTES de añadir al network (anti-dupe #shift-click)
+                    // Remover del inventario preventivamente contra dupes concurrentes
+                    final ItemStack toInsert = i.clone();
                     p.getInventory().setItem(s, null);
-                    receiveItem(p, i, a, menu);
+                    receiveItem(p, toInsert, a, menu);
+
+                    // Si la red no pudo absorber todo o parte del ítem (ej. red llena, sin celda/barril
+                    // compatible o ítem especial no almacenable como Flight Gem), devolver el remanente (#emilio-flight-gem).
+                    if (toInsert.getAmount() > 0) {
+                        final ItemStack current = p.getInventory().getItem(s);
+                        if (current == null || current.getType() == org.bukkit.Material.AIR) {
+                            p.getInventory().setItem(s, toInsert);
+                        } else {
+                            final java.util.Map<Integer, ItemStack> overflow = p.getInventory().addItem(toInsert);
+                            for (ItemStack leftover : overflow.values()) {
+                                if (leftover != null && leftover.getAmount() > 0) {
+                                    p.getWorld().dropItemNaturally(p.getLocation(), leftover);
+                                }
+                            }
+                        }
+                    }
                     return false;
                 });
             }
