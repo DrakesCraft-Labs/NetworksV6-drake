@@ -95,7 +95,7 @@ public class NetworkVacuum extends NetworkObject {
                 if (optionalEntity.isEmpty() || !(optionalEntity.get() instanceof Item item)) {
                     return;
                 }
-                if (item.getPickupDelay() <= 0 && !SlimefunUtils.hasNoPickupFlag(item)) {
+                if (item.isValid() && !item.isDead() && item.getPickupDelay() <= 0 && !SlimefunUtils.hasNoPickupFlag(item)) {
                     final ItemStack itemStack = item.getItemStack().clone();
                     blockMenu.replaceExistingItem(inputSlot, itemStack);
                     blockMenu.markDirty();

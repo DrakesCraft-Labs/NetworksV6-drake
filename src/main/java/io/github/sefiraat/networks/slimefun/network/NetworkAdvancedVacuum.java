@@ -123,18 +123,25 @@ public final class NetworkAdvancedVacuum extends NetworkObject {
         );
         for (Entity entity : nearby) {
             Item item = (Item) entity;
+            if (!item.isValid() || item.isDead()) {
+                continue;
+            }
             if (item.getPickupDelay() > 0 || SlimefunUtils.hasNoPickupFlag(item) || !allows(menu, item.getItemStack())) {
                 continue;
             }
-            ItemStack stack = item.getItemStack().clone();
-            int moved = Math.min(stack.getAmount(), stack.getMaxStackSize());
+            ItemStack entityStack = item.getItemStack();
+            int currentAmount = entityStack.getAmount();
+            ItemStack stack = entityStack.clone();
+            int moved = Math.min(currentAmount, stack.getMaxStackSize());
             stack.setAmount(moved);
             menu.replaceExistingItem(freeSlot, stack);
             menu.markDirty();
-            if (item.getItemStack().getAmount() == moved) {
+            if (currentAmount <= moved) {
                 item.remove();
             } else {
-                item.getItemStack().setAmount(item.getItemStack().getAmount() - moved);
+                ItemStack remaining = entityStack.clone();
+                remaining.setAmount(currentAmount - moved);
+                item.setItemStack(remaining);
             }
             ParticleUtils.displayParticleRandomly(item, 1, 5, new Particle.DustOptions(Color.AQUA, 1));
             return;
