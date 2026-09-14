@@ -4,6 +4,7 @@ import io.github.sefiraat.networks.Networks;
 import io.github.sefiraat.networks.listeners.BlockStateRefreshListener;
 import io.github.sefiraat.networks.listeners.ExplosiveToolListener;
 import io.github.sefiraat.networks.listeners.GridDupeGuardListener;
+import io.github.sefiraat.networks.listeners.IslandSyncListener;
 import io.github.sefiraat.networks.listeners.SyncListener;
 
 import org.bukkit.event.Listener;
@@ -13,6 +14,7 @@ public class ListenerManager {
     public ListenerManager() {
         addListener(new ExplosiveToolListener());
         addListener(new SyncListener());
+        addListener(new IslandSyncListener());
         addListener(new GridDupeGuardListener());
         addListener(new BlockStateRefreshListener());
     }

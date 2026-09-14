@@ -145,7 +145,7 @@ public class SyncListener implements Listener {
      * conectado apunta a la raiz que NETWORKS tiene registrada para su controlador, y no dispara
      * nada, de modo que una recarga normal no provoca reconstrucciones.
      */
-    private static boolean chunkHasDetachedNodes(@Nonnull org.bukkit.Chunk chunk) {
+    public static boolean chunkHasDetachedNodes(@Nonnull org.bukkit.Chunk chunk) {
         for (Location location : com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.getLocations(chunk)) {
             final com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem item =
                 com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage.check(location);
