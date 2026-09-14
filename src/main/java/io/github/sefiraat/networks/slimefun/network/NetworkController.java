@@ -200,8 +200,8 @@ public class NetworkController extends NetworkObject {
         for (Location controlador : NETWORKS.keySet()) {
             if (world.equals(controlador.getWorld())) {
                 DIRTY_NETWORKS.add(controlador);
-                // Debounce from the first trigger; avoid resetting timer continuously on world loading
-                DIRTY_TICK.putIfAbsent(controlador, ahora);
+                // Debounce from latest restored node to ensure burst finishes before rebuild
+                DIRTY_TICK.put(controlador, ahora);
             }
         }
     }
