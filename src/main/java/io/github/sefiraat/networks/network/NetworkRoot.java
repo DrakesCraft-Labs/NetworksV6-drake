@@ -166,8 +166,8 @@ public class NetworkRoot extends NetworkNode {
     private @Nullable Set<BarrelIdentity> inputAbleBarrels = null;
     private @Nullable Set<BarrelIdentity> outputAbleBarrels = null;
     
-    private @Nullable Map<Location, BarrelIdentity> mapInputAbleBarrels = null;
-    private @Nullable Map<Location, BarrelIdentity> mapOutputAbleBarrels = null;
+    private volatile @Nullable Map<Location, BarrelIdentity> mapInputAbleBarrels = null;
+    private volatile @Nullable Map<Location, BarrelIdentity> mapOutputAbleBarrels = null;
 
     @Setter
     @Getter
@@ -1016,10 +1016,13 @@ public class NetworkRoot extends NetworkNode {
         }
 
         this.inputAbleBarrels = barrelSet;
-        this.mapInputAbleBarrels = new ConcurrentHashMap<>();
+        final Map<Location, BarrelIdentity> map = new ConcurrentHashMap<>();
         for (BarrelIdentity storage : barrelSet) {
-            this.mapInputAbleBarrels.put(storage.getLocation(), storage);
+            if (storage != null && storage.getLocation() != null) {
+                map.put(storage.getLocation(), storage);
+            }
         }
+        this.mapInputAbleBarrels = map;
 
         return barrelSet;
     }
@@ -1087,10 +1090,13 @@ public class NetworkRoot extends NetworkNode {
         }
 
         this.outputAbleBarrels = barrelSet;
-        this.mapOutputAbleBarrels = new ConcurrentHashMap<>();
+        final Map<Location, BarrelIdentity> map = new ConcurrentHashMap<>();
         for (BarrelIdentity storage : barrelSet) {
-            this.mapOutputAbleBarrels.put(storage.getLocation(), storage);
+            if (storage != null && storage.getLocation() != null) {
+                map.put(storage.getLocation(), storage);
+            }
         }
+        this.mapOutputAbleBarrels = map;
         return barrelSet;
     }
 
@@ -1104,13 +1110,21 @@ public class NetworkRoot extends NetworkNode {
     }
 
     @Nullable
-    public BarrelIdentity accessInputAbleBarrel(Location barrelLocation) {
-        return getMapInputAbleBarrels().get(barrelLocation);
+    public BarrelIdentity accessInputAbleBarrel(@Nullable Location barrelLocation) {
+        if (barrelLocation == null) {
+            return null;
+        }
+        final Map<Location, BarrelIdentity> map = getMapInputAbleBarrels();
+        return map != null ? map.get(barrelLocation) : null;
     }
 
     @Nullable
-    public BarrelIdentity accessOutputAbleBarrel(Location barrelLocation) {
-        return getMapOutputAbleBarrels().get(barrelLocation);
+    public BarrelIdentity accessOutputAbleBarrel(@Nullable Location barrelLocation) {
+        if (barrelLocation == null) {
+            return null;
+        }
+        final Map<Location, BarrelIdentity> map = getMapOutputAbleBarrels();
+        return map != null ? map.get(barrelLocation) : null;
     }
 
     @Nullable
@@ -1543,28 +1557,44 @@ public class NetworkRoot extends NetworkNode {
         // Netex - Record end
     }
 
+    @NotNull
     public Map<Location, BarrelIdentity> getMapInputAbleBarrels() {
-        if (this.mapInputAbleBarrels != null) {
-            return this.mapInputAbleBarrels;
+        final Map<Location, BarrelIdentity> cached = this.mapInputAbleBarrels;
+        if (cached != null) {
+            return cached;
         }
 
-        this.mapInputAbleBarrels = new ConcurrentHashMap<>();
-        for (BarrelIdentity barrel : getInputAbleBarrels()) {
-            this.mapInputAbleBarrels.put(barrel.getLocation(), barrel);
+        final Map<Location, BarrelIdentity> map = new ConcurrentHashMap<>();
+        final Set<BarrelIdentity> barrels = getInputAbleBarrels();
+        if (barrels != null) {
+            for (BarrelIdentity barrel : barrels) {
+                if (barrel != null && barrel.getLocation() != null) {
+                    map.put(barrel.getLocation(), barrel);
+                }
+            }
         }
-        return this.mapInputAbleBarrels;
+        this.mapInputAbleBarrels = map;
+        return map;
     }
 
+    @NotNull
     public Map<Location, BarrelIdentity> getMapOutputAbleBarrels() {
-        if (this.mapOutputAbleBarrels != null) {
-            return this.mapOutputAbleBarrels;
+        final Map<Location, BarrelIdentity> cached = this.mapOutputAbleBarrels;
+        if (cached != null) {
+            return cached;
         }
 
-        this.mapOutputAbleBarrels = new ConcurrentHashMap<>();
-        for (BarrelIdentity barrel : getOutputAbleBarrels()) {
-            this.mapOutputAbleBarrels.put(barrel.getLocation(), barrel);
+        final Map<Location, BarrelIdentity> map = new ConcurrentHashMap<>();
+        final Set<BarrelIdentity> barrels = getOutputAbleBarrels();
+        if (barrels != null) {
+            for (BarrelIdentity barrel : barrels) {
+                if (barrel != null && barrel.getLocation() != null) {
+                    map.put(barrel.getLocation(), barrel);
+                }
+            }
         }
-        return this.mapOutputAbleBarrels;
+        this.mapOutputAbleBarrels = map;
+        return map;
     }
 
 
