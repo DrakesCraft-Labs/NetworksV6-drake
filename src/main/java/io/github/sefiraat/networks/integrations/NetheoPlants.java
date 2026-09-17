@@ -76,29 +76,29 @@ public class NetheoPlants {
             .tryRegister(plugin);
 
         new DoNothingSeed(SYNTHETIC_SEED)
-            .setGrowth(new Growth(GrowthStages.SPIKEY_ORANGE, Placements.NETHER_GRASS_AND_UP, 0, 0.001))
-            .addBreedingPair(Stacks.COBBLED_SEED.getItemId(), Stacks.LEARNED_SEED.getItemId(), 0.01, 0)
+            .setGrowth(new Growth(GrowthStages.SPIKEY_ORANGE, Placements.NETHER_GRASS_AND_UP, 0, 0.05))
+            .addBreedingPair(Stacks.COBBLED_SEED.getItemId(), Stacks.LEARNED_SEED.getItemId(), 0.20, 0.10)
             .addFlavourProfile(0, 0, 5, 0, 0)
             .tryRegister(plugin);
 
         new HarvestableSeed(SYNTHETIC_EMERALD_SEED)
             .setHarvestingResult(SlimefunItems.SYNTHETIC_EMERALD)
             .setGrowth(new Growth(GrowthStages.VINEY_GREEN, Placements.VORACIOUS_AND_UP, 20, 0.05))
-            .addBreedingPair(SYNTHETIC_SEED.getItemId(), Stacks.VALUABLE_SEED.getItemId(), 0.01, 0.001)
+            .addBreedingPair(SYNTHETIC_SEED.getItemId(), Stacks.VALUABLE_SEED.getItemId(), 0.15, 0.05)
             .addFlavourProfile(0, 15, 0, 0, 0)
             .tryRegister(plugin);
 
         new HarvestableSeed(SYNTHETIC_DIAMOND_SEED)
             .setHarvestingResult(SlimefunItems.SYNTHETIC_DIAMOND)
             .setGrowth(new Growth(GrowthStages.VINEY_BLUE, Placements.VORACIOUS_AND_UP, 20, 0.05))
-            .addBreedingPair(SYNTHETIC_SEED.getItemId(), Stacks.PERFECTION_SEED.getItemId(), 0.01, 0.001)
+            .addBreedingPair(SYNTHETIC_SEED.getItemId(), Stacks.PERFECTION_SEED.getItemId(), 0.15, 0.05)
             .addFlavourProfile(15, 0, 0, 0, 0)
             .tryRegister(plugin);
 
         new HarvestableSeed(FRAGMENTED_SEED)
             .setHarvestingResult(StackUtils.getAsQuantity(NetworksSlimefunItemStacks.SYNTHETIC_EMERALD_SHARD, 9))
-            .setGrowth(new Growth(GrowthStages.VINEY_GREEN, Placements.VORACIOUS_AND_UP, 10, 0.005))
-            .addBreedingPair(SYNTHETIC_SEED.getItemId(), Stacks.PERFECTION_SEED.getItemId(), 0.01, 0.001)
+            .setGrowth(new Growth(GrowthStages.VINEY_GREEN, Placements.VORACIOUS_AND_UP, 10, 0.05))
+            .addBreedingPair(SYNTHETIC_SEED.getItemId(), Stacks.PERFECTION_SEED.getItemId(), 0.15, 0.05)
             .addFlavourProfile(10, 0, 0, 0, 0)
             .tryRegister(plugin);
     }
