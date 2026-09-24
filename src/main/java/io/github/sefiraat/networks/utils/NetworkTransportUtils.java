@@ -205,7 +205,7 @@ public final class NetworkTransportUtils {
         return isExternalInventoryType(item == null ? null : item.getId(), item == null ? null : item.getClass());
     }
 
-    static boolean isExternalInventoryType(@Nullable String itemId, @Nullable Class<?> itemType) {
+    public static boolean isExternalInventoryType(@Nullable String itemId, @Nullable Class<?> itemType) {
         if (itemId == null || !itemId.startsWith(NETWORK_ID_PREFIX)) {
             return true;
         }

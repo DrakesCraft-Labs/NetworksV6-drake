@@ -139,17 +139,18 @@ public abstract class NetworkDirectional extends NetworkObject {
 
         BlockFace direction = getCurrentDirection(blockMenu);
 
+        final boolean isPusher = this.getNodeType() == NodeType.PUSHER;
         for (BlockFace blockFace : VALID_FACES) {
             final Block block = blockMenu.getBlock().getRelative(blockFace);
             final SlimefunItem slimefunItem = BlockStorage.check(block);
             if (slimefunItem != null) {
                 switch (blockFace) {
-                    case NORTH -> blockMenu.replaceExistingItem(getNorthSlot(), getDirectionalSlotPane(blockFace, slimefunItem, blockFace == direction));
-                    case SOUTH -> blockMenu.replaceExistingItem(getSouthSlot(), getDirectionalSlotPane(blockFace, slimefunItem, blockFace == direction));
-                    case EAST -> blockMenu.replaceExistingItem(getEastSlot(), getDirectionalSlotPane(blockFace, slimefunItem, blockFace == direction));
-                    case WEST -> blockMenu.replaceExistingItem(getWestSlot(), getDirectionalSlotPane(blockFace, slimefunItem, blockFace == direction));
-                    case UP -> blockMenu.replaceExistingItem(getUpSlot(), getDirectionalSlotPane(blockFace, slimefunItem, blockFace == direction));
-                    case DOWN -> blockMenu.replaceExistingItem(getDownSlot(), getDirectionalSlotPane(blockFace, slimefunItem, blockFace == direction));
+                    case NORTH -> blockMenu.replaceExistingItem(getNorthSlot(), getDirectionalSlotPane(blockFace, slimefunItem, blockFace == direction, isPusher));
+                    case SOUTH -> blockMenu.replaceExistingItem(getSouthSlot(), getDirectionalSlotPane(blockFace, slimefunItem, blockFace == direction, isPusher));
+                    case EAST -> blockMenu.replaceExistingItem(getEastSlot(), getDirectionalSlotPane(blockFace, slimefunItem, blockFace == direction, isPusher));
+                    case WEST -> blockMenu.replaceExistingItem(getWestSlot(), getDirectionalSlotPane(blockFace, slimefunItem, blockFace == direction, isPusher));
+                    case UP -> blockMenu.replaceExistingItem(getUpSlot(), getDirectionalSlotPane(blockFace, slimefunItem, blockFace == direction, isPusher));
+                    case DOWN -> blockMenu.replaceExistingItem(getDownSlot(), getDirectionalSlotPane(blockFace, slimefunItem, blockFace == direction, isPusher));
                     default -> throw new IllegalStateException("Unexpected value: " + blockFace);
                 }
             } else {
@@ -273,6 +274,17 @@ public abstract class NetworkDirectional extends NetworkObject {
             openDirection(player, blockMenu, blockFace);
         } else {
             setDirection(blockMenu, blockFace);
+            if (this.getNodeType() == NodeType.PUSHER) {
+                final Block target = blockMenu.getBlock().getRelative(blockFace);
+                final SlimefunItem item = BlockStorage.check(target);
+                if (item != null && item.getId().startsWith("NTW_QUANTUM_STORAGE")) {
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                        "&c[Networks] &eLos Quantum Storage se conectan directamente con un &bCable de Red &e(la red deposita automáticamente, sin Pusher). Si lo usas standalone fuera de la red, usa una &6Tolva vanilla &eapuntando al slot superior."));
+                } else if (item != null && item.getId().startsWith("NTW_") && !io.github.sefiraat.networks.utils.NetworkTransportUtils.isExternalInventoryType(item.getId(), item.getClass())) {
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                        "&c[Networks] &eEste componente de red no admite Pushers. Los Pushers solo envían a máquinas externas o inventarios vanilla."));
+                }
+            }
         }
         return false;
     }
@@ -348,7 +360,7 @@ public abstract class NetworkDirectional extends NetworkObject {
     public int[] getOutputSlots() { return new int[0]; }
 
     @Nonnull
-    public static ItemStack getDirectionalSlotPane(@Nonnull BlockFace blockFace, @Nonnull SlimefunItem slimefunItem, boolean active) {
+    public static ItemStack getDirectionalSlotPane(@Nonnull BlockFace blockFace, @Nonnull SlimefunItem slimefunItem, boolean active, boolean isPusher) {
         final ItemStack displayStack = ItemCreator.create(
             slimefunItem.getItem(),
             Theme.PASSIVE + "Direction " + blockFace.name() + " (" + ChatColor.stripColor(slimefunItem.getItemName()) + ")"
@@ -358,12 +370,27 @@ public abstract class NetworkDirectional extends NetworkObject {
             itemMeta.addEnchant(XEnchantment.LUCK_OF_THE_SEA.get(), 1, true);
             itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         }
-        itemMeta.setLore(List.of(
-            Theme.CLICK_INFO + "Left Click: " + Theme.PASSIVE + "Set Direction",
-            Theme.CLICK_INFO + "Shift Left Click: " + Theme.PASSIVE + "Open Target Block"
-        ));
+        final List<String> lore = new java.util.ArrayList<>();
+        lore.add(Theme.CLICK_INFO + "Left Click: " + Theme.PASSIVE + "Set Direction");
+        lore.add(Theme.CLICK_INFO + "Shift Left Click: " + Theme.PASSIVE + "Open Target Block");
+        if (isPusher && slimefunItem.getId().startsWith("NTW_QUANTUM_STORAGE")) {
+            lore.add("");
+            lore.add(ChatColor.RED + "⚠ No compatible con Pusher (Anti-Dupe)");
+            lore.add(ChatColor.YELLOW + "💡 Conecta el Quantum Storage con Cable de Red");
+            lore.add(ChatColor.GRAY + "  (o alimenta con Tolva vanilla si es standalone)");
+        } else if (isPusher && slimefunItem.getId().startsWith("NTW_") && !io.github.sefiraat.networks.utils.NetworkTransportUtils.isExternalInventoryType(slimefunItem.getId(), slimefunItem.getClass())) {
+            lore.add("");
+            lore.add(ChatColor.RED + "⚠ No compatible con Pusher");
+            lore.add(ChatColor.GRAY + "  (Pushers solo envían a máquinas externas o cofres)");
+        }
+        itemMeta.setLore(lore);
         displayStack.setItemMeta(itemMeta);
         return displayStack;
+    }
+
+    @Nonnull
+    public static ItemStack getDirectionalSlotPane(@Nonnull BlockFace blockFace, @Nonnull SlimefunItem slimefunItem, boolean active) {
+        return getDirectionalSlotPane(blockFace, slimefunItem, active, false);
     }
 
     @Nonnull

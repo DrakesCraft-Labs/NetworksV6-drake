@@ -63,4 +63,15 @@ class NetworkDirectionalCacheTest {
                 "colocar reinicia BlockStorage a SELF, pero getSelectedFace lee antes el cache: "
                         + "hay que limpiarlo o el nodo nuevo apunta a donde apuntaba el viejo");
     }
+
+    @Test
+    void pusherWarnsWhenTargetingQuantumStorage() throws IOException {
+        String texto = fuente();
+        assertTrue(texto.contains("NTW_QUANTUM_STORAGE"),
+                "NetworkDirectional debe advertir explícitamente cuando un Pusher apunta a Quantum Storage");
+        assertTrue(texto.contains("Anti-Dupe"),
+                "NetworkDirectional debe explicar el motivo arquitectónico de anti-dupe");
+        assertTrue(texto.contains("Cable de Red"),
+                "NetworkDirectional debe indicar que la conexión canónica es con Cable de Red");
+    }
 }

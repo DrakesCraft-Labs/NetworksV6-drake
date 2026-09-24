@@ -323,7 +323,12 @@ public class NetworksSlimefunItemStacks {
             "Network Pusher",
             "The Network Pusher will try",
             "to push a matching item from a",
-            "given item into the chosen machine."
+            "given item into the chosen machine.",
+            "",
+            "&e⚠ &6Destino Externo / External Target:",
+            "&7Solo envía hacia máquinas externas o cofres.",
+            "&c❌ NO empuja a Quantum Storage ni Celdas.",
+            "&b💡 Quantum Storage:&7 Conéctalo con &fCable de Red&7."
         );
 
         NETWORK_ADVANCED_PUSHER = Theme.themedSlimefunItemStack(
@@ -333,7 +338,12 @@ public class NetworksSlimefunItemStacks {
             "Advanced Network Pusher",
             "Uses up to nine request templates",
             "and moves up to 3,456 items per cycle",
-            "into the selected external inventory."
+            "into the selected external inventory.",
+            "",
+            "&e⚠ &6Destino Externo / External Target:",
+            "&7Solo máquinas externas o inventarios vanilla.",
+            "&c❌ NO empuja a Quantum Storage ni Celdas.",
+            "&b💡 Quantum Storage:&7 Conéctalo con &fCable de Red&7."
         );
 
         NETWORK_CONTROL_X = Theme.themedSlimefunItemStack(
@@ -536,7 +546,11 @@ public class NetworksSlimefunItemStacks {
             "Stores " + NetworkQuantumStorage.getSizes()[0] + " items",
             "",
             "Stores items in mass quantities within",
-            "a quantum singularity."
+            "a quantum singularity.",
+            "",
+            "&b🔌 Red / Network:&7 Conectar con &fCable de Red&7.",
+            "&7  (La red deposita directamente, &cNO requiere Pusher&7)",
+            "&6📦 Standalone:&7 Alimenta con &fTolva vanilla&7 arriba."
         );
 
         NETWORK_QUANTUM_STORAGE_2 = Theme.themedSlimefunItemStack(
@@ -547,7 +561,11 @@ public class NetworksSlimefunItemStacks {
             "Stores " + NetworkQuantumStorage.getSizes()[1] + " items",
             "",
             "Stores items in mass quantities within",
-            "a quantum singularity."
+            "a quantum singularity.",
+            "",
+            "&b🔌 Red / Network:&7 Conectar con &fCable de Red&7.",
+            "&7  (La red deposita directamente, &cNO requiere Pusher&7)",
+            "&6📦 Standalone:&7 Alimenta con &fTolva vanilla&7 arriba."
         );
 
         NETWORK_QUANTUM_STORAGE_3 = Theme.themedSlimefunItemStack(
@@ -558,7 +576,11 @@ public class NetworksSlimefunItemStacks {
             "Stores " + NetworkQuantumStorage.getSizes()[2] + " items",
             "",
             "Stores items in mass quantities within",
-            "a quantum singularity."
+            "a quantum singularity.",
+            "",
+            "&b🔌 Red / Network:&7 Conectar con &fCable de Red&7.",
+            "&7  (La red deposita directamente, &cNO requiere Pusher&7)",
+            "&6📦 Standalone:&7 Alimenta con &fTolva vanilla&7 arriba."
         );
 
         NETWORK_QUANTUM_STORAGE_4 = Theme.themedSlimefunItemStack(
@@ -569,7 +591,11 @@ public class NetworksSlimefunItemStacks {
             "Stores " + NetworkQuantumStorage.getSizes()[3] + " items",
             "",
             "Stores items in mass quantities within",
-            "a quantum singularity."
+            "a quantum singularity.",
+            "",
+            "&b🔌 Red / Network:&7 Conectar con &fCable de Red&7.",
+            "&7  (La red deposita directamente, &cNO requiere Pusher&7)",
+            "&6📦 Standalone:&7 Alimenta con &fTolva vanilla&7 arriba."
         );
 
         NETWORK_QUANTUM_STORAGE_5 = Theme.themedSlimefunItemStack(
@@ -580,7 +606,11 @@ public class NetworksSlimefunItemStacks {
             "Stores " + NetworkQuantumStorage.getSizes()[4] + " items",
             "",
             "Stores items in mass quantities within",
-            "a quantum singularity."
+            "a quantum singularity.",
+            "",
+            "&b🔌 Red / Network:&7 Conectar con &fCable de Red&7.",
+            "&7  (La red deposita directamente, &cNO requiere Pusher&7)",
+            "&6📦 Standalone:&7 Alimenta con &fTolva vanilla&7 arriba."
         );
 
         NETWORK_QUANTUM_STORAGE_6 = Theme.themedSlimefunItemStack(
@@ -591,7 +621,11 @@ public class NetworksSlimefunItemStacks {
             "Stores " + NetworkQuantumStorage.getSizes()[5] + " items",
             "",
             "Stores items in mass quantities within",
-            "a quantum singularity."
+            "a quantum singularity.",
+            "",
+            "&b🔌 Red / Network:&7 Conectar con &fCable de Red&7.",
+            "&7  (La red deposita directamente, &cNO requiere Pusher&7)",
+            "&6📦 Standalone:&7 Alimenta con &fTolva vanilla&7 arriba."
         );
 
         NETWORK_QUANTUM_STORAGE_7 = Theme.themedSlimefunItemStack(
@@ -602,7 +636,11 @@ public class NetworksSlimefunItemStacks {
             "Stores " + NetworkQuantumStorage.getSizes()[6] + " items",
             "",
             "Stores items in mass quantities within",
-            "a quantum singularity."
+            "a quantum singularity.",
+            "",
+            "&b🔌 Red / Network:&7 Conectar con &fCable de Red&7.",
+            "&7  (La red deposita directamente, &cNO requiere Pusher&7)",
+            "&6📦 Standalone:&7 Alimenta con &fTolva vanilla&7 arriba."
         );
 
         NETWORK_QUANTUM_STORAGE_8 = Theme.themedSlimefunItemStack(
@@ -613,7 +651,11 @@ public class NetworksSlimefunItemStacks {
             "Stores ∞ items... almost",
             "",
             "Stores items in mass quantities within",
-            "a quantum singularity."
+            "a quantum singularity.",
+            "",
+            "&b🔌 Red / Network:&7 Conectar con &fCable de Red&7.",
+            "&7  (La red deposita directamente, &cNO requiere Pusher&7)",
+            "&6📦 Standalone:&7 Alimenta con &fTolva vanilla&7 arriba."
         );
 
         NETWORK_CAPACITOR_1 = Theme.themedSlimefunItemStack(

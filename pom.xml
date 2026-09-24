@@ -154,8 +154,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>dev.sefiraat</groupId>
-            <artifactId>Netheopoiesis</artifactId>
+            <groupId>com.github.drakescraft_labs</groupId>
+            <artifactId>Netheopoiesis-drake</artifactId>
             <version>MODIFIED</version>
             <scope>provided</scope>
         </dependency>
