@@ -103,6 +103,9 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
                 },
                 5, Slimefun.getTickerTask().getTickRate()
         );
+
+        // Iniciar telemetría de Action Bar HUD
+        new io.github.sefiraat.networks.tasks.NetworkActionBarTask().runTaskTimer(this, 20L, 10L);
     }
 
     private void scheduleLoadedChunkReindex(long delayTicks) {
@@ -131,6 +134,12 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
     public void onDisable() {
         if (instance == null) {
             return;
+        }
+
+        try {
+            io.github.sefiraat.networks.holograms.NetworkHologramManager.clearAll();
+        } catch (Throwable t) {
+            getLogger().warning("Error clearing holograms on disable: " + t.getMessage());
         }
 
         try {

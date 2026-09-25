@@ -67,6 +67,10 @@ public class NetworkRoot extends NetworkNode {
         controlledAccessOutputHistory.clear();
     }
     @Getter
+    private final NetworkThroughputTracker throughput = new NetworkThroughputTracker();
+    private final Map<Material, List<BarrelIdentity>> inputBarrelsByMaterial = new ConcurrentHashMap<>();
+    private final Map<Material, List<BarrelIdentity>> outputBarrelsByMaterial = new ConcurrentHashMap<>();
+    @Getter
     private final long CREATED_TIME = System.currentTimeMillis();
     @Getter
     private final Set<Location> nodeLocations = ConcurrentHashMap.newKeySet();
@@ -170,7 +174,6 @@ public class NetworkRoot extends NetworkNode {
     private volatile @Nullable Map<Location, BarrelIdentity> mapOutputAbleBarrels = null;
 
     @Setter
-    @Getter
     private long rootPower = 0;
 
     @Setter
@@ -473,6 +476,8 @@ public class NetworkRoot extends NetworkNode {
         this.outputAbleBarrels = null;
         this.mapInputAbleBarrels = null;
         this.mapOutputAbleBarrels = null;
+        this.inputBarrelsByMaterial.clear();
+        this.outputBarrelsByMaterial.clear();
     }
 
     public int getNodeCount() {
@@ -1017,12 +1022,18 @@ public class NetworkRoot extends NetworkNode {
 
         this.inputAbleBarrels = barrelSet;
         final Map<Location, BarrelIdentity> map = new ConcurrentHashMap<>();
+        final Map<Material, List<BarrelIdentity>> byMat = new ConcurrentHashMap<>();
         for (BarrelIdentity storage : barrelSet) {
             if (storage != null && storage.getLocation() != null) {
                 map.put(storage.getLocation(), storage);
+                if (storage.getItemStack() != null && storage.getItemStack().getType() != Material.AIR) {
+                    byMat.computeIfAbsent(storage.getItemStack().getType(), k -> new ArrayList<>()).add(storage);
+                }
             }
         }
         this.mapInputAbleBarrels = map;
+        this.inputBarrelsByMaterial.clear();
+        this.inputBarrelsByMaterial.putAll(byMat);
 
         return barrelSet;
     }
@@ -1091,12 +1102,18 @@ public class NetworkRoot extends NetworkNode {
 
         this.outputAbleBarrels = barrelSet;
         final Map<Location, BarrelIdentity> map = new ConcurrentHashMap<>();
+        final Map<Material, List<BarrelIdentity>> byMatOut = new ConcurrentHashMap<>();
         for (BarrelIdentity storage : barrelSet) {
             if (storage != null && storage.getLocation() != null) {
                 map.put(storage.getLocation(), storage);
+                if (storage.getItemStack() != null && storage.getItemStack().getType() != Material.AIR) {
+                    byMatOut.computeIfAbsent(storage.getItemStack().getType(), k -> new ArrayList<>()).add(storage);
+                }
             }
         }
         this.mapOutputAbleBarrels = map;
+        this.outputBarrelsByMaterial.clear();
+        this.outputBarrelsByMaterial.putAll(byMatOut);
         return barrelSet;
     }
 
@@ -1138,6 +1155,12 @@ public class NetworkRoot extends NetworkNode {
     }
 
     public void tryRecord(@NotNull Location accessor, @NotNull ItemRequest request) {
+    }
+
+    public void tryRecordOutput(@NotNull Location accessor, @Nullable ItemStack retrieved) {
+        if (retrieved != null && retrieved.getAmount() > 0) {
+            throughput.recordFlow(accessor, retrieved.getAmount());
+        }
     }
 
     public synchronized ItemStack getItemStack0(@NotNull Location accessor, @NotNull ItemRequest request) {
@@ -1200,6 +1223,7 @@ public class NetworkRoot extends NetworkNode {
                         fetched.setAmount(fetched.getAmount() - request.getAmount());
                         // Netex - Record start
                         tryRecord(accessor, request);
+                        tryRecordOutput(accessor, stackToReturn);
                         // Netex - Record end
                         return stackToReturn;
                     } else {
@@ -1219,8 +1243,10 @@ public class NetworkRoot extends NetworkNode {
             // Netex - Cache end
         }
 
-        // Barrels first
-        for (BarrelIdentity barrelIdentity : getOutputAbleBarrels()) {
+        // Barrels first - fast-path por material
+        List<BarrelIdentity> candidateOutputBarrels = outputBarrelsByMaterial.get(request.getItemStack().getType());
+        Iterable<BarrelIdentity> barrelsToIterate = candidateOutputBarrels != null ? candidateOutputBarrels : getOutputAbleBarrels();
+        for (BarrelIdentity barrelIdentity : barrelsToIterate) {
             // <editor-fold desc="do barrel">
             final ItemStack itemStack = barrelIdentity.getItemStack();
 
@@ -1254,6 +1280,7 @@ public class NetworkRoot extends NetworkNode {
                 fetched.setAmount(fetched.getAmount() - request.getAmount());
                 // Netex - Record start
                 tryRecord(accessor, request);
+                tryRecordOutput(accessor, stackToReturn);
                 // Netex - Record end
                 return stackToReturn;
             } else {
@@ -1302,6 +1329,7 @@ public class NetworkRoot extends NetworkNode {
                     blockMenu.markDirty();
                     // Netex - Record start
                     tryRecord(accessor, request);
+                    tryRecordOutput(accessor, stackToReturn);
                     // Netex - Record end
                     return stackToReturn;
                 } else {
@@ -1349,6 +1377,7 @@ public class NetworkRoot extends NetworkNode {
                     blockMenu.markDirty();
                     // Netex - Record start
                     tryRecord(accessor, request);
+                    tryRecordOutput(accessor, stackToReturn);
                     // Netex - Record end
                     return stackToReturn;
                 } else {
@@ -1397,6 +1426,7 @@ public class NetworkRoot extends NetworkNode {
                     }
                     // Netex - Record start
                     tryRecord(accessor, request);
+                    tryRecordOutput(accessor, stackToReturn);
                     // Netex - Record end
                     return stackToReturn;
                 } else {
@@ -1418,6 +1448,7 @@ public class NetworkRoot extends NetworkNode {
         // Netex - Reduce end
         // Netex - Record start
         tryRecord(accessor, request);
+        tryRecordOutput(accessor, stackToReturn);
         // Netex - Record end
 
         return stackToReturn;
@@ -1428,6 +1459,12 @@ public class NetworkRoot extends NetworkNode {
     }
 
     public void tryRecord(@NotNull Location accessor, @Nullable ItemStack before, int after) {
+    }
+
+    public void tryRecordInput(@NotNull Location accessor, int amount) {
+        if (amount > 0) {
+            throughput.recordFlow(accessor, amount);
+        }
     }
 
     public synchronized void addItemStack0(@NotNull Location accessor, @NotNull ItemStack incoming) {
@@ -1467,6 +1504,7 @@ public class NetworkRoot extends NetworkNode {
                             // Netex - Reduce end
                             // Netex - Record start
                             tryRecord(accessor, beforeItemStack, 0);
+                            tryRecordInput(accessor, before - incoming.getAmount());
                             // Netex - Record end
                             return;
                         }
@@ -1501,13 +1539,16 @@ public class NetworkRoot extends NetworkNode {
             if (incoming.getAmount() == 0) {
                 uncontrolAccessInput(accessor);
                 tryRecord(accessor, beforeItemStack, 0);
+                tryRecordInput(accessor, before - incoming.getAmount());
                 return;
             }
             // Plantilla coincide pero el greedy no absorbió todo: seguir con barriles/celdas
         }
 
-        // Run for matching barrels
-        for (BarrelIdentity barrelIdentity : getInputAbleBarrels()) {
+        // Run for matching barrels - fast-path por material
+        List<BarrelIdentity> candidateInputBarrels = inputBarrelsByMaterial.get(incoming.getType());
+        Iterable<BarrelIdentity> inputBarrelsToIterate = candidateInputBarrels != null ? candidateInputBarrels : getInputAbleBarrels();
+        for (BarrelIdentity barrelIdentity : inputBarrelsToIterate) {
             // <editor-fold desc="do barrel">
             if (StackUtils.itemsMatch(barrelIdentity.getItemStack(), incoming)) {
                 // Netex - Cache start
@@ -1523,6 +1564,7 @@ public class NetworkRoot extends NetworkNode {
                     // Netex - Reduce end
                     // Netex - Record start
                     tryRecord(accessor, beforeItemStack, 0);
+                    tryRecordInput(accessor, before - incoming.getAmount());
                     // Netex - Record end
                     return;
                 }
@@ -1539,6 +1581,7 @@ public class NetworkRoot extends NetworkNode {
                 // Netex - Reduce end
                 // Netex - Record start
                 tryRecord(accessor, beforeItemStack, 0);
+                tryRecordInput(accessor, before - incoming.getAmount());
                 // Netex - Record end
                 return;
             }
@@ -1554,6 +1597,7 @@ public class NetworkRoot extends NetworkNode {
         // Netex - Reduce end
         // Netex - Record start
         tryRecord(accessor, beforeItemStack, incoming.getAmount());
+        tryRecordInput(accessor, before - incoming.getAmount());
         // Netex - Record end
     }
 

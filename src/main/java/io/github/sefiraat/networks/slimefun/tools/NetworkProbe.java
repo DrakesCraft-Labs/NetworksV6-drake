@@ -1,7 +1,10 @@
 package io.github.sefiraat.networks.slimefun.tools;
 
+import io.github.sefiraat.networks.NetworkStorage;
 import io.github.sefiraat.networks.network.NetworkRoot;
+import io.github.sefiraat.networks.network.NodeDefinition;
 import io.github.sefiraat.networks.slimefun.network.NetworkController;
+import io.github.sefiraat.networks.slimefun.network.NetworkObject;
 import io.github.sefiraat.networks.utils.Theme;
 import com.github.drakescraft_labs.slimefun4.api.events.PlayerRightClickEvent;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
@@ -11,12 +14,14 @@ import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
 import com.github.drakescraft_labs.slimefun4.core.handlers.ItemUseHandler;
 import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import java.text.MessageFormat;
+import java.text.NumberFormat;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -45,6 +50,10 @@ public class NetworkProbe extends SlimefunItem implements CanCooldown {
                 if (slimefunItem instanceof NetworkController) {
                     e.cancel();
                     displayToPlayer(block, player);
+                    putOnCooldown(e.getItem());
+                } else if (slimefunItem instanceof NetworkObject) {
+                    e.cancel();
+                    displayNodeToPlayer(block, player, (NetworkObject) slimefunItem);
                     putOnCooldown(e.getItem());
                 }
             }
@@ -115,6 +124,10 @@ public class NetworkProbe extends SlimefunItem implements CanCooldown {
             player.sendMessage(MESSAGE_FORMAT.format(new Object[]{c, "Total Items", p, totalItems}, new StringBuffer(), null).toString());
 
             player.sendMessage("------------------------------");
+            player.sendMessage(MESSAGE_FORMAT.format(new Object[]{c, "Throughput", p, String.format(Locale.ROOT, "%.1f items/s", root.getThroughput().getItemsPerSecond())}, new StringBuffer(), null).toString());
+            player.sendMessage(MESSAGE_FORMAT.format(new Object[]{c, "Total Routed", p, NumberFormat.getInstance().format(root.getThroughput().getTotalTransferredItems()) + " items"}, new StringBuffer(), null).toString());
+
+            player.sendMessage("------------------------------");
             player.sendMessage(MESSAGE_FORMAT.format(new Object[]{c, "Root Power", p, rootPower}, new StringBuffer(), null).toString());
 
             player.sendMessage("------------------------------");
@@ -127,6 +140,34 @@ public class NetworkProbe extends SlimefunItem implements CanCooldown {
                 );
             }
         }
+    }
+
+    private void displayNodeToPlayer(@Nonnull Block block, @Nonnull Player player, @Nonnull NetworkObject nodeObject) {
+        final Location loc = block.getLocation();
+        final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(loc);
+        final ChatColor c = Theme.CLICK_INFO.getColor();
+        final ChatColor p = Theme.PASSIVE.getColor();
+
+        player.sendMessage("§8§m------------------------------");
+        player.sendMessage("§6§l      Network Node Info       ");
+        player.sendMessage("§8§m------------------------------");
+        player.sendMessage(MESSAGE_FORMAT.format(new Object[]{c, "Node Type", p, nodeObject.getNodeType().name()}, new StringBuffer(), null).toString());
+
+        if (definition != null && definition.getNode() != null) {
+            final NetworkRoot root = definition.getNode().getRoot();
+            final Location ctrlLoc = root.getController();
+            if (ctrlLoc != null) {
+                player.sendMessage(MESSAGE_FORMAT.format(new Object[]{c, "Controller", p, ctrlLoc.getBlockX() + ", " + ctrlLoc.getBlockY() + ", " + ctrlLoc.getBlockZ()}, new StringBuffer(), null).toString());
+            }
+            final double nodeTps = root.getThroughput().getNodeItemsPerSecond(loc);
+            final long nodeTotal = root.getThroughput().getNodeTotalTransferred(loc);
+            player.sendMessage(MESSAGE_FORMAT.format(new Object[]{c, "Node Flow", p, String.format(Locale.ROOT, "%.1f items/s", nodeTps)}, new StringBuffer(), null).toString());
+            player.sendMessage(MESSAGE_FORMAT.format(new Object[]{c, "Node Total", p, NumberFormat.getInstance().format(nodeTotal) + " items"}, new StringBuffer(), null).toString());
+            player.sendMessage(MESSAGE_FORMAT.format(new Object[]{c, "Net Throughput", p, String.format(Locale.ROOT, "%.1f items/s", root.getThroughput().getItemsPerSecond())}, new StringBuffer(), null).toString());
+        } else {
+            player.sendMessage("§cEste nodo no está conectado a una red activa.");
+        }
+        player.sendMessage("§8§m------------------------------");
     }
 
     @Override
