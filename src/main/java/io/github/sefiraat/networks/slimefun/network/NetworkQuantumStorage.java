@@ -26,6 +26,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Hopper;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -171,6 +173,9 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
             updateDisplayItem(blockMenu, cache);
         }
 
+        // Standalone hopper support: pull matching items from a vanilla hopper above or pointing into the storage
+        pullFromAdjacentHoppers(block, cache, blockMenu);
+
         // Move items from the input slot into the card
         final ItemStack input = blockMenu.getItemInSlot(INPUT_SLOT);
         if (input != null && input.getType() != Material.AIR) {
@@ -200,6 +205,46 @@ public class NetworkQuantumStorage extends SlimefunItem implements DistinctiveIt
 
         CACHES.put(blockMenu.getLocation(), cache);
         blockMenu.markDirty();
+    }
+
+    private void pullFromAdjacentHoppers(@Nonnull Block block, @Nonnull QuantumCache cache, @Nonnull BlockMenu blockMenu) {
+        if (cache.getItemStack() == null) {
+            return;
+        }
+        // Check block directly above (standard standalone hopper input)
+        final Block above = block.getRelative(0, 1, 0);
+        if (above.getType() == Material.HOPPER) {
+            final BlockState state = above.getState();
+            if (state instanceof Hopper hopper) {
+                final org.bukkit.inventory.Inventory inv = hopper.getInventory();
+                boolean changed = false;
+                for (int slot = 0; slot < inv.getSize(); slot++) {
+                    final ItemStack item = inv.getItem(slot);
+                    if (item == null || item.getType() == Material.AIR) {
+                        continue;
+                    }
+                    if (isBlacklisted(item) || !StackUtils.itemsMatch(cache, item, true)) {
+                        continue;
+                    }
+                    final int count = item.getAmount();
+                    final int leftover = cache.increaseAmount(count);
+                    if (leftover <= 0) {
+                        inv.setItem(slot, null);
+                        changed = true;
+                    } else if (leftover < count) {
+                        item.setAmount(leftover);
+                        changed = true;
+                    }
+                    if (leftover > 0 && !cache.isVoidExcess()) {
+                        break;
+                    }
+                }
+                if (changed) {
+                    syncBlock(blockMenu.getLocation(), cache);
+                    blockMenu.markDirty();
+                }
+            }
+        }
     }
 
     private void toggleVoid(@Nonnull BlockMenu blockMenu) {
