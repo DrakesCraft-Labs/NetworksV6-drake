@@ -1,21 +1,34 @@
 package io.github.sefiraat.networks.slimefun.network;
 
+import io.github.sefiraat.networks.NetworkStorage;
+import io.github.sefiraat.networks.network.NodeDefinition;
 import io.github.sefiraat.networks.network.NodeType;
 import io.github.sefiraat.networks.utils.ItemCreator;
 import io.github.sefiraat.networks.utils.Theme;
 import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
+import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
+import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
+import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.Interaction;
+import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public class NetworkControlX extends NetworkDirectional {
 
@@ -38,6 +51,7 @@ public class NetworkControlX extends NetworkDirectional {
         Theme.PASSIVE + "Leaving blank will cut anything"
     );
     private static final Particle.DustOptions DUST_OPTIONS = new Particle.DustOptions(Color.GRAY, 1);
+    private final Set<Location> blockCache = new HashSet<>();
 
     public NetworkControlX(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(itemGroup, item, recipeType, recipe, NodeType.CUTTER);
@@ -46,14 +60,84 @@ public class NetworkControlX extends NetworkDirectional {
     @Override
     protected void onTick(@Nullable BlockMenu blockMenu, @Nonnull Block block) {
         super.onTick(blockMenu, block);
-        // Upstream b1 uses NMS/CraftBukkit internals here.
-        // In Drake standalone build we keep the item registered and
-        // defer hard block-cutting behavior until the NMS bridge is restored.
+        if (blockMenu != null) {
+            tryBreakBlock(blockMenu);
+        }
     }
 
     @Override
     protected void onUniqueTick() {
-        // no-op
+        this.blockCache.clear();
+    }
+
+    private void tryBreakBlock(@Nonnull BlockMenu blockMenu) {
+        final NodeDefinition definition = NetworkStorage.getAllNetworkObjects().get(blockMenu.getLocation());
+        if (definition == null || definition.getNode() == null) {
+            return;
+        }
+
+        if (definition.getNode().getRoot().getRootPower() < REQUIRED_POWER) {
+            return;
+        }
+
+        final BlockFace direction = getCurrentDirection(blockMenu);
+        if (direction == BlockFace.SELF) {
+            return;
+        }
+
+        final Block targetBlock = blockMenu.getBlock().getRelative(direction);
+        if (this.blockCache.contains(targetBlock.getLocation())) {
+            return;
+        }
+
+        final Material material = targetBlock.getType();
+        if (material.isAir() || material.getHardness() < 0 || !material.isItem()) {
+            return;
+        }
+
+        if (targetBlock.getState() instanceof InventoryHolder) {
+            return;
+        }
+
+        if (BlockStorage.check(targetBlock) != null) {
+            return;
+        }
+
+        final ItemStack templateStack = blockMenu.getItemInSlot(TEMPLATE_SLOT);
+        boolean mustMatch = templateStack != null && templateStack.getType() != Material.AIR;
+        if (mustMatch) {
+            if (targetBlock.getType() != templateStack.getType() || SlimefunItem.getByItem(templateStack) != null) {
+                return;
+            }
+        }
+
+        final String owner = BlockStorage.getLocationInfo(blockMenu.getLocation(), "owner");
+        if (owner != null) {
+            try {
+                OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(UUID.fromString(owner));
+                if (!Slimefun.getProtectionManager().hasPermission(offlinePlayer, targetBlock, Interaction.BREAK_BLOCK)) {
+                    return;
+                }
+            } catch (Exception ignored) {}
+        }
+
+        final ItemStack resultStack = new ItemStack(material, 1);
+        definition.getNode().getRoot().addItemStack0(blockMenu.getLocation(), resultStack);
+
+        if (resultStack.getAmount() == 0) {
+            this.blockCache.add(targetBlock.getLocation());
+            targetBlock.setType(Material.AIR, false);
+            if (definition.getNode().getRoot().isDisplayParticles()) {
+                showParticle(blockMenu.getLocation(), direction);
+            }
+            definition.getNode().getRoot().removeRootPower(REQUIRED_POWER);
+            blockMenu.markDirty();
+        }
+    }
+
+    @Override
+    public boolean runSync() {
+        return true;
     }
 
     @Nonnull
