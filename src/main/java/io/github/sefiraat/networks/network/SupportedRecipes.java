@@ -23,7 +23,7 @@ public final class SupportedRecipes {
         RECIPES.clear();
         for (SlimefunItem item : Slimefun.getRegistry().getEnabledSlimefunItems()) {
             RecipeType recipeType = item.getRecipeType();
-            if ((recipeType == RecipeType.ENHANCED_CRAFTING_TABLE) && allowedRecipe(item)) {
+            if ((recipeType == RecipeType.ENHANCED_CRAFTING_TABLE || recipeType == RecipeType.MAGIC_WORKBENCH || recipeType == RecipeType.ARMOR_FORGE) && allowedRecipe(item)) {
                 // Skip items with invalid recipe arrays (must be exactly 9 elements)
                 ItemStack[] recipe = item.getRecipe();
                 if (recipe == null || recipe.length != 9) {

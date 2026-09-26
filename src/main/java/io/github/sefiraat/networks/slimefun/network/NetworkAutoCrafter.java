@@ -11,9 +11,8 @@ import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
 import io.github.sefiraat.networks.slimefun.tools.CraftingBlueprint;
 import io.github.sefiraat.networks.utils.ItemCreator;
 import io.github.sefiraat.networks.utils.Keys;
-import io.github.sefiraat.networks.utils.NetworkTransportUtils;
-import io.github.sefiraat.networks.utils.NetworkStackAggregator;
 import io.github.sefiraat.networks.utils.StackUtils;
+import io.github.sefiraat.networks.utils.StringUtils;
 import io.github.sefiraat.networks.utils.Theme;
 import io.github.sefiraat.networks.utils.datatypes.DataTypeMethods;
 import io.github.sefiraat.networks.utils.datatypes.PersistentCraftingBlueprintType;
@@ -29,6 +28,7 @@ import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenuPreset;
 import com.github.drakescraft_labs.slimefun4.legacy.api.item_transport.ItemTransportFlow;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -39,15 +39,28 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class NetworkAutoCrafter extends NetworkObject {
 
+    public enum CrafterStatus {
+        STANDBY,
+        OPERATIONAL,
+        MISSING_MATERIALS,
+        INSUFFICIENT_POWER,
+        OUTPUT_FULL
+    }
+
     private static final int[] BACKGROUND_SLOTS = new int[]{
-        3, 4, 5, 12, 13, 14, 21, 22, 23
+        3, 4, 5, 12, 14, 21, 22, 23
     };
+    public static final int STATUS_SLOT = 13;
+
     private static final int[] BLUEPRINT_BACKGROUND = new int[]{0, 1, 2, 9, 11, 18, 19, 20};
     private static final int[] OUTPUT_BACKGROUND = new int[]{6, 7, 8, 15, 17, 24, 25, 26};
 
@@ -105,6 +118,87 @@ public class NetworkAutoCrafter extends NetworkObject {
         );
     }
 
+    public static ItemStack getStatusIcon(@Nonnull CrafterStatus status, @Nullable String summary, @Nullable List<String> details) {
+        Material mat;
+        String name;
+        switch (status) {
+            case OPERATIONAL -> {
+                mat = Material.LIME_STAINED_GLASS_PANE;
+                name = Theme.SUCCESS + "🟢 Operativo";
+            }
+            case MISSING_MATERIALS -> {
+                mat = Material.RED_STAINED_GLASS_PANE;
+                name = Theme.ERROR + "🔴 Faltan Materiales";
+            }
+            case INSUFFICIENT_POWER -> {
+                mat = Material.YELLOW_STAINED_GLASS_PANE;
+                name = Theme.WARNING + "⚡ Energía Insuficiente";
+            }
+            case OUTPUT_FULL -> {
+                mat = Material.LIGHT_BLUE_STAINED_GLASS_PANE;
+                name = Theme.CLICK_INFO + "📦 Salida Llena / Red Saturada";
+            }
+            default -> {
+                mat = Material.GRAY_STAINED_GLASS_PANE;
+                name = Theme.PASSIVE + "⚪ En Espera";
+            }
+        }
+
+        List<String> lore = new ArrayList<>();
+        if (summary != null) {
+            lore.add(summary);
+        }
+        if (details != null && !details.isEmpty()) {
+            lore.add("");
+            lore.addAll(details);
+        }
+        return ItemCreator.create(mat, name, lore.toArray(new String[0]));
+    }
+
+    public static String getItemDisplayName(@Nullable ItemStack item) {
+        if (item == null) {
+            return "Aire";
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null && meta.hasDisplayName()) {
+            return ChatColor.stripColor(meta.getDisplayName());
+        }
+        return StringUtils.toTitleCase(item.getType().name());
+    }
+
+    public static List<String> checkMissingMaterials(@Nonnull NetworkRoot root, @Nonnull BlueprintInstance instance, int blueprintAmount) {
+        List<String> missing = new ArrayList<>();
+        Map<ItemStack, Integer> neededMap = new LinkedHashMap<>();
+        for (ItemStack req : instance.getRecipeItems()) {
+            if (req != null) {
+                boolean matched = false;
+                for (Map.Entry<ItemStack, Integer> entry : neededMap.entrySet()) {
+                    if (StackUtils.itemsMatch(entry.getKey(), req)) {
+                        entry.setValue(entry.getValue() + req.getAmount() * blueprintAmount);
+                        matched = true;
+                        break;
+                    }
+                }
+                if (!matched) {
+                    neededMap.put(req, req.getAmount() * blueprintAmount);
+                }
+            }
+        }
+
+        for (Map.Entry<ItemStack, Integer> entry : neededMap.entrySet()) {
+            int needed = entry.getValue();
+            int available = root.getAmount(entry.getKey());
+            if (available < needed) {
+                missing.add(Theme.PASSIVE + "• Falta: " + Theme.ERROR + (needed - available) + "x " + getItemDisplayName(entry.getKey()));
+            }
+        }
+        return missing;
+    }
+
+    private void updateStatus(@Nonnull BlockMenu blockMenu, @Nonnull CrafterStatus status, @Nullable String summary, @Nullable List<String> details) {
+        blockMenu.replaceExistingItem(STATUS_SLOT, getStatusIcon(status, summary, details));
+    }
+
     protected void craftPreFlight(@Nonnull BlockMenu blockMenu) {
         releaseCache(blockMenu);
 
@@ -123,43 +217,67 @@ public class NetworkAutoCrafter extends NetworkObject {
         final ItemStack blueprint = blockMenu.getItemInSlot(BLUEPRINT_SLOT);
 
         if (blueprint == null || blueprint.getType() == Material.AIR) {
+            updateStatus(blockMenu, CrafterStatus.STANDBY, Theme.PASSIVE + "Inserta un Blueprint codificado.", null);
             return;
+        }
+
+        final SlimefunItem item = SlimefunItem.getByItem(blueprint);
+
+        if (!(item instanceof CraftingBlueprint)) {
+            updateStatus(blockMenu, CrafterStatus.STANDBY, Theme.WARNING + "Ítem no es un Blueprint válido.", null);
+            return;
+        }
+
+        BlueprintInstance instance = INSTANCE_MAP.get(blockMenu.getLocation());
+
+        if (instance == null) {
+            final ItemMeta blueprintMeta = blueprint.getItemMeta();
+            final Optional<BlueprintInstance> optional = DataTypeMethods.getOptionalCustom(blueprintMeta, Keys.BLUEPRINT_INSTANCE, PersistentCraftingBlueprintType.TYPE);
+
+            if (optional.isEmpty()) {
+                updateStatus(blockMenu, CrafterStatus.STANDBY, Theme.PASSIVE + "Blueprint en blanco o sin receta.", null);
+                return;
+            }
+
+            instance = optional.get();
+            setCache(blockMenu, instance);
         }
 
         final int blueprintAmount = getBlueprintAmount(blueprint);
         final long requiredCharge = getRequiredCharge(blueprintAmount);
         final long networkCharge = root.getRootPower();
 
-        if (hasSufficientPower(networkCharge, requiredCharge)) {
-            final SlimefunItem item = SlimefunItem.getByItem(blueprint);
+        if (!hasSufficientPower(networkCharge, requiredCharge)) {
+            List<String> powerLore = new ArrayList<>();
+            powerLore.add(Theme.PASSIVE + "Energía de la Red: " + Theme.CLICK_INFO + networkCharge + " J");
+            powerLore.add(Theme.PASSIVE + "Drenaje Requerido: " + Theme.ERROR + requiredCharge + " J");
+            powerLore.add(Theme.PASSIVE + "Conecta más capacitores o generadores a la red.");
+            updateStatus(blockMenu, CrafterStatus.INSUFFICIENT_POWER, Theme.WARNING + "Batería de red insuficiente.", powerLore);
+            return;
+        }
 
-            if (!(item instanceof CraftingBlueprint)) {
-                return;
-            }
+        final ItemStack output = blockMenu.getItemInSlot(OUTPUT_SLOT);
 
-            BlueprintInstance instance = INSTANCE_MAP.get(blockMenu.getLocation());
+        if (!canFitOutput(output, instance.getItemStack(), blueprintAmount)) {
+            List<String> fullLore = new ArrayList<>();
+            fullLore.add(Theme.PASSIVE + "Ranura de salida llena.");
+            fullLore.add(Theme.PASSIVE + "Retira los ítems o descarga a la red.");
+            updateStatus(blockMenu, CrafterStatus.OUTPUT_FULL, Theme.CLICK_INFO + "Espacio insuficiente para salida.", fullLore);
+            return;
+        }
 
-            if (instance == null) {
-                final ItemMeta blueprintMeta = blueprint.getItemMeta();
-                final Optional<BlueprintInstance> optional = DataTypeMethods.getOptionalCustom(blueprintMeta, Keys.BLUEPRINT_INSTANCE, PersistentCraftingBlueprintType.TYPE);
+        List<String> missing = checkMissingMaterials(root, instance, blueprintAmount);
+        if (!missing.isEmpty()) {
+            updateStatus(blockMenu, CrafterStatus.MISSING_MATERIALS, Theme.ERROR + "Faltan ingredientes en la red:", missing);
+            return;
+        }
 
-                if (optional.isEmpty()) {
-                    return;
-                }
-
-                instance = optional.get();
-                setCache(blockMenu, instance);
-            }
-
-            final ItemStack output = blockMenu.getItemInSlot(OUTPUT_SLOT);
-
-            if (!canFitOutput(output, instance.getItemStack(), blueprintAmount)) {
-                return;
-            }
-
-            if (tryCraft(blockMenu, instance, root, blueprintAmount)) {
-                root.removeRootPower(Math.toIntExact(requiredCharge));
-            }
+        if (tryCraft(blockMenu, instance, root, blueprintAmount)) {
+            root.removeRootPower(Math.toIntExact(requiredCharge));
+            List<String> opLore = new ArrayList<>();
+            opLore.add(Theme.PASSIVE + "Salida: " + Theme.CLICK_INFO + getItemDisplayName(instance.getItemStack()));
+            opLore.add(Theme.PASSIVE + "Drenaje: " + Theme.PASSIVE + requiredCharge + " J/craft");
+            updateStatus(blockMenu, CrafterStatus.OPERATIONAL, Theme.SUCCESS + "Crafteando a ritmo regular...", opLore);
         }
     }
 
@@ -346,6 +464,13 @@ public class NetworkAutoCrafter extends NetworkObject {
                 drawBackground(BACKGROUND_SLOTS);
                 drawBackground(BLUEPRINT_BACKGROUND_STACK, BLUEPRINT_BACKGROUND);
                 drawBackground(OUTPUT_BACKGROUND_STACK, OUTPUT_BACKGROUND);
+                addItem(STATUS_SLOT, getStatusIcon(CrafterStatus.STANDBY, Theme.PASSIVE + "Inserta un Blueprint codificado.", null), (player, i, itemStack, clickAction) -> false);
+            }
+
+            @Override
+            public void newInstance(@Nonnull BlockMenu menu, @Nonnull Block b) {
+                menu.addMenuClickHandler(STATUS_SLOT, (player, i, itemStack, clickAction) -> false);
+                menu.addMenuOpeningHandler(player -> craftPreFlight(menu));
             }
 
             @Override

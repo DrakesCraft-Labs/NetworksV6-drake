@@ -66,4 +66,20 @@ public class CraftingBlueprint extends UnplaceableBlock implements DistinctiveIt
         blueprint.setItemMeta(itemMeta);
     }
 
+    @ParametersAreNonnullByDefault
+    public static void clearBlueprint(ItemStack blueprint) {
+        final ItemMeta itemMeta = blueprint.getItemMeta();
+        if (itemMeta == null) {
+            return;
+        }
+        DataTypeMethods.removeCustom(itemMeta, Keys.BLUEPRINT_INSTANCE);
+        final ItemMeta defaultMeta = io.github.sefiraat.networks.slimefun.NetworksSlimefunItemStacks.CRAFTING_BLUEPRINT.getItemMeta();
+        if (defaultMeta != null) {
+            itemMeta.setLore(defaultMeta.getLore());
+        } else {
+            itemMeta.setLore(new ArrayList<>());
+        }
+        blueprint.setItemMeta(itemMeta);
+    }
+
 }
