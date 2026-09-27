@@ -102,8 +102,6 @@ public class NetworkController extends NetworkObject {
                     networkRoot.setDisplayParticles(CRAYONS.contains(location));
                     if (HOLOGRAMS.contains(location)) {
                         NetworkHologramManager.updateHologram(location, networkRoot);
-                    } else {
-                        NetworkHologramManager.removeHologram(location);
                     }
                 }
             }
