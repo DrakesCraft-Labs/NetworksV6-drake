@@ -102,8 +102,6 @@ public class NetworkController extends NetworkObject {
                     networkRoot.setDisplayParticles(CRAYONS.contains(location));
                     if (HOLOGRAMS.contains(location)) {
                         NetworkHologramManager.updateHologram(location, networkRoot);
-                    } else {
-                        NetworkHologramManager.removeHologram(location);
                     }
                 }
             }
@@ -155,7 +153,10 @@ public class NetworkController extends NetworkObject {
             CRAYONS.add(block.getLocation());
         }
         final String holo = data.getString(HOLOGRAM);
-        if (holo == null || Boolean.parseBoolean(holo)) {
+        // Holograms create TextDisplay entities and are refreshed by every controller tick.
+        // Keep an explicitly saved preference, but make new/unconfigured controllers opt in
+        // so passive Networks installations do not add entity work to the main thread.
+        if (Boolean.parseBoolean(holo)) {
             HOLOGRAMS.add(block.getLocation());
         }
     }

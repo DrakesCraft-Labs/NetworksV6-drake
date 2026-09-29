@@ -75,4 +75,8 @@ public class DataTypeMethods {
     public static <T, Z> void setCustom(@Nonnull PersistentDataHolder holder, @Nonnull NamespacedKey key, @Nonnull PersistentDataType<T, Z> type, @Nonnull Z obj) {
         holder.getPersistentDataContainer().set(key, type, obj);
     }
+
+    public static void removeCustom(@Nonnull PersistentDataHolder holder, @Nonnull NamespacedKey key) {
+        holder.getPersistentDataContainer().remove(key);
+    }
 }

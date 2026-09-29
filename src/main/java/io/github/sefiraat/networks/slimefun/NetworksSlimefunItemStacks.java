@@ -88,6 +88,7 @@ public class NetworksSlimefunItemStacks {
     public static final SlimefunItemStack NETWORK_AUTO_CRAFTER_WITHHOLDING;
     public static final SlimefunItemStack NETWORK_ADVANCED_AUTO_CRAFTER;
     public static final SlimefunItemStack NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING;
+    public static final SlimefunItemStack NETWORK_CRAFTER_MATRIX;
 
     // Tools
     public static final SlimefunItemStack CRAFTING_BLUEPRINT;
@@ -843,6 +844,18 @@ public class NetworksSlimefunItemStacks {
             "The result must fit in one stack.",
             "",
             MessageFormat.format("{0}Network Drain: {1}{2}/blueprint/craft", Theme.CLICK_INFO, Theme.PASSIVE, 192)
+        );
+
+        NETWORK_CRAFTER_MATRIX = Theme.themedSlimefunItemStack(
+            "NTW_CRAFTER_MATRIX",
+            new ItemStack(Material.RESPAWN_ANCHOR),
+            Theme.MACHINE,
+            "Network Crafter Matrix",
+            "A high-tier multi-recipe crafting matrix.",
+            "Can store up to 9 crafting blueprints",
+            "simultaneously and process them sequentially.",
+            "",
+            MessageFormat.format("{0}Network Drain: {1}{2}/craft", Theme.CLICK_INFO, Theme.PASSIVE, 500)
         );
 
         CRAFTING_BLUEPRINT = Theme.themedSlimefunItemStack(

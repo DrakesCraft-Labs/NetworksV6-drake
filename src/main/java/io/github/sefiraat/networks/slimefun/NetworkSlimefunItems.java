@@ -79,6 +79,7 @@ public class NetworkSlimefunItems {
     public static final NetworkAutoCrafter NETWORK_AUTO_CRAFTER_WITHHOLDING;
     public static final NetworkAutoCrafter NETWORK_ADVANCED_AUTO_CRAFTER;
     public static final NetworkAutoCrafter NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING;
+    public static final NetworkCrafterMatrix NETWORK_CRAFTER_MATRIX;
 
     public static final CraftingBlueprint CRAFTING_BLUEPRINT;
     public static final NetworkProbe NETWORK_PROBE;
@@ -794,6 +795,18 @@ public class NetworkSlimefunItems {
                 true
         );
 
+        NETWORK_CRAFTER_MATRIX = new NetworkCrafterMatrix(
+                NetworksItemGroups.NETWORK_ITEMS,
+                NetworksSlimefunItemStacks.NETWORK_CRAFTER_MATRIX,
+                RecipeType.ENHANCED_CRAFTING_TABLE,
+                makeRecipe(
+                        NETWORK_ADVANCED_AUTO_CRAFTER.getItem(), PRISTINE_AI_CORE.getItem(), NETWORK_ADVANCED_AUTO_CRAFTER.getItem(),
+                        PRISTINE_AI_CORE.getItem(), SlimefunItems.ENHANCED_AUTO_CRAFTER.getItem().getItem(), PRISTINE_AI_CORE.getItem(),
+                        NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING.getItem(), PRISTINE_AI_CORE.getItem(), NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING.getItem()
+                ),
+                500
+        );
+
         CRAFTING_BLUEPRINT = new CraftingBlueprint(
                 NetworksItemGroups.TOOLS,
                 NetworksSlimefunItemStacks.CRAFTING_BLUEPRINT,
@@ -1020,6 +1033,7 @@ public class NetworkSlimefunItems {
         NETWORK_AUTO_CRAFTER_WITHHOLDING.register(plugin);
         NETWORK_ADVANCED_AUTO_CRAFTER.register(plugin);
         NETWORK_ADVANCED_AUTO_CRAFTER_WITHHOLDING.register(plugin);
+        NETWORK_CRAFTER_MATRIX.register(plugin);
 
         CRAFTING_BLUEPRINT.register(plugin);
         NETWORK_PROBE.register(plugin);

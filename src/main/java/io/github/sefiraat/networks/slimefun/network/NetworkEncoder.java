@@ -6,6 +6,7 @@ import io.github.sefiraat.networks.network.NodeDefinition;
 import io.github.sefiraat.networks.network.NodeType;
 import io.github.sefiraat.networks.network.SupportedRecipes;
 import io.github.sefiraat.networks.slimefun.NetworkSlimefunItems;
+import io.github.sefiraat.networks.slimefun.NetworksSlimefunItemStacks;
 import io.github.sefiraat.networks.slimefun.tools.CraftingBlueprint;
 import io.github.sefiraat.networks.utils.ItemCreator;
 import io.github.sefiraat.networks.utils.NetworkTransportUtils;
@@ -16,7 +17,6 @@ import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
 import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItemStack;
 import com.github.drakescraft_labs.slimefun4.api.recipes.RecipeType;
 import com.github.drakescraft_labs.slimefun4.implementation.Slimefun;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.items.CustomItemStack;
 import com.github.drakescraft_labs.slimefun4.libraries.dough.protection.Interaction;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
 import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenuPreset;
@@ -32,7 +32,7 @@ import javax.annotation.Nonnull;
 public class NetworkEncoder extends NetworkObject {
 
     private static final int[] BACKGROUND = new int[]{
-        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 17, 18, 20, 24, 25, 26, 27, 28, 29, 33, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 15, 17, 18, 24, 25, 26, 27, 28, 29, 33, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44
     };
 
     private static final int[] RECIPE_SLOTS = new int[]{
@@ -44,6 +44,7 @@ public class NetworkEncoder extends NetworkObject {
     };
 
     private static final int BLANK_BLUEPRINT_SLOT = 19;
+    private static final int CLEAR_BUTTON_SLOT = 20;
     private static final int ENCODE_SLOT = 16;
     private static final int OUTPUT_SLOT = 34;
 
@@ -55,6 +56,14 @@ public class NetworkEncoder extends NetworkObject {
 
     public static final ItemStack ENCODE_STACK = ItemCreator.create(
         Material.BLUE_STAINED_GLASS_PANE, Theme.PASSIVE + "Click to encode when valid"
+    );
+
+    public static final ItemStack CLEAR_BUTTON_STACK = ItemCreator.create(
+        Material.RED_STAINED_GLASS_PANE,
+        Theme.CLICK_INFO + "Limpiar / Formatear Blueprint",
+        Theme.PASSIVE + "Haz clic para borrar la receta",
+        Theme.PASSIVE + "del blueprint colocado en el slot y",
+        Theme.PASSIVE + "devolverlo a Blueprint en blanco."
     );
 
     public NetworkEncoder(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
@@ -77,12 +86,17 @@ public class NetworkEncoder extends NetworkObject {
                 drawBackground(BLUEPRINT_BACK_STACK, BLUEPRINT_BACK);
 
                 addItem(ENCODE_SLOT, ENCODE_STACK, (player, i, itemStack, clickAction) -> false);
+                addItem(CLEAR_BUTTON_SLOT, CLEAR_BUTTON_STACK, (player, i, itemStack, clickAction) -> false);
             }
 
             @Override
             public void newInstance(@Nonnull BlockMenu menu, @Nonnull Block b) {
                 menu.addMenuClickHandler(ENCODE_SLOT, (player, i, itemStack, clickAction) -> {
                     tryEncode(player, menu);
+                    return false;
+                });
+                menu.addMenuClickHandler(CLEAR_BUTTON_SLOT, (player, i, itemStack, clickAction) -> {
+                    tryClear(player, menu);
                     return false;
                 });
             }
@@ -98,6 +112,21 @@ public class NetworkEncoder extends NetworkObject {
                 return new int[0];
             }
         };
+    }
+
+    public void tryClear(@Nonnull Player player, @Nonnull BlockMenu blockMenu) {
+        final ItemStack blueprint = blockMenu.getItemInSlot(BLANK_BLUEPRINT_SLOT);
+        if (blueprint == null || blueprint.getType() == Material.AIR
+            || !(SlimefunItem.getByItem(blueprint) instanceof CraftingBlueprint)) {
+            player.sendMessage(Theme.WARNING + "No hay ningún blueprint en la ranura para formatear.");
+            return;
+        }
+
+        ItemStack blank = NetworksSlimefunItemStacks.CRAFTING_BLUEPRINT.clone();
+        blank.setAmount(blueprint.getAmount());
+        blockMenu.replaceExistingItem(BLANK_BLUEPRINT_SLOT, blank);
+        blockMenu.markDirty();
+        player.sendMessage(Theme.SUCCESS + "Blueprint formateado a estado en blanco.");
     }
 
     public void tryEncode(@Nonnull Player player, @Nonnull BlockMenu blockMenu) {
@@ -126,7 +155,7 @@ public class NetworkEncoder extends NetworkObject {
 
         if (blueprint == null || blueprint.getType() == Material.AIR
             || !(SlimefunItem.getByItem(blueprint) instanceof CraftingBlueprint)) {
-            player.sendMessage(Theme.WARNING + "You need to provide a blank blueprint");
+            player.sendMessage(Theme.WARNING + "You need to provide a crafting blueprint");
             return;
         }
 
@@ -174,22 +203,13 @@ public class NetworkEncoder extends NetworkObject {
             return;
         }
 
-        // Entrega confirmada: ahora sí consumimos el blueprint en blanco e inputs.
+        // Entrega confirmada: consumimos 1 blueprint de la ranura.
         blueprint.setAmount(blueprint.getAmount() - 1);
         if (blueprint.getAmount() <= 0) {
             blockMenu.replaceExistingItem(BLANK_BLUEPRINT_SLOT, null);
         }
 
-        for (int recipeSlot : RECIPE_SLOTS) {
-            ItemStack slotItem = blockMenu.getItemInSlot(recipeSlot);
-            if (slotItem != null) {
-                slotItem.setAmount(slotItem.getAmount() - 1);
-                if (slotItem.getAmount() <= 0) {
-                    blockMenu.replaceExistingItem(recipeSlot, null);
-                }
-            }
-        }
-
+        // Safe ghost encoding: los ítems de receta se conservan intactos en la matriz 3x3
         blockMenu.markDirty();
         root.removeRootPower(CHARGE_COST);
     }
