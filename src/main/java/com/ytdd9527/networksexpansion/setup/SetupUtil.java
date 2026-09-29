@@ -1,5 +1,6 @@
 package com.ytdd9527.networksexpansion.setup;
 
+import cl.jackstar.networks.compat.DrakeLegacyMachines;
 import com.ytdd9527.networksexpansion.implementation.ExpansionItems;
 import com.ytdd9527.networksexpansion.implementation.ExpansionItemsMenus;
 import io.github.sefiraat.networks.Networks;
@@ -11,6 +12,10 @@ public class SetupUtil {
     @SuppressWarnings("deprecation")
     public static void setupItem() {
         NetworkSlimefunItems.setup();
+
+        // Item-safety de la fusión Igdrassil→V6: re-registra los 9 ids legacy NTW_ADVANCED_*
+        // de la era V6 para que los bloques ya colocados por los jugadores no se rompan.
+        DrakeLegacyMachines.setup(Networks.getInstance());
 
         /* items */
         ExpansionItemsMenus.SUB_MENU_TOOL.addTo(
