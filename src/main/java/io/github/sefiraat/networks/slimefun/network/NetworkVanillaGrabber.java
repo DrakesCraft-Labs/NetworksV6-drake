@@ -155,13 +155,15 @@ public class NetworkVanillaGrabber extends NetworkDirectional {
                 }
             }
         } else {
-            // Velocidad: jalar hasta MAX_PULLS_PER_CYCLE stacks por ciclo (antes: 1 y return).
-            // Red moderna y rapida sin barrer inventarios gigantes de golpe (anti-lag).
+            // Velocidad DINAMICA: escala con el almacenamiento conectado a la red.
+            // Standalone/red chica = base 6 stacks/ciclo; red grande = hasta 100 stacks/ciclo.
+            // (Antes: 1 stack y return -> el cuello de botella reportado por Emilio.)
+            final int cells = root.getCellsSize();
+            final int maxPulls = Math.min(100, 6 + cells * 4);
             int pulls = 0;
-            final int MAX_PULLS_PER_CYCLE = 12;
             for (int slot = 0; slot < inventory.getSize(); slot++) {
                 if (tryPullFromInventory(blockMenu, root, accessor, inventory, slot) > 0) {
-                    if (++pulls >= MAX_PULLS_PER_CYCLE) {
+                    if (++pulls >= maxPulls) {
                         return;
                     }
                 }

@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 /** Directional bulk extractor with a bounded per-tick transfer budget. */
 public final class NetworkAdvancedGrabber extends NetworkDirectional {
 
-    private static final int TRANSFER_LIMIT = 6912; // x2 velocidad (antes 3456)
+    private static final int TRANSFER_LIMIT = 3456; // base; el limite real es DINAMICO segun celdas conectadas
 
     public NetworkAdvancedGrabber(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(itemGroup, item, recipeType, recipe, NodeType.GRABBER);
@@ -47,13 +47,15 @@ public final class NetworkAdvancedGrabber extends NetworkDirectional {
         }
 
         int moved = 0;
+        // Velocidad DINAMICA: base + escala segun el almacenamiento (celdas) conectado a la red.
+        final int transferLimit = Math.min(13824, TRANSFER_LIMIT + definition.getNode().getRoot().getCellsSize() * 256);
         for (int slot : NetworkTransportUtils.getTransportSlots(target, ItemTransportFlow.WITHDRAW, null)) {
             ItemStack source = target.getItemInSlot(slot);
             if (source == null || source.getType() == Material.AIR) {
                 continue;
             }
             moved += NetworkTransportUtils.pullIntoNetwork(definition.getNode().getRoot(), menu.getLocation(), target, slot);
-            if (moved >= TRANSFER_LIMIT) {
+            if (moved >= transferLimit) {
                 break;
             }
         }
