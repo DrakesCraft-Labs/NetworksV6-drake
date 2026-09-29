@@ -378,6 +378,23 @@ public abstract class NetworkDirectional extends NetworkObject {
 
             @Override
             public boolean canOpen(@NotNull Block block, @NotNull Player player) {
+                // Fix drake (bug de Emilio): si el jugador sostiene un Configurator/Remote o va a
+                // colocar un marco, NO abrir el menu de la maquina; deja que la accion propia del
+                // item ocurra (copiar configuracion / poner el marco).
+                ItemStack inHand = player.getInventory().getItemInMainHand();
+                if (inHand != null && !inHand.getType().isAir()) {
+                    Material m = inHand.getType();
+                    if (m == Material.ITEM_FRAME || m == Material.GLOW_ITEM_FRAME) {
+                        return false;
+                    }
+                    SlimefunItem sfInHand = SlimefunItem.getByItem(inHand);
+                    if (sfInHand != null) {
+                        String id = sfInHand.getId();
+                        if (id.contains("CONFIGURATOR") || id.contains("REMOTE")) {
+                            return false;
+                        }
+                    }
+                }
                 return player.hasPermission("slimefun.inventory.bypass")
                     || (this.getSlimefunItem().canUse(player, false)
                     && Slimefun.getProtectionManager()
