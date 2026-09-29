@@ -1,8 +1,10 @@
 package com.balugaq.netex.utils;
 
+import com.ytdd9527.networksexpansion.utils.itemstacks.ItemStackUtil;
 import io.github.sefiraat.networks.utils.StackUtils;
+import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
 import lombok.experimental.UtilityClass;
-import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
+import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +61,7 @@ public class BlockMenuUtil {
         }
 
         if (leftAmount > 0) {
-            return Converter.getItem(item, leftAmount);
+            return new CustomItemStack(item, leftAmount);
         } else {
             return null;
         }
@@ -70,7 +72,7 @@ public class BlockMenuUtil {
         @NotNull final BlockMenu blockMenu,
         @Nullable final ItemStack @NotNull [] items,
         @Range(from = 0, to = 53) final int @NotNull ... slots) {
-        if (items.length == 0) {
+        if (items == null || items.length == 0) {
             return new HashMap<>();
             // throw new IllegalArgumentException("Cannot push null or empty array");
         }
@@ -212,5 +214,36 @@ public class BlockMenuUtil {
         }
 
         return true;
+    }
+
+    public static void consumeItem(@NotNull final BlockMenu blockMenu, @Range(from = 0, to = 64) final int slot) {
+        consumeItem(blockMenu, slot, 1);
+    }
+
+    public static void consumeItem(
+        @NotNull final BlockMenu blockMenu,
+        @Range(from = 0, to = 53) final int slot,
+        final boolean replaceConsumables) {
+        consumeItem(blockMenu, slot, 1, replaceConsumables);
+    }
+
+    public static void consumeItem(
+        @NotNull final BlockMenu blockMenu,
+        @Range(from = 0, to = 53) final int slot,
+        @Range(from = 0, to = 64) final int amount) {
+        consumeItem(blockMenu, slot, amount, false);
+    }
+
+    public static void consumeItem(
+        @NotNull final BlockMenu blockMenu,
+        @Range(from = 0, to = 53) final int slot,
+        @Range(from = 0, to = 64) final int amount,
+        final boolean replaceConsumables) {
+        if (amount == 0) {
+            return;
+        }
+
+        final ItemStack item = blockMenu.getItemInSlot(slot);
+        ItemStackUtil.consumeItem(item, amount, replaceConsumables);
     }
 }

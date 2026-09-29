@@ -1,71 +1,50 @@
 package io.github.sefiraat.networks.slimefun;
 
+import com.balugaq.netex.utils.Lang;
 import io.github.sefiraat.networks.Networks;
 import io.github.sefiraat.networks.slimefun.groups.DummyItemGroup;
 import io.github.sefiraat.networks.slimefun.groups.MainFlexGroup;
-import io.github.sefiraat.networks.utils.ItemCreator;
 import io.github.sefiraat.networks.utils.Keys;
-import io.github.sefiraat.networks.utils.Theme;
-import com.github.drakescraft_labs.slimefun4.api.items.ItemGroup;
-import com.github.drakescraft_labs.slimefun4.libraries.dough.items.CustomItemStack;
+import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
+import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 @UtilityClass
 public final class NetworksItemGroups {
 
     public static final MainFlexGroup MAIN = new MainFlexGroup(
         Keys.newKey("main"),
-        ItemCreator.create(
-            new ItemStack(Material.BLACK_STAINED_GLASS),
-            Theme.MAIN.getColor() + "Networks"
-        )
-    );
+        new CustomItemStack(NetworksSlimefunItemStacks.NETWORK_CONTROLLER, Lang.getString("groups.main")),
+        0);
 
     public static final DummyItemGroup MATERIALS = new DummyItemGroup(
         Keys.newKey("materials"),
-        ItemCreator.create(
-            new ItemStack(Material.WHITE_STAINED_GLASS),
-            Theme.MAIN.getColor() + "Crafting Materials"
-        )
-    );
+        new CustomItemStack(new ItemStack(Material.WHITE_STAINED_GLASS), Lang.getString("groups.materials")),
+        0);
 
     public static final DummyItemGroup TOOLS = new DummyItemGroup(
         Keys.newKey("tools"),
-        ItemCreator.create(
-            new ItemStack(Material.PAINTING),
-            Theme.MAIN.getColor() + "Network Management Tools"
-        )
-    );
+        new CustomItemStack(new ItemStack(Material.PAINTING), Lang.getString("groups.tools")),
+        0);
 
     public static final DummyItemGroup NETWORK_ITEMS = new DummyItemGroup(
         Keys.newKey("network_items"),
-        ItemCreator.create(
-            new ItemStack(Material.BLACK_STAINED_GLASS),
-            Theme.MAIN.getColor() + "Network Items"
-        )
-    );
+        new CustomItemStack(new ItemStack(Material.BLACK_STAINED_GLASS), Lang.getString("groups.network_items")),
+        0);
 
     public static final DummyItemGroup NETWORK_QUANTUMS = new DummyItemGroup(
         Keys.newKey("network_quantums"),
-        ItemCreator.create(
-            new ItemStack(Material.WHITE_TERRACOTTA),
-            Theme.MAIN.getColor() + "Network Quantum Storage Devices"
-        )
-    );
+        new CustomItemStack(new ItemStack(Material.WHITE_TERRACOTTA), Lang.getString("groups.network_quantums")),
+        0);
 
     public static final ItemGroup DISABLED_ITEMS = new HiddenItemGroup(
         Keys.newKey("disabled_items"),
-        ItemCreator.create(
-            new ItemStack(Material.BARRIER),
-            Theme.MAIN.getColor() + "Disabled/Removed Items"
-        )
-    );
+        new CustomItemStack(new ItemStack(Material.BARRIER), Lang.getString("groups.disabled_items")));
 
     static {
         final Networks plugin = Networks.getInstance();
@@ -81,12 +60,13 @@ public final class NetworksItemGroups {
 
     public static class HiddenItemGroup extends ItemGroup {
 
-        public HiddenItemGroup(NamespacedKey key, ItemStack item) {
+        public HiddenItemGroup(@NotNull NamespacedKey key, @NotNull ItemStack item) {
             super(key, item);
         }
 
+        @SuppressWarnings("deprecation")
         @Override
-        public boolean isHidden(@Nonnull Player p) {
+        public boolean isHidden(@NotNull Player p) {
             return true;
         }
     }

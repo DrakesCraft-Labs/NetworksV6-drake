@@ -1,11 +1,21 @@
 package io.github.sefiraat.networks.network;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class NodeDefinition {
 
+    @Getter
     private final NodeType type;
+
     private final long timeRegistered;
-    private NetworkNode node;
+
+    @Getter
     private final int charge;
+
+    @Setter
+    @Getter
+    private NetworkNode node;
 
     public NodeDefinition(NodeType type) {
         this(type, 0);
@@ -17,24 +27,7 @@ public class NodeDefinition {
         this.charge = charge;
     }
 
-    public NodeType getType() {
-        return type;
-    }
-
-    public NetworkNode getNode() {
-        return node;
-    }
-
-    public int getCharge() {
-        return charge;
-    }
-
-    public void setNode(NetworkNode node) {
-        this.node = node;
-    }
-
     public boolean isExpired() {
         return System.currentTimeMillis() > this.timeRegistered + 3000L;
     }
-
 }

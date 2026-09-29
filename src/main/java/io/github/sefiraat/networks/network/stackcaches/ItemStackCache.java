@@ -1,17 +1,21 @@
 package io.github.sefiraat.networks.network.stackcaches;
 
+import lombok.ToString;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.UnknownNullability;
 
-import javax.annotation.Nullable;
-
+@ToString
 public class ItemStackCache {
 
-    private ItemStack itemStack;
+    protected @UnknownNullability ItemStack itemStack;
+
     @Nullable
-    private ItemMeta itemMeta = null;
-    private boolean metaCached = false;
+    protected ItemMeta itemMeta = null;
+
+    protected boolean metaCached = false;
 
     public ItemStackCache(@Nullable ItemStack itemStack) {
         this.itemStack = itemStack;
@@ -33,7 +37,7 @@ public class ItemStackCache {
     @Nullable
     public ItemMeta getItemMeta() {
         if (this.itemMeta == null && !this.metaCached) {
-            this.itemMeta = itemStack.hasItemMeta() ? itemStack.getItemMeta() : null;
+            this.itemMeta = itemStack == null ? null : itemStack.hasItemMeta() ? itemStack.getItemMeta() : null;
             this.metaCached = !this.metaCached;
         }
         return this.itemMeta;
@@ -41,6 +45,6 @@ public class ItemStackCache {
 
     @Nullable
     public Material getItemType() {
-        return this.itemStack.getType();
+        return this.itemStack == null ? null : this.itemStack.getType();
     }
 }

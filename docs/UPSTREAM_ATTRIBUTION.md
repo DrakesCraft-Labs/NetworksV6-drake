@@ -1,14 +1,12 @@
 # Atribucion a los autores originales
 
-**NetworksV6-drake** es un port mantenido por DrakesCraft Labs de un addon creado por otras personas.
+**NetworksExpansion-Igdrassil** es un port mantenido por DrakesCraft Labs de un addon creado por otras personas.
 Se publica al amparo de su licencia **GPL-3.0-only**, que permite redistribuir y modificar siempre que
 se conserve el credito y la propia licencia.
 
 ## Autoria original
 
-- Sefiraat
-- mmmjjkx
-- DrakesCraft-Labs
+- - Sefiraat
 
 El diseno, las mecanicas y la mayor parte del codigo son suyos. DrakesCraft Labs no reclama
 autoria sobre ese trabajo.

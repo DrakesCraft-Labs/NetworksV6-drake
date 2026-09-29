@@ -1,34 +1,45 @@
 package io.github.sefiraat.networks.network;
 
+import com.xzavier0722.mc.plugin.slimefun4.storage.util.StorageCacheUtils;
 import io.github.sefiraat.networks.NetworkStorage;
+import io.github.sefiraat.networks.Networks;
+import io.github.sefiraat.networks.slimefun.network.NetworkController;
 import io.github.sefiraat.networks.slimefun.network.NetworkPowerNode;
-import com.github.drakescraft_labs.slimefun4.api.items.SlimefunItem;
-import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
+import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
+import lombok.Getter;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
 public class NetworkNode {
 
-    protected static final Set<BlockFace> VALID_FACES = EnumSet.of(
-        BlockFace.UP,
-        BlockFace.DOWN,
-        BlockFace.NORTH,
-        BlockFace.EAST,
-        BlockFace.SOUTH,
-        BlockFace.WEST
-    );
+    public static final Set<BlockFace> VALID_FACES =
+        EnumSet.of(BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST);
 
+    @Getter
     protected final Set<NetworkNode> childrenNodes = new HashSet<>();
-    protected NetworkNode parent = null;
+
+    protected final Location nodePosition;
+    protected final NodeType nodeType;
+
+    @Getter
+    protected final long power;
+
+    @Getter
+    protected @Nullable NetworkNode parent = null;
+
+    @Getter
     protected NetworkRoot root = null;
-    protected Location nodePosition;
-    protected NodeType nodeType;
-    protected long power;
 
     public NetworkNode(Location location, NodeType type) {
         this.nodePosition = location;
@@ -36,67 +47,61 @@ public class NetworkNode {
         this.power = retrieveBlockCharge();
     }
 
-    public void addChild(@Nonnull NetworkNode child) {
+    public void addChild(@NotNull NetworkNode child) {
         child.setParent(this);
         child.setRoot(this.getRoot());
-        this.root.addRootPower(child.getPower());
-        this.root.registerNode(child.nodePosition, child.nodeType);
+        if (this.root != null) {
+            this.root.addRootPower(child.getPower());
+            this.root.registerNode(child.nodePosition, child.nodeType);
+        }
         this.childrenNodes.add(child);
     }
 
-    @Nonnull
+    @NotNull
     public Location getNodePosition() {
         return nodePosition;
     }
 
-    @Nonnull
+    @NotNull
     public NodeType getNodeType() {
         return nodeType;
     }
 
-    public boolean networkContains(@Nonnull NetworkNode networkNode) {
+    public boolean networkContains(@NotNull NetworkNode networkNode) {
         return networkContains(networkNode.nodePosition);
     }
 
-    public boolean networkContains(@Nonnull Location location) {
+    public boolean networkContains(@NotNull Location location) {
+        if (this.root == null) {
+            return false;
+        }
+
         return this.root.getNodeLocations().contains(location);
     }
 
-    @Nonnull
-    public NetworkRoot getRoot() {
-        return this.root;
-    }
-
-    private void setRoot(NetworkRoot root) {
+    private void setRoot(@Nullable NetworkRoot root) {
         this.root = root;
     }
 
-    public NetworkNode getParent() {
-        return parent;
-    }
-
-    private void setParent(NetworkNode parent) {
+    private void setParent(@Nullable NetworkNode parent) {
         this.parent = parent;
     }
 
-    public Set<NetworkNode> getChildrenNodes() {
-        return this.childrenNodes;
-    }
-
     public void addAllChildren() {
-        java.util.Queue<NetworkNode> queue = new java.util.LinkedList<>();
-        queue.add(this);
+        if (this.root == null) {
+            return;
+        }
 
-        while (!queue.isEmpty()) {
-            NetworkNode currentNode = queue.poll();
-            if (currentNode.getRoot().getNodeCount() >= root.getMaxNodes()) {
-                currentNode.getRoot().setOverburdened(true);
-                return;
-            }
+        Deque<NetworkNode> nodeStack = new ArrayDeque<>(200);
+        nodeStack.push(this);
 
+        while (!nodeStack.isEmpty()) {
+            NetworkNode currentNode = nodeStack.pop();
+
+            // Loop through all possible locations
             for (BlockFace face : VALID_FACES) {
                 final Location testLocation = currentNode.nodePosition.clone().add(face.getDirection());
-                final NodeDefinition testDefinition = NetworkStorage.getAllNetworkObjects().get(testLocation);
+                final NodeDefinition testDefinition = NetworkStorage.getNode(testLocation);
 
                 if (testDefinition == null) {
                     continue;
@@ -104,43 +109,68 @@ public class NetworkNode {
 
                 final NodeType testType = testDefinition.getType();
 
-                // A shared bridge between controllers is an invalid topology, but it must never
-                // cost the player a machine. Isolate the foreign controller and expose the
-                // conflict through diagnostics instead of breaking the block in-world.
-                if (testType == NodeType.CONTROLLER && !testLocation.equals(currentNode.getRoot().nodePosition)) {
-                    currentNode.getRoot().recordControllerConflict(testLocation);
+                // Kill additional controllers if it isn't the root
+                if (testType == NodeType.CONTROLLER && !testLocation.equals(this.root.nodePosition)) {
+                    killAdditionalController(testLocation);
                     continue;
                 }
 
                 // Check if it's in the network already and, if not, create a child node and propagate further.
                 if (testType != NodeType.CONTROLLER && !currentNode.networkContains(testLocation)) {
-                    if (currentNode.getRoot().getNodeCount() >= root.getMaxNodes()) {
-                        currentNode.getRoot().setOverburdened(true);
+                    if (this.root.getNodeCount() >= this.root.getMaxNodes()) {
+                        /*
+                         * Al llegar al limite se abandonaba el recorrido entero. Los nodos que
+                         * quedaban sin visitar conservaban el enlace del root anterior --ya
+                         * muerto-- asi que sus maquinas seguian creyendo estar en red y no hacian
+                         * nada. Y como el recorrido usa una pila, el reparto de quien entra y
+                         * quien no cambiaba entre pasadas: la misma base funcionaba o no segun el
+                         * tick.
+                         *
+                         * Se sigue cortando --por encima del limite no se puede añadir nada-- pero
+                         * dejando constancia, para que se pueda diagnosticar con la sonda en vez
+                         * de adivinar.
+                         */
+                        this.root.setOverburdened(true);
                         return;
                     }
                     final NetworkNode networkNode = new NetworkNode(testLocation, testType);
                     currentNode.addChild(networkNode);
+
+                    nodeStack.push(networkNode);
                     testDefinition.setNode(networkNode);
-                    NetworkStorage.getAllNetworkObjects().put(testLocation, testDefinition);
-                    queue.add(networkNode);
+                    NetworkStorage.registerNode(testLocation, testDefinition);
                 }
             }
+        }
+    }
+
+    private void killAdditionalController(@NotNull Location location) {
+        SlimefunItem sfItem = StorageCacheUtils.getSfItem(location);
+        if (sfItem != null) {
+            Slimefun.getDatabaseManager().getBlockDataController().removeBlock(location);
+            BukkitRunnable runnable = new BukkitRunnable() {
+                @Override
+                public void run() {
+                    // fix #99
+                    NetworkController.wipeNetwork(location);
+                    location.getWorld().dropItemNaturally(location, sfItem.getItem());
+                    location.getBlock().setType(Material.AIR);
+                }
+            };
+            runnable.runTask(Networks.getInstance());
+            NetworkController.wipeNetwork(location);
         }
     }
 
     protected long retrieveBlockCharge() {
         if (this.nodeType == NodeType.POWER_NODE) {
             int blockCharge = 0;
-            final SlimefunItem item = BlockStorage.check(this.nodePosition);
+            final SlimefunItem item = StorageCacheUtils.getSfItem(this.nodePosition);
             if (item instanceof NetworkPowerNode powerNode) {
                 blockCharge = powerNode.getCharge(this.nodePosition);
             }
             return blockCharge;
         }
         return 0;
-    }
-
-    public long getPower() {
-        return this.power;
     }
 }

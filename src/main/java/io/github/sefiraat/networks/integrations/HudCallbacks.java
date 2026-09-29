@@ -1,61 +1,34 @@
 package io.github.sefiraat.networks.integrations;
 
+import com.balugaq.netex.api.data.StorageUnitData;
+import com.balugaq.netex.core.guide.QuantumSlimeHUDDisplayOption;
+import com.balugaq.netex.utils.Lang;
+import com.xzavier0722.mc.plugin.slimefun4.storage.util.StorageCacheUtils;
+import com.ytdd9527.networksexpansion.implementation.machines.networks.advanced.AdvancedGreedyBlock;
+import com.ytdd9527.networksexpansion.implementation.machines.unit.NetworksDrawer;
+import com.ytdd9527.networksexpansion.utils.TextUtil;
 import io.github.schntgaispock.slimehud.SlimeHUD;
 import io.github.schntgaispock.slimehud.util.HudBuilder;
 import io.github.schntgaispock.slimehud.waila.HudController;
-import io.github.sefiraat.networks.NetworkStorage;
-import io.github.sefiraat.networks.network.NetworkNode;
-import io.github.sefiraat.networks.network.NetworkRoot;
-import io.github.sefiraat.networks.network.NodeDefinition;
 import io.github.sefiraat.networks.network.stackcaches.QuantumCache;
-import io.github.sefiraat.networks.slimefun.network.NetworkController;
-import io.github.sefiraat.networks.slimefun.network.NetworkDirectional;
-import io.github.sefiraat.networks.slimefun.network.NetworkGrabber;
 import io.github.sefiraat.networks.slimefun.network.NetworkGreedyBlock;
-import io.github.sefiraat.networks.slimefun.network.NetworkPusher;
 import io.github.sefiraat.networks.slimefun.network.NetworkQuantumStorage;
-import com.github.drakescraft_labs.slimefun4.legacy.api.BlockStorage;
-import com.github.drakescraft_labs.slimefun4.legacy.api.inventory.BlockMenu;
-import com.github.drakescraft_labs.slimefun4.utils.ChatUtils;
+import io.github.thebusybiscuit.slimefun4.core.guide.options.SlimefunGuideSettings;
+import me.mrCookieSlime.Slimefun.api.inventory.BlockMenu;
+import cl.jackstar.networks.compat.TextoItems;
 import org.bukkit.Location;
-import org.bukkit.block.BlockFace;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
-import java.text.NumberFormat;
-import java.util.Locale;
+public class HudCallbacks {
 
-public final class HudCallbacks {
-
-    private static final String EMPTY = "&7| Vacío";
-
-    private HudCallbacks() {
-    }
+    private static final String EMPTY = Lang.getString("messages.integrations.slimehud.empty_quantum_storage");
 
     public static void setup() {
         HudController controller = SlimeHUD.getHudController();
-        if (controller == null) {
-            return;
-        }
 
-        // NetworkController HUD
-        controller.registerCustomHandler(NetworkController.class, request -> {
-            Location loc = request.getLocation();
-            NetworkRoot root = NetworkController.getNetworks().get(loc);
-            if (root == null) {
-                return "&7| &cRed no inicializada";
-            }
-            double flow = root.getThroughput().getItemsPerSecond();
-            int nodes = root.getNodeCount();
-            int max = root.getMaxNodes();
-            long total = root.getThroughput().getTotalTransferredItems();
-
-            return String.format(Locale.ROOT,
-                "&7| &fNodos: &a%d&7/&b%d &7| &fFlujo: &e+%.1f/s &7| &6%s enrutados",
-                nodes, max, flow, NumberFormat.getInstance().format(total));
-        });
-
-        // NetworkQuantumStorage HUD
         controller.registerCustomHandler(NetworkQuantumStorage.class, request -> {
             Location location = request.getLocation();
             QuantumCache cache = NetworkQuantumStorage.getCaches().get(location);
@@ -63,85 +36,78 @@ public final class HudCallbacks {
                 return EMPTY;
             }
 
-            NodeDefinition def = NetworkStorage.getAllNetworkObjects().get(location);
-            double flow = 0.0;
-            if (def != null && def.getNode() != null && def.getNode().getRoot() != null) {
-                flow = def.getNode().getRoot().getThroughput().getNodeItemsPerSecond(location);
-            }
-
-            return formatQuantum(cache.getItemStack(), cache.getAmount(), cache.getLimit(), flow);
+            return format(request.getPlayer(), cache.getItemStack(), cache.getAmountLong(), cache.getLimitLong());
         });
 
-        // NetworkGreedyBlock HUD
         controller.registerCustomHandler(NetworkGreedyBlock.class, request -> {
             Location location = request.getLocation();
-            BlockMenu menu = BlockStorage.getInventory(location);
+            BlockMenu menu = StorageCacheUtils.getMenu(location);
             if (menu == null) {
                 return EMPTY;
             }
 
             ItemStack templateStack = menu.getItemInSlot(NetworkGreedyBlock.TEMPLATE_SLOT);
-            if (templateStack == null || templateStack.getType().isAir()) {
+            if (templateStack == null || templateStack.getType() == Material.AIR) {
                 return EMPTY;
             }
 
             ItemStack itemStack = menu.getItemInSlot(NetworkGreedyBlock.INPUT_SLOT);
-            int amount = itemStack == null || itemStack.getType() != templateStack.getType() ? 0 : itemStack.getAmount();
-            return formatSimple(templateStack, amount, templateStack.getMaxStackSize());
+            // Only check type to improve performance
+            int amount =
+                itemStack == null || itemStack.getType() != templateStack.getType() ? 0 : itemStack.getAmount();
+            return format(request.getPlayer(), templateStack, amount, templateStack.getMaxStackSize());
         });
 
-        // NetworkPusher HUD
-        controller.registerCustomHandler(NetworkPusher.class, request -> {
+        controller.registerCustomHandler(AdvancedGreedyBlock.class, request -> {
+            Player player = request.getPlayer();
             Location location = request.getLocation();
-            BlockFace face = NetworkDirectional.getSelectedFace(location);
-            NodeDefinition def = NetworkStorage.getAllNetworkObjects().get(location);
-            double flow = 0.0;
-            if (def != null && def.getNode() != null && def.getNode().getRoot() != null) {
-                flow = def.getNode().getRoot().getThroughput().getNodeItemsPerSecond(location);
+            BlockMenu menu = StorageCacheUtils.getMenu(location);
+            if (menu == null) {
+                return EMPTY;
             }
-            String dirStr = face != null ? face.name() : "NONE";
-            return String.format(Locale.ROOT, "&7| &bPusher: &e%s &7| &fFlujo: &a+%.1f/s", dirStr, flow);
+
+            ItemStack templateStack = menu.getItemInSlot(AdvancedGreedyBlock.TEMPLATE_SLOT);
+            if (templateStack == null || templateStack.getType() == Material.AIR) {
+                return EMPTY;
+            }
+
+            int amount = 0;
+            for (int i : AdvancedGreedyBlock.INPUT_SLOTS) {
+                ItemStack itemStack = menu.getItemInSlot(i);
+                // Only check type to improve performance
+                if (itemStack.getType() == templateStack.getType()) {
+                    amount += itemStack.getAmount();
+                }
+            }
+
+            return format(player, templateStack, amount, templateStack.getMaxStackSize());
         });
 
-        // NetworkGrabber HUD
-        controller.registerCustomHandler(NetworkGrabber.class, request -> {
+        controller.registerCustomHandler(NetworksDrawer.class, request -> {
+            Player player = request.getPlayer();
             Location location = request.getLocation();
-            BlockFace face = NetworkDirectional.getSelectedFace(location);
-            NodeDefinition def = NetworkStorage.getAllNetworkObjects().get(location);
-            double flow = 0.0;
-            if (def != null && def.getNode() != null && def.getNode().getRoot() != null) {
-                flow = def.getNode().getRoot().getThroughput().getNodeItemsPerSecond(location);
-            }
-            String dirStr = face != null ? face.name() : "NONE";
-            return String.format(Locale.ROOT, "&7| &dGrabber: &e%s &7| &fFlujo: &a+%.1f/s", dirStr, flow);
+            StorageUnitData data = NetworksDrawer.getStorageData(location);
+            if (data == null) return EMPTY;
+            if (data.getStoredItemsDirectly().isEmpty()) return EMPTY;
+
+            double usedAmountPercent = (double) data.getTotalAmountLong() / (data.getSizeType().getMaxItemCount() * data.getSizeType().getEachMaxSize());
+            return TextUtil.GRAY + "| " + TextUtil.WHITE + data.getStoredTypeCount() + "/" + data.getSizeType().getMaxItemCount() + " " + TextUtil.GRAY + "| " + (((int)(usedAmountPercent * 1000)) / 10) + "%";
         });
+
+        SlimefunGuideSettings.addOption(QuantumSlimeHUDDisplayOption.instance());
     }
 
-    private static String formatQuantum(ItemStack itemStack, int amount, int limit, double flow) {
-        ItemMeta meta = itemStack.getItemMeta();
+    private static @NotNull String format(@NotNull Player player, @NotNull ItemStack itemStack, long amount, long limit) {
         String amountStr = HudBuilder.getAbbreviatedNumber(amount);
         String limitStr = HudBuilder.getAbbreviatedNumber(limit);
-        String itemName = meta != null && meta.hasDisplayName()
-                ? meta.getDisplayName()
-                : ChatUtils.humanize(itemStack.getType().name());
+        String itemName = TextoItems.nombreVisible(itemStack);
 
-        double pct = limit > 0 ? (amount * 100.0 / limit) : 0.0;
-        if (flow > 0.05) {
-            return String.format(Locale.ROOT, "&7| &f%s &7| &a%s&7/&e%s &7(&b%.1f%%&7) &7| &f+%.1f/s",
-                itemName, amountStr, limitStr, pct, flow);
+        String raw = TextUtil.GRAY + "| " + TextUtil.WHITE + itemName + " " + TextUtil.GRAY + "| ";
+
+        if (QuantumSlimeHUDDisplayOption.isEnabled(player)) {
+            return raw + amountStr + "/" + limitStr;
+        } else {
+            return raw + (((int)(amount / limit * 1000)) / 10) + "%";
         }
-        return String.format(Locale.ROOT, "&7| &f%s &7| &a%s&7/&e%s &7(&b%.1f%%&7)",
-            itemName, amountStr, limitStr, pct);
-    }
-
-    private static String formatSimple(ItemStack itemStack, int amount, int limit) {
-        ItemMeta meta = itemStack.getItemMeta();
-        String amountStr = HudBuilder.getAbbreviatedNumber(amount);
-        String limitStr = HudBuilder.getAbbreviatedNumber(limit);
-        String itemName = meta != null && meta.hasDisplayName()
-                ? meta.getDisplayName()
-                : ChatUtils.humanize(itemStack.getType().name());
-
-        return "&7| &f" + itemName + " &7| " + amountStr + "/" + limitStr;
     }
 }

@@ -1,0 +1,10 @@
+version: "1"
+rules:
+  - base: master
+    upstream: SlimefunGuguProject:master
+    mergeMethod: merge
+    assignees:
+      - balugaq
+    conflictReviewers:
+      - balugaq
+
