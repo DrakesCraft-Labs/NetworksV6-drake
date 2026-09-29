@@ -168,6 +168,10 @@ public class Networks extends JavaPlugin implements SlimefunAddon {
         getLogger().info(getLocalizationService().getString("messages.startup.registering-items"));
         SetupUtil.setupAll();
 
+        // Mejora drake: puente de interoperabilidad con MultiverseNets (Chagui). Reflexivo:
+        // latente si MultiverseNets no esta, ambos plugins siguen funcionando por separado.
+        cl.jackstar.networks.compat.MultiverseNetsBridge.init(getLogger());
+
         getLogger().info(getLocalizationService().getString("messages.startup.registering-listeners"));
         this.listenerManager = new ListenerManager();
         getLogger().info(getLocalizationService().getString("messages.startup.registering-commands"));
