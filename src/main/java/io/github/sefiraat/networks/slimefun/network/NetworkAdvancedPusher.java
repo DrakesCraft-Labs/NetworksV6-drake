@@ -27,7 +27,7 @@ import javax.annotation.Nullable;
 /** Directional bulk exporter with nine independent item templates. */
 public final class NetworkAdvancedPusher extends NetworkDirectional {
 
-    private static final int TRANSFER_LIMIT = 3456;
+    private static final int TRANSFER_LIMIT = 6912; // x2 velocidad (antes 3456)
     private static final int[] TEMPLATE_SLOTS = {0, 1, 2, 3, 4, 5, 6, 7, 8};
     private static final int[] BACKGROUND_SLOTS = {
         9, 10, 12, 13, 15, 16, 17, 18, 20, 22, 23, 24, 25, 26, 27, 28, 30, 31, 33, 34, 35, 36, 37, 38, 39, 40,

@@ -253,6 +253,20 @@ public abstract class NetworkDirectional extends NetworkObject {
 
             @Override
             public boolean canOpen(@Nonnull Block block, @Nonnull Player player) {
+                // Bug Emilio: no abrir el menu de la maquina si el jugador tiene un tool de
+                // Networks (Configurator/Wireless/Remote) o un marco en la mano. Asi el tool
+                // copia/aplica la configuracion (o se coloca el marco) en vez de abrirse la interfaz.
+                final org.bukkit.inventory.ItemStack inHand = player.getInventory().getItemInMainHand();
+                final SlimefunItem handItem = SlimefunItem.getByItem(inHand);
+                if (handItem instanceof io.github.sefiraat.networks.slimefun.tools.NetworkConfigurator
+                        || handItem instanceof io.github.sefiraat.networks.slimefun.tools.NetworkWirelessConfigurator
+                        || handItem instanceof io.github.sefiraat.networks.slimefun.tools.NetworkRemote) {
+                    return false;
+                }
+                final org.bukkit.Material handMat = inHand.getType();
+                if (handMat == org.bukkit.Material.ITEM_FRAME || handMat == org.bukkit.Material.GLOW_ITEM_FRAME) {
+                    return false;
+                }
                 return this.getSlimefunItem().canUse(player, false)
                     && Slimefun.getProtectionManager().hasPermission(player, block.getLocation(), Interaction.INTERACT_BLOCK);
             }

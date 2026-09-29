@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 /** Directional bulk extractor with a bounded per-tick transfer budget. */
 public final class NetworkAdvancedGrabber extends NetworkDirectional {
 
-    private static final int TRANSFER_LIMIT = 3456;
+    private static final int TRANSFER_LIMIT = 6912; // x2 velocidad (antes 3456)
 
     public NetworkAdvancedGrabber(ItemGroup itemGroup, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(itemGroup, item, recipeType, recipe, NodeType.GRABBER);

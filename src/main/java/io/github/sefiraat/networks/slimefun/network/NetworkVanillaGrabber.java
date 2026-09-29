@@ -155,9 +155,15 @@ public class NetworkVanillaGrabber extends NetworkDirectional {
                 }
             }
         } else {
+            // Velocidad: jalar hasta MAX_PULLS_PER_CYCLE stacks por ciclo (antes: 1 y return).
+            // Red moderna y rapida sin barrer inventarios gigantes de golpe (anti-lag).
+            int pulls = 0;
+            final int MAX_PULLS_PER_CYCLE = 12;
             for (int slot = 0; slot < inventory.getSize(); slot++) {
                 if (tryPullFromInventory(blockMenu, root, accessor, inventory, slot) > 0) {
-                    return;
+                    if (++pulls >= MAX_PULLS_PER_CYCLE) {
+                        return;
+                    }
                 }
             }
         }
