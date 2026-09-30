@@ -2,7 +2,7 @@
 auto-update: true
 
 # Language
-language: es-ES
+language: en-US
 
 # Do not change this value unless you know what you are doing.
 config-version: 2.1.68

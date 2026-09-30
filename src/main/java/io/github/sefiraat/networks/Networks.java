@@ -53,7 +53,7 @@ import java.util.Set;
 import java.util.logging.Level;
 
 public class Networks extends JavaPlugin implements SlimefunAddon {
-    private static final String DEFAULT_LANGUAGE = "zh-CN";
+    private static final String DEFAULT_LANGUAGE = "en-US";
     private static Networks instance;
 
     @Getter

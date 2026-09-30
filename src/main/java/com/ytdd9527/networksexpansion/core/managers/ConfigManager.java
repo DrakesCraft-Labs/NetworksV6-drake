@@ -68,7 +68,7 @@ public class ConfigManager {
     }
 
     public @NotNull String getLanguage() {
-        return Networks.getInstance().getConfig().getString("language", "zh-CN");
+        return Networks.getInstance().getConfig().getString("language", "en-US");
     }
 
     public boolean isForceCheckLore() {
