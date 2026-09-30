@@ -108,6 +108,7 @@ tasks {
         relocate("io.github.thebusybiscuit", "com.github.drakescraft_labs")
         relocate("me.mrCookieSlime.Slimefun", "com.github.drakescraft_labs.slimefun4.legacy")
         relocate("me.mrCookieSlime.CSCoreLibPlugin", "com.github.drakescraft_labs.slimefun4.legacy.CSCoreLibPlugin")
+        relocate("io.github.mooy1.infinityexpansion", "com.github.drakescraft_labs.infinityexpansion")
 
         relocate("org.bstats", "io.github.sefiraat.networks.bstats")
         relocate("io.papermc.lib", "dev.sefiraat.cultivation.paperlib")

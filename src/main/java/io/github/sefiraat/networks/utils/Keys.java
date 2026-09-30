@@ -1,7 +1,6 @@
 package io.github.sefiraat.networks.utils;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
-import io.github.mooy1.infinityexpansion.InfinityExpansion;
 import io.github.sefiraat.networks.Networks;
 import io.github.sefiraat.networks.managers.SupportedPluginManager;
 import io.github.sefiraat.networks.network.stackcaches.BlueprintInstance;
@@ -257,8 +256,9 @@ public class Keys {
     public static final NamespacedKey INFINITY_DISPLAY;
 
     static {
-        if (SupportedPluginManager.getInstance().isInfinityExpansion()) {
-            INFINITY_DISPLAY = InfinityExpansion.createKey("display");
+        org.bukkit.plugin.Plugin ie = org.bukkit.Bukkit.getPluginManager().getPlugin("InfinityExpansion");
+        if (ie != null) {
+            INFINITY_DISPLAY = new NamespacedKey(ie, "display");
         } else {
             INFINITY_DISPLAY = Keys.customNewKey("infinityexpansion", "display");
         }
