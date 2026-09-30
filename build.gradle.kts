@@ -32,7 +32,7 @@ repositories {
 dependencies {
     // Pruebas nuestras. El proyecto no traia ninguna, asi que no habia forma de que un
     // arreglo quedara vigilado: cualquiera podia deshacerlo sin que nada se quejara.
-    testImplementation("org.junit.jupiter:junit-jupiter:5.11.4")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.1.3")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     // Core
